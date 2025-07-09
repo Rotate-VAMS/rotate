@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/pirep",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Pirep\\": "app/",
+            "Modules\\Pirep\\Database\\Factories\\": "database/factories/",
+            "Modules\\Pirep\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Pirep\\Tests\\": "tests/"
+        }
+    }
+}

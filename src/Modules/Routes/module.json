@@ -1,0 +1,11 @@
+{
+    "name": "Routes",
+    "alias": "routes",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Routes\\Providers\\RoutesServiceProvider"
+    ],
+    "files": []
+}

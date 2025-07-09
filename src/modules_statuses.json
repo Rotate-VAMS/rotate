@@ -1,0 +1,10 @@
+{
+    "Dashboard": true,
+    "Users": true,
+    "Routes": true,
+    "Pirep": true,
+    "Event": true,
+    "Events": true,
+    "Support": true,
+    "Integration": true
+}
