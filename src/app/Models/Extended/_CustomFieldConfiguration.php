@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Models\Extended;
+
+use Illuminate\Database\Eloquent\Model;
+use App\Models\CustomFieldConfiguration;
+use Illuminate\Support\Str;
+
+class _CustomFieldConfiguration extends Model
+{
+    const DATA_TYPE_TEXT = 1;
+    
+    const DATA_TYPE_INTEGER = 2;
+    
+    const DATA_TYPE_FLOAT = 3;
+    
+    const DATA_TYPE_BOOLEAN = 4;
+    
+    const DATA_TYPE_DATE = 5;
+
+    const DATA_TYPE_DROPDOWN = 6;
+
+    const AGGREGATION_TYPE_SUM = 1;
+    
+    const AGGREGATION_TYPE_AVERAGE = 2;
+    
+    const AGGREGATION_TYPE_COUNT = 3;
+    
+    const AGGREGATION_TYPE_MIN = 4;
+    
+    const AGGREGATION_TYPE_MAX = 5;
+    
+    const SOURCE_TYPE_PILOTS = 1;
+    
+    const SOURCE_TYPE_PIREPS = 2;
+    
+    const SOURCE_TYPE_EVENTS = 3;
+
+    public static function createCustomFieldConfiguration($data, $mode)
+    {
+        if ($mode === 'edit') {
+            $customFieldConfiguration = CustomFieldConfiguration::find($data['id']);
+            if (!$customFieldConfiguration) {
+                return false;
+            }
+        } else {
+            $customFieldConfiguration = new CustomFieldConfiguration();
+        }
+        $customFieldConfiguration->field_name = $data['field_name'];
+        $customFieldConfiguration->field_description = $data['field_description'];
+        $customFieldConfiguration->data_type = $data['data_type'];
+        $customFieldConfiguration->aggregation_type = $data['aggregation_type'];
+        $customFieldConfiguration->source_type = $data['source_type'];
+        $customFieldConfiguration->is_required = $data['is_required'];
+        $customFieldConfiguration->is_active = true;
+        $customFieldConfiguration->field_key = Str::slug($data['field_name']);
+        $customFieldConfiguration->created_at = now();
+        $customFieldConfiguration->updated_at = now();
+        $customFieldConfiguration->save();
+        return $customFieldConfiguration;
+    }
+}

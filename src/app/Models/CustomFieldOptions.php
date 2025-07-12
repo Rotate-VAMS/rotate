@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_CustomFieldOptions;
 
-class CustomFieldOptions extends Model
+class CustomFieldOptions extends _CustomFieldOptions
 {
     protected $table = 'custom_field_options';
 
