@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_Rank;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Rank extends Model
+class Rank extends _Rank
 {
     use SoftDeletes;
 

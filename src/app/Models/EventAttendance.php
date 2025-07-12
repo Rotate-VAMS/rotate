@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_EventAttendance;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class EventAttendance extends Model
+class EventAttendance extends _EventAttendance
 {
     use SoftDeletes;
 

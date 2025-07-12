@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_Pirep;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Pirep extends Model
+class Pirep extends _Pirep
 {
     use SoftDeletes;
 

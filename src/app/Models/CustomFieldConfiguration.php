@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_CustomFieldConfiguration;
 
-class CustomFieldConfiguration extends Model
+class CustomFieldConfiguration extends _CustomFieldConfiguration
 {
     protected $table = 'custom_field_configuration';
 

@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_FlightType;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class FlightType extends Model
+class FlightType extends _FlightType
 {
     use SoftDeletes;
 
