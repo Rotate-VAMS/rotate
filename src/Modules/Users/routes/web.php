@@ -7,5 +7,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::group(['prefix' => 'pilots', 'controller' => UsersController::class], function () {
         Route::get('/', 'index')->name('pilots.index');
         Route::post('/jxFetchPilots', 'jxFetchPilots')->name('pilots.jxFetchPilots');
+        Route::post('/jxCreateEditPilot', 'jxCreateEditPilot')->name('pilots.jxCreateEditPilot');
+        Route::post('/jxDeletePilot', 'jxDeletePilot')->name('pilots.jxDeletePilot');
     });
 });

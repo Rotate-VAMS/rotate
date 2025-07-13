@@ -5,7 +5,7 @@
         <button
           @click="$emit('navigate', item.key)"
           :class="[
-            'flex items-center w-full px-4 py-2 rounded-lg transition-colors',
+            'flex items-center text-left w-full px-4 py-2 rounded-lg transition-colors',
             active === item.key
               ? 'bg-gray-100 text-blue-600 font-semibold'
               : 'hover:bg-gray-50 text-gray-700'
@@ -20,13 +20,15 @@
 </template>
 
 <script setup>
-import { Settings, Hash, Shield } from 'lucide-vue-next'
+import { Settings, Hash, Shield, Users, ShieldCheck } from 'lucide-vue-next'
 const props = defineProps({
   active: String
 })
 const menu = [
   { key: 'customFields', label: 'Custom Fields', icon: Hash },
   { key: 'discord', label: 'Discord Integration', icon: Settings },
+  { key: 'roles', label: 'Roles', icon: Users },
+  { key: 'ranks', label: 'Ranks', icon: ShieldCheck },
   { key: 'access', label: 'Access Control', icon: Shield },
 ]
 </script>

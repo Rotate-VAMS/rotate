@@ -26,11 +26,12 @@
               </label>
   
               <input
-                v-if="field.type === 'text' || field.type === 'number'"
-                :type="field.type"
+                v-if="field.type === 'text' || field.type === 'number' || field.type === 'rank_time'"
+                :type="field.type === 'number' || field.type === 'rank_time' ? 'number' : 'text'"
                 :id="field.name"
                 v-model="formData[field.name]"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                @input="handleInput($event, field)"
               />
   
               <textarea
@@ -116,6 +117,24 @@
   const handleSubmit = () => {
     emit('submit', { ...formData })
     closeDrawer()
+  }
+
+  const handleInput = (event, field) => {
+    // Block text input for number and rank_time fields
+    if (field.type === 'number' || field.type === 'rank_time') {
+      const value = event.target.value
+      // Remove any non-numeric characters except decimal point
+      const numericValue = value.replace(/[^0-9.]/g, '')
+      // Ensure only one decimal point
+      const parts = numericValue.split('.')
+      if (parts.length > 2) {
+        event.target.value = parts[0] + '.' + parts.slice(1).join('')
+      } else {
+        event.target.value = numericValue
+      }
+      // Update the form data with the cleaned value
+      formData[field.name] = event.target.value
+    }
   }
   
   watch(

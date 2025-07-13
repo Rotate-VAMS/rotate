@@ -10,6 +10,9 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Hash;
+use App\Models\Rank;
+use App\Models\Pirep;
 
 class User extends Authenticatable
 {
@@ -69,5 +72,61 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public static function createEditPilot($data, $mode)
+    {
+        if ($mode === 'create') {
+            $pilot = new User();
+
+            // Validate email
+            $validateEmail = User::where('email', $data['email'])->first();
+            if ($validateEmail) {
+                return ['error' => 'Email already exists'];
+            }
+
+            // Validate callsign
+            $validateCallsign = User::where('callsign', $data['callsign'])->first();
+            if ($validateCallsign) {
+                return ['error' => 'Callsign already exists'];
+            }
+        } else {
+            $pilot = User::find($data['id']);
+            if (!$pilot) {
+                return ['error' => 'Pilot not found'];
+            }
+        }
+        $pilot->name = $data['name'];
+        $pilot->callsign = $data['callsign'];
+        $pilot->email = $data['email'];
+        $pilot->rank_id = $data['rank_id'];
+        $pilot->flying_hours = 0;
+        $pilot->status = 1;
+        $pilot->password = Hash::make(env('DEFAULT_PASSWORD'));
+        $pilot->created_at = now();
+        $pilot->updated_at = now();
+        $pilot->save();
+        return $pilot;
+    }
+
+    public static function fetchAllPilots()
+    {
+        $pilots = User::all();
+        $gridData = [];
+        foreach ($pilots as $pilot) {
+            $gridData[] = [
+                'id' => $pilot->id,
+                'name' => $pilot->name,
+                'callsign' => $pilot->callsign,
+                'email' => $pilot->email,
+                'rank_id' => $pilot->rank_id,
+                'rank' => Rank::find($pilot->rank_id)->name,
+                'flying_hours' => $pilot->flying_hours,
+                'flights' => Pirep::where('user_id', $pilot->id)->count(),
+                'recent_flights' => Pirep::where('user_id', $pilot->id)->orderBy('created_at', 'desc')->take(5)->get(),
+                'status' => $pilot->status,
+            ];
+        }
+        return $gridData;
     }
 }
