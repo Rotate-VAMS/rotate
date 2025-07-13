@@ -106,6 +106,14 @@ class User extends Authenticatable
         $pilot->created_at = now();
         $pilot->updated_at = now();
         $pilot->save();
+
+        // Handle custom fields
+        if (isset($data['customData'])) {
+            foreach ($data['customData'] as $field_key => $value) {
+                CustomFieldValues::createCustomFieldValue(CustomFieldValues::SOURCE_TYPE_PILOTS, $pilot->id, $field_key, $value);
+            }
+        }
+
         return $pilot;
     }
 
@@ -125,6 +133,7 @@ class User extends Authenticatable
                 'flights' => Pirep::where('user_id', $pilot->id)->count(),
                 'recent_flights' => Pirep::where('user_id', $pilot->id)->orderBy('created_at', 'desc')->take(5)->get(),
                 'status' => $pilot->status,
+                'custom_fields' => CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PILOTS, $pilot->id)
             ];
         }
         return $gridData;

@@ -9,5 +9,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/jxFetchPilots', 'jxFetchPilots')->name('pilots.jxFetchPilots');
         Route::post('/jxCreateEditPilot', 'jxCreateEditPilot')->name('pilots.jxCreateEditPilot');
         Route::post('/jxDeletePilot', 'jxDeletePilot')->name('pilots.jxDeletePilot');
+        Route::get('/jxGetUserCustomFields', 'jxGetUserCustomFields')->name('pilots.jxGetUserCustomFields');
     });
 });

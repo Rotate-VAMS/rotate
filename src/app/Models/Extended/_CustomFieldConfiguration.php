@@ -4,6 +4,7 @@ namespace App\Models\Extended;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\CustomFieldConfiguration;
+use App\Models\CustomFieldOptions;
 use Illuminate\Support\Str;
 
 class _CustomFieldConfiguration extends Model
@@ -58,5 +59,19 @@ class _CustomFieldConfiguration extends Model
         $customFieldConfiguration->updated_at = now();
         $customFieldConfiguration->save();
         return $customFieldConfiguration;
+    }
+
+    public static function getUserCustomFields()
+    {
+        $customFields = CustomFieldConfiguration::where('source_type', self::SOURCE_TYPE_PILOTS)->get();
+
+        // If custom field is a dropdown, get the options
+        foreach ($customFields as $customField) {
+            if ($customField->data_type === self::DATA_TYPE_DROPDOWN) {
+                $customField->options = CustomFieldOptions::where('field_id', $customField->id)->get();
+            }
+        }
+
+        return $customFields;
     }
 }

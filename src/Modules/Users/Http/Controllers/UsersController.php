@@ -3,6 +3,7 @@
 namespace Modules\Users\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomFieldConfiguration;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
@@ -79,6 +80,15 @@ class UsersController extends Controller
         return response()->json([
             'hasErrors' => false,
             'message' => 'Pilot deleted successfully'
+        ]);
+    }
+
+    public function jxGetUserCustomFields()
+    {
+        $customFields = CustomFieldConfiguration::getUserCustomFields();
+        return response()->json([
+            'hasErrors' => false,
+            'data' => $customFields
         ]);
     }
 }

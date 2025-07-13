@@ -33,10 +33,18 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { ImportIcon, UploadIcon, PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
+
+// Props
+const props = defineProps({
+  customFields: {
+    type: Array,
+    default: () => []
+  }
+})
 
 // Drawer state
 const showDrawer = ref(false)
@@ -50,6 +58,52 @@ const formFields = ref([
   { name: 'email', label: 'Email', type: 'text', required: true },
   { name: 'rank_id', label: 'Rank', type: 'select', required: true, options: []}
 ])
+
+// Function to convert custom fields to form fields
+const convertCustomFieldsToFormFields = (customFields) => {
+  return customFields.map(field => {
+    const formField = {
+      name: field.field_key,
+      label: field.field_name,
+      type: getFieldType(field.data_type),
+      required: field.is_required === 1,
+      description: field.field_description
+    }
+    
+    // Add options for dropdown fields
+    if (field.data_type === 6) { // Dropdown type
+      formField.options = [] // You might want to fetch options from another endpoint
+    }
+    
+    return formField
+  })
+}
+
+// Function to map data types to form field types
+const getFieldType = (dataType) => {
+  switch (dataType) {
+    case 1: return 'text' // Text
+    case 2: return 'number' // Integer
+    case 3: return 'number' // Float
+    case 4: return 'checkbox' // Boolean
+    case 5: return 'date' // Date
+    case 6: return 'select' // Dropdown
+    default: return 'text'
+  }
+}
+
+// Watch for custom fields changes and update form fields
+watch(() => props.customFields, (newCustomFields) => {
+  const baseFields = [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'callsign', label: 'Callsign', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'text', required: true },
+    { name: 'rank_id', label: 'Rank', type: 'select', required: true, options: []}
+  ]
+  
+  const customFormFields = convertCustomFieldsToFormFields(newCustomFields)
+  formFields.value = [...baseFields, ...customFormFields]
+}, { immediate: true })
 
 // Open drawer for create
 const openDrawerForCreate = () => {
@@ -82,7 +136,29 @@ fetchRanks()
 // Submit handler
 const submitForm = async (payload) => {
   try {
-    const response = await rotateDataService('/pilots/jxCreateEditPilot', payload)
+    // Separate custom fields from regular fields
+    const customData = {}
+    const regularData = {}
+    
+    // Get custom field keys
+    const customFieldKeys = props.customFields.map(field => field.field_key)
+    
+    // Separate the data
+    Object.keys(payload).forEach(key => {
+      if (customFieldKeys.includes(key)) {
+        customData[key] = payload[key]
+      } else {
+        regularData[key] = payload[key]
+      }
+    })
+    
+    // Add customData to the regular payload
+    const finalPayload = {
+      ...regularData,
+      customData: customData
+    }
+    
+    const response = await rotateDataService('/pilots/jxCreateEditPilot', finalPayload)
     if (!response.hasErrors) {
       // Emit event to refresh pilots list
       window.dispatchEvent(new CustomEvent('pilots-updated'))

@@ -21,6 +21,13 @@
           <th class="px-6 py-3">Hours</th>
           <th class="px-6 py-3">Recent Flight Logs</th>
           <th class="px-6 py-3">Status</th>
+          <th 
+            v-for="customField in customFields" 
+            :key="customField.id" 
+            class="px-6 py-3"
+          >
+            {{ customField.field_name }}
+          </th>
           <th class="px-6 py-3">Actions</th>
         </tr>
       </thead>
@@ -60,6 +67,15 @@
               {{ statusText[pilot.status] }}
             </span>
           </td>
+          <td 
+            v-for="customField in customFields" 
+            :key="customField.id" 
+            class="px-6 py-4"
+          >
+            <div class="text-sm">
+              {{ getCustomFieldValue(pilot, customField.field_key) }}
+            </div>
+          </td>
           <td class="px-6 py-4">
             <div class="flex items-center gap-2">
               <button 
@@ -87,7 +103,15 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { FilterIcon, BadgeIcon, EditIcon, TrashIcon } from 'lucide-vue-next'
-import RotateDataService from '@/rotate.js'
+import rotateDataService from '@/rotate.js'
+
+// Props
+const props = defineProps({
+  customFields: {
+    type: Array,
+    default: () => []
+  }
+})
 
 const pilots = ref([])
 const search = ref('')
@@ -97,9 +121,33 @@ const statusText = {
   '0': 'Inactive'
 }
 
+// Function to get custom field value
+const getCustomFieldValue = (pilot, fieldKey) => {
+  // Check if pilot has custom_fields array
+  if (pilot.custom_fields && Array.isArray(pilot.custom_fields)) {
+    // Find the custom field that matches the field_key
+    const customField = pilot.custom_fields.find(field => {
+      // Find the corresponding custom field definition to get the field_key
+      const fieldDefinition = props.customFields.find(cf => cf.id === field.field_id)
+      return fieldDefinition && fieldDefinition.field_key === fieldKey
+    })
+    
+    if (customField) {
+      return customField.value
+    }
+  }
+  
+  // Check if pilot has the field directly (fallback)
+  if (pilot[fieldKey]) {
+    return pilot[fieldKey]
+  }
+  
+  return '-'
+}
+
 const fetchPilots = async () => {
   try {
-    const response = await RotateDataService('/pilots/jxFetchPilots', {})
+    const response = await rotateDataService('/pilots/jxFetchPilots', {})
     pilots.value = response.data || []
   } catch (e) {
     console.error(e)
@@ -115,7 +163,7 @@ const editPilot = (pilot) => {
 const deletePilot = async (pilot) => {
   if (confirm(`Delete pilot "${pilot.name}"?`)) {
     try {
-      const response = await RotateDataService('/pilots/jxDeletePilot', { id: pilot.id })
+      const response = await rotateDataService('/pilots/jxDeletePilot', { id: pilot.id })
       if (!response.hasErrors) {
         alert(response.message || 'Pilot deleted successfully')
         fetchPilots()
