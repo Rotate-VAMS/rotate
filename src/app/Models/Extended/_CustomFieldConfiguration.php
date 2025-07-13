@@ -5,6 +5,7 @@ namespace App\Models\Extended;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\CustomFieldConfiguration;
 use App\Models\CustomFieldOptions;
+use App\Models\CustomFieldValues;
 use Illuminate\Support\Str;
 
 class _CustomFieldConfiguration extends Model
@@ -73,5 +74,31 @@ class _CustomFieldConfiguration extends Model
         }
 
         return $customFields;
+    }
+
+    public static function deleteCustomFieldConfiguration($id)
+    {
+        // Check for any field options and delete them first
+        $customFieldOptions = CustomFieldOptions::where('field_id', $id)->get();
+        foreach ($customFieldOptions as $customFieldOption) {
+            if (!$customFieldOption->delete()) {
+                return ['error' => 'Failed to delete custom field option'];
+            }
+        }
+
+        // Check for any field values and delete them first
+        $customFieldValues = CustomFieldValues::where('field_id', $id)->get();
+        foreach ($customFieldValues as $customFieldValue) {
+            if (!$customFieldValue->delete()) {
+                return ['error' => 'Failed to delete custom field value'];
+            }
+        }
+        // Delete the custom field configuration
+        $customFieldConfiguration = CustomFieldConfiguration::find($id);
+        if (!$customFieldConfiguration->delete()) {
+            return ['error' => 'Failed to delete custom field configuration'];
+        }
+
+        return true;
     }
 }
