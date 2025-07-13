@@ -3,9 +3,11 @@
 namespace Modules\Users\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomFieldConfiguration;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
+use Illuminate\Support\Facades\Validator;
 
 class UsersController extends Controller
 {
@@ -25,88 +27,68 @@ class UsersController extends Controller
 
     public function jxFetchPilots()
     {
-        // $pilots = User::where('role', 'pilot')->get();
-        // $pilots = $pilots->map(function ($pilot) {
-        //     return [
-        //         'id' => $pilot->id,
-        //         'name' => $pilot->name,
-        //         'callsign' => $pilot->callsign,
-        //         'email' => $pilot->email,   
-        //         'rank' => $pilot->rank_id ? 'Rank ' . $pilot->rank_id : 'Trainee',
-        //         'status' => $pilot->status ?? 'Active',
-        //         'flights' => 0,
-        //         'hours' => $pilot->flying_hours ?? 0,
-        //         'rating' => 'PPL',
-        //         'location' => 'Unknown',
-        //         'last_flight' => 'Never',
-        //         'progress' => '0%',
-        //     ];
-        // });
+        $pilots = User::fetchAllPilots();
+        return response()->json([
+            'hasErrors' => false,
+            'data' => $pilots
+        ]);
+    }
 
+    public function jxCreateEditPilot(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'callsign' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'rank_id' => 'required|integer',
+        ]);
 
-        // Create dummy data for the pilots
-        $pilots = [
-            [
-                'id' => 1,
-                'name' => 'John Doe',
-                'callsign' => '9WVA003',
-                'email' => 'john.doe1@example.com',
-                'rank' => 'Cadet | 0-15 Hrs',
-                'rank_color' => 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full px-1 py-1 text-center text-sm',
-                'status' => '1',
-                'flights' => 10,
-                'hours' => 100,
-                'last_flights' => ['VIDP-VABB', 'VABB-VIDP', 'VIDP-VOBL', 'VOBL-VIDP'],
-            ],
-            [
-                'id' => 2,
-                'name' => 'Jane Doe',
-                'callsign' => '9WVA004',
-                'email' => 'jane.doe1@example.com',
-                'rank' => 'Jr. First Officer | 15-30 Hrs',
-                'rank_color' => 'bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full px-1 py-1 text-center text-sm',
-                'status' => '0',
-                'flights' => 10,
-                'hours' => 100,
-                'last_flights' => ['VIDP-VABB', 'VABB-VIDP', 'VIDP-VOBL', 'VOBL-VIDP'],
-            ],
-            [
-                'id' => 3,
-                'name' => 'Jim Doe',
-                'callsign' => '9WVA005',
-                'email' => 'jim.doe1@example.com',
-                'rank' => 'First Officer | 30-45 Hrs',
-                'rank_color' => 'bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full px-1 py-1 text-center text-sm',
-                'status' => '1',
-                'flights' => 10,
-                'hours' => 100,
-                'last_flights' => ['VIDP-VABB', 'VABB-VIDP', 'VIDP-VOBL', 'VOBL-VIDP'],
-            ],
-            [
-                'id' => 1,
-                'name' => 'Jill Doe',
-                'callsign' => '9WVA006',
-                'email' => 'jill.doe1@example.com',
-                'rank' => 'Captain | 45-60 Hrs',
-                'rank_color' => 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full px-1 py-1 text-center text-sm',
-                'status' => '1',
-                'flights' => 10,
-                'hours' => 100,
-                'last_flights' => ['VIDP-VABB', 'VABB-VIDP', 'VIDP-VOBL', 'VOBL-VIDP'],
-            ],
-            [
-                'id' => 4,
-                'name' => 'Jill Doe',
-                'callsign' => '9WVA007',
-                'email' => 'jill.doe2@example.com',
-                'rank' => 'Commander | 60+ Hrs',
-                'rank_color' => 'bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full px-1 py-1 text-center text-sm',
-                'status' => '0',
-                'flights' => 10,
-                'hours' => 100,
-                'last_flights' => ['VIDP-VABB', 'VABB-VIDP', 'VIDP-VOBL', 'VOBL-VIDP'],
-            ],
-        ];
-        return response()->json($pilots);
+        if ($validator->fails()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = $validator->errors();
+            return response()->json($this->errorBag);
+        }
+
+        $mode = $request->id ? 'edit' : 'create';
+        $user = User::createEditPilot($request->all(), $mode);
+        if (isset($user['error'])) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = $user['error'];
+            return response()->json($this->errorBag);
+        }
+        return response()->json([
+            'hasErrors' => false,
+            'message' => $mode === 'create' ? 'Pilot created successfully' : 'Pilot updated successfully'
+        ]);
+    }
+
+    public function jxDeletePilot(Request $request)
+    {
+        $pilot = User::find($request->id);
+        if (!$pilot) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Pilot not found'];
+            return response()->json($this->errorBag);
+        }
+        
+        if (!$pilot->delete()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Failed to delete pilot'];
+            return response()->json($this->errorBag);
+        }
+
+        return response()->json([
+            'hasErrors' => false,
+            'message' => 'Pilot deleted successfully'
+        ]);
+    }
+
+    public function jxGetUserCustomFields()
+    {
+        $customFields = CustomFieldConfiguration::getUserCustomFields();
+        return response()->json([
+            'hasErrors' => false,
+            'data' => $customFields
+        ]);
     }
 }

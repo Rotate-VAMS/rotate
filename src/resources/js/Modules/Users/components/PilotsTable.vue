@@ -15,45 +15,25 @@
     <table class="w-full text-sm text-left text-gray-700">
       <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
         <tr>
-          <th class="px-6 py-3 cursor-pointer hover:bg-gray-200 transition-colors" @click="sortBy('name')">
-            <div class="flex items-center gap-1">
-              Pilot
-              <span v-if="sortKey === 'name'" class="text-blue-600">
-                {{ sortAsc ? '↑' : '↓' }}
-              </span>
-            </div>
-          </th>
+          <th class="px-6 py-3">Pilot</th>
           <th class="px-6 py-3">Rank</th>
-          <th class="px-6 py-3 cursor-pointer hover:bg-gray-200 transition-colors" @click="sortBy('flights')">
-            <div class="flex items-center gap-1">
-              Flights
-              <span v-if="sortKey === 'flights'" class="text-blue-600">
-                {{ sortAsc ? '↑' : '↓' }}
-              </span>
-            </div>
-          </th>
-          <th class="px-6 py-3 cursor-pointer hover:bg-gray-200 transition-colors" @click="sortBy('hours')">
-            <div class="flex items-center gap-1">
-              Hours
-              <span v-if="sortKey === 'hours'" class="text-blue-600">
-                {{ sortAsc ? '↑' : '↓' }}
-              </span>
-            </div>
-          </th>
+          <th class="px-6 py-3">Flights</th>
+          <th class="px-6 py-3">Hours</th>
           <th class="px-6 py-3">Recent Flight Logs</th>
-          <th class="px-6 py-3 cursor-pointer hover:bg-gray-200 transition-colors" @click="sortBy('status')">
-            <div class="flex items-center gap-1">
-              Status
-              <span v-if="sortKey === 'status'" class="text-blue-600">
-                {{ sortAsc ? '↑' : '↓' }}
-              </span>
-            </div>
+          <th class="px-6 py-3">Status</th>
+          <th 
+            v-for="customField in customFields" 
+            :key="customField.id" 
+            class="px-6 py-3"
+          >
+            {{ customField.field_name }}
           </th>
+          <th class="px-6 py-3">Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr
-          v-for="pilot in sortedPilots"
+          v-for="pilot in pilots"
           :key="pilot.id"
           class="border-b hover:bg-gray-50"
         >
@@ -67,15 +47,15 @@
             </span>
           </td>
           <td class="px-6 py-4 text-center font-medium">{{ pilot.flights }}</td>
-          <td class="px-6 py-4 text-center font-medium">{{ pilot.hours }}</td>
+          <td class="px-6 py-4 text-center font-medium">{{ pilot.flying_hours }}</td>
           <td class="px-6 py-4">
             <div class="flex gap-1 overflow-x-auto max-w-xs whitespace-nowrap">
               <span
-                v-for="flight in pilot.last_flights"
+                v-for="flight in pilot.recent_flights"
                 :key="flight"
                 class="bg-gray-200 text-xs rounded-full px-3 py-1 font-medium"
               >
-                {{ flight }}
+                {{ flight.flight_number }}
               </span>
             </div>
           </td>
@@ -87,6 +67,33 @@
               {{ statusText[pilot.status] }}
             </span>
           </td>
+          <td 
+            v-for="customField in customFields" 
+            :key="customField.id" 
+            class="px-6 py-4"
+          >
+            <div class="text-sm">
+              {{ getCustomFieldValue(pilot, customField.field_key) }}
+            </div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <button 
+                @click="editPilot(pilot)"
+                class="text-blue-600 hover:text-blue-800 p-1 rounded"
+                title="Edit Pilot"
+              >
+                <EditIcon class="w-4 h-4" />
+              </button>
+              <button 
+                @click="deletePilot(pilot)"
+                class="text-red-600 hover:text-red-800 p-1 rounded"
+                title="Delete Pilot"
+              >
+                <TrashIcon class="w-4 h-4" />
+              </button>
+            </div>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -94,81 +101,100 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { FilterIcon, BadgeIcon } from 'lucide-vue-next'
-import RotateDataService from '@/rotate.js'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { FilterIcon, BadgeIcon, EditIcon, TrashIcon } from 'lucide-vue-next'
+import rotateDataService from '@/rotate.js'
+
+// Props
+const props = defineProps({
+  customFields: {
+    type: Array,
+    default: () => []
+  }
+})
 
 const pilots = ref([])
 const search = ref('')
-const sortKey = ref('')
-const sortAsc = ref(true)
 
 const statusText = {
   '1': 'Active',
   '0': 'Inactive'
 }
 
+// Function to get custom field value
+const getCustomFieldValue = (pilot, fieldKey) => {
+  // Check if pilot has custom_fields array
+  if (pilot.custom_fields && Array.isArray(pilot.custom_fields)) {
+    // Find the custom field that matches the field_key
+    const customField = pilot.custom_fields.find(field => {
+      // Find the corresponding custom field definition to get the field_key
+      const fieldDefinition = props.customFields.find(cf => cf.id === field.field_id)
+      return fieldDefinition && fieldDefinition.field_key === fieldKey
+    })
+    
+    if (customField) {
+      return customField.value
+    }
+  }
+  
+  // Check if pilot has the field directly (fallback)
+  if (pilot[fieldKey]) {
+    return pilot[fieldKey]
+  }
+  
+  return '-'
+}
+
 const fetchPilots = async () => {
   try {
-    const response = await RotateDataService('/pilots/jxFetchPilots', {})
-    pilots.value = response || []
+    const response = await rotateDataService('/pilots/jxFetchPilots', {})
+    pilots.value = response.data || []
   } catch (e) {
     console.error(e)
   }
 }
 
-const filteredPilots = computed(() => {
-  if (!search.value) return pilots.value
-  const searchTerm = search.value.toLowerCase()
-  return pilots.value.filter(p =>
-    [p.name, p.callsign, p.email].some(field =>
-      field?.toLowerCase().includes(searchTerm)
-    )
-  )
-})
+// Action handlers
+const editPilot = (pilot) => {
+  // Emit event to parent component to open edit drawer
+  window.dispatchEvent(new CustomEvent('edit-pilot', { detail: pilot }))
+}
 
-const sortedPilots = computed(() => {
-  let result = [...filteredPilots.value]
-  
-  if (!sortKey.value) return result
-  
-  return result.sort((a, b) => {
-    let valA = a[sortKey.value]
-    let valB = b[sortKey.value]
-    
-    // Handle null/undefined values
-    if (valA == null && valB == null) return 0
-    if (valA == null) return 1
-    if (valB == null) return -1
-    
-    // Convert to strings for comparison
-    valA = valA.toString().toLowerCase()
-    valB = valB.toString().toLowerCase()
-    
-    // Handle numeric values
-    if (!isNaN(valA) && !isNaN(valB)) {
-      return sortAsc.value 
-        ? parseFloat(valA) - parseFloat(valB)
-        : parseFloat(valB) - parseFloat(valA)
+const deletePilot = async (pilot) => {
+  if (confirm(`Delete pilot "${pilot.name}"?`)) {
+    try {
+      const response = await rotateDataService('/pilots/jxDeletePilot', { id: pilot.id })
+      if (!response.hasErrors) {
+        alert(response.message || 'Pilot deleted successfully')
+        fetchPilots()
+      } else {
+        alert(response.message || 'Error occurred')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Error occurred while deleting pilot')
     }
-    
-    // Handle string values
-    if (sortAsc.value) {
-      return valA.localeCompare(valB)
-    } else {
-      return valB.localeCompare(valA)
-    }
-  })
-})
-
-function sortBy(key) {
-  if (sortKey.value === key) {
-    sortAsc.value = !sortAsc.value
-  } else {
-    sortKey.value = key
-    sortAsc.value = true
   }
 }
 
-fetchPilots()
+// Event listeners
+const handlePilotsUpdated = () => {
+  fetchPilots()
+}
+
+const handleEditPilot = (event) => {
+  // This will be handled by the parent component
+  window.dispatchEvent(new CustomEvent('open-edit-drawer', { detail: event.detail }))
+}
+
+onMounted(() => {
+  fetchPilots()
+  window.addEventListener('pilots-updated', handlePilotsUpdated)
+  window.addEventListener('edit-pilot', handleEditPilot)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('pilots-updated', handlePilotsUpdated)
+  window.removeEventListener('edit-pilot', handleEditPilot)
+})
 </script>

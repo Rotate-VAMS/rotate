@@ -70,7 +70,7 @@ class IntegrationController extends Controller
             return response()->json($this->errorBag);
         }
 
-        if (!$customFieldConfiguration->delete()) {
+        if (!CustomFieldConfiguration::deleteCustomFieldConfiguration($request->id)) {
             $this->errorBag['hasErrors'] = true;
             $this->errorBag['errors'] = ['Failed to delete custom field configuration'];
             return response()->json($this->errorBag);

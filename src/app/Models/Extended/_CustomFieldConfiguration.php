@@ -4,6 +4,8 @@ namespace App\Models\Extended;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\CustomFieldConfiguration;
+use App\Models\CustomFieldOptions;
+use App\Models\CustomFieldValues;
 use Illuminate\Support\Str;
 
 class _CustomFieldConfiguration extends Model
@@ -58,5 +60,45 @@ class _CustomFieldConfiguration extends Model
         $customFieldConfiguration->updated_at = now();
         $customFieldConfiguration->save();
         return $customFieldConfiguration;
+    }
+
+    public static function getUserCustomFields()
+    {
+        $customFields = CustomFieldConfiguration::where('source_type', self::SOURCE_TYPE_PILOTS)->get();
+
+        // If custom field is a dropdown, get the options
+        foreach ($customFields as $customField) {
+            if ($customField->data_type === self::DATA_TYPE_DROPDOWN) {
+                $customField->options = CustomFieldOptions::where('field_id', $customField->id)->get();
+            }
+        }
+
+        return $customFields;
+    }
+
+    public static function deleteCustomFieldConfiguration($id)
+    {
+        // Check for any field options and delete them first
+        $customFieldOptions = CustomFieldOptions::where('field_id', $id)->get();
+        foreach ($customFieldOptions as $customFieldOption) {
+            if (!$customFieldOption->delete()) {
+                return ['error' => 'Failed to delete custom field option'];
+            }
+        }
+
+        // Check for any field values and delete them first
+        $customFieldValues = CustomFieldValues::where('field_id', $id)->get();
+        foreach ($customFieldValues as $customFieldValue) {
+            if (!$customFieldValue->delete()) {
+                return ['error' => 'Failed to delete custom field value'];
+            }
+        }
+        // Delete the custom field configuration
+        $customFieldConfiguration = CustomFieldConfiguration::find($id);
+        if (!$customFieldConfiguration->delete()) {
+            return ['error' => 'Failed to delete custom field configuration'];
+        }
+
+        return true;
     }
 }

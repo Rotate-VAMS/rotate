@@ -2,7 +2,7 @@
     <AppLayout title="Pilots">
     <div class="space-y-6">
       <AppBreadcrumb :items="breadcrumbs" />
-      <PilotsHeader />
+      <PilotsHeader ref="pilotsHeaderRef" :custom-fields="userCustomFields" />
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <PilotsAnalyticsCard title="Total Pilots" :value="analytics.totalPilots" :icon="icons.Users" />
         <PilotsAnalyticsCard title="Active Pilots" :value="analytics.activePilots" :icon="icons.Activity" />
@@ -10,7 +10,7 @@
         <PilotsAnalyticsCard title="Average Rating" :value="analytics.avgRating" :icon="icons.Star" />
       </div>
   
-      <PilotsTable />
+      <PilotsTable :custom-fields="userCustomFields" />
     </div>
     </AppLayout>
   </template>
@@ -22,11 +22,14 @@
   import AppLayout from '@/Layouts/AppLayout.vue';
   import AppBreadcrumb from '@/Components/AppBreadcrumb.vue';
   import { Users, Activity, Clock, Star } from 'lucide-vue-next';
-  import { ref } from 'vue';
+  import { ref, onMounted, onUnmounted } from 'vue';
   import { usePage } from '@inertiajs/vue3';
+  import rotateDataService from '@/rotate.js';
 
   const page = usePage();
   const breadcrumbs = page.props.breadcrumbs || []
+  const pilotsHeaderRef = ref(null)
+  const userCustomFields = ref([])
 
   const icons = { Users, Activity, Clock, Star };
   const analytics = ref({
@@ -35,5 +38,33 @@
     totalHours: '5,433h',
     avgRating: '3.8',
   });
+
+  // Handle edit pilot event
+  const handleOpenEditDrawer = (event) => {
+    if (pilotsHeaderRef.value) {
+      pilotsHeaderRef.value.openDrawerForEdit(event.detail)
+    }
+  }
+
+  // Fetch user custom fields
+  const fetchUserCustomFields = async () => {
+    try {
+      const response = await rotateDataService('/pilots/jxGetUserCustomFields')
+      if (!response.hasErrors) {
+        userCustomFields.value = response.data
+      }
+    } catch (error) {
+      console.error('Error fetching user custom fields:', error)
+    }
+  }
+  fetchUserCustomFields()
+
+  onMounted(() => {
+    window.addEventListener('open-edit-drawer', handleOpenEditDrawer)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('open-edit-drawer', handleOpenEditDrawer)
+  })
 </script>
   

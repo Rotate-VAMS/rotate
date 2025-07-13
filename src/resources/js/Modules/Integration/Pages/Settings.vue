@@ -19,6 +19,7 @@
   import CustomFieldsPanel from '../components/CustomFieldsPanel.vue'
   import DiscordIntegrationPanel from '../components/DiscordIntegrationPanel.vue'
   import AccessControlPanel from '../components/AccessControlPanel.vue'
+  import RanksPanel from '../components/RanksPanel.vue'
   import { usePage } from '@inertiajs/vue3'
   import AppLayout from '@/Layouts/AppLayout.vue'
   import AppBreadcrumb from '@/Components/AppBreadcrumb.vue'
@@ -55,7 +56,8 @@
     return {
       customFields: CustomFieldsPanel,
       discord: DiscordIntegrationPanel,
-      access: AccessControlPanel
+      access: AccessControlPanel,
+      ranks: RanksPanel,
     }[activeTab.value]
   })
 </script>
