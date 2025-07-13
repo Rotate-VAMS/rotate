@@ -101,7 +101,6 @@ const fetchPilots = async () => {
   try {
     const response = await RotateDataService('/pilots/jxFetchPilots', {})
     pilots.value = response.data || []
-    console.log(pilots.value)
   } catch (e) {
     console.error(e)
   }
