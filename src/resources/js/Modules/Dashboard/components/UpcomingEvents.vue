@@ -5,8 +5,8 @@
         <h2 class="text-2xl font-semibold text-gray-800 mb-2">Upcoming Events</h2>
       </div>
       <div v-for="event in events" :key="event.id" class="mb-3">
-        <p class="text-sm font-medium">{{ event.name }}</p>
-        <p class="text-xs text-gray-500">{{ event.date }}<br /><span class="text-indigo-600">{{ event.participants }} participants</span></p>
+        <p class="text-sm font-medium">{{ event.event_name }}</p>
+        <p class="text-xs text-gray-500">{{ event.event_date_time }}<br /><span class="text-indigo-600">{{ event.participants }} participants</span></p>
       </div>
     </div>
 </template>
