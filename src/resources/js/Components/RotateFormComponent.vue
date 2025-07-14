@@ -33,7 +33,23 @@
                 class="w-full px-3 py-2 border border-gray-300 rounded-md"
                 @input="handleInput($event, field)"
               />
-  
+
+              <input
+                v-else-if="field.type === 'time'"
+                type="time"
+                :id="field.name"
+                v-model="formData[field.name]"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+
+              <input
+                v-else-if="field.type === 'datetime-local'"
+                type="datetime-local"
+                :id="field.name"
+                v-model="formData[field.name]"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+
               <textarea
                 v-else-if="field.type === 'textarea'"
                 :id="field.name"
@@ -71,6 +87,35 @@
                   <div class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
                 </label>
               </div>
+
+              <!-- File Upload Dropzone -->
+              <div
+                v-else-if="field.type === 'file'"
+                class="flex items-center justify-center w-full"
+              >
+                <label :for="field.name" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                  <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload class="w-8 h-8 mb-4 text-gray-500" />
+                    <p class="mb-2 text-sm text-gray-500">
+                      <span class="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p class="text-xs text-gray-500">
+                      {{ field.acceptedTypes || 'All file types' }} 
+                      {{ field.maxSize ? `(MAX. ${field.maxSize})` : '' }}
+                    </p>
+                    <div v-if="formData[field.name]" class="mt-2 text-sm text-green-600">
+                      File selected: {{ getFileName(formData[field.name]) }}
+                    </div>
+                  </div>
+                  <input 
+                    :id="field.name" 
+                    type="file" 
+                    class="hidden" 
+                    :accept="field.acceptedTypes"
+                    @change="handleFileChange($event, field)"
+                  />
+                </label>
+              </div>
             </div>
   
             <div class="flex justify-end gap-2 pt-4">
@@ -96,7 +141,7 @@
   
 <script setup>
   import { ref, watch, reactive } from 'vue'
-  import { XIcon } from 'lucide-vue-next'
+  import { XIcon, Upload } from 'lucide-vue-next'
   
   const props = defineProps({
     title: { type: String, default: 'Item' },
@@ -135,6 +180,72 @@
       // Update the form data with the cleaned value
       formData[field.name] = event.target.value
     }
+  }
+
+  const handleFileChange = (event, field) => {
+    const file = event.target.files[0]
+    if (file) {
+      // Validate file type if specified
+      if (field.acceptedTypes) {
+        const acceptedTypes = field.acceptedTypes.split(',').map(type => type.trim())
+        const fileType = file.type
+        const isValidType = acceptedTypes.some(type => {
+          if (type.startsWith('.')) {
+            // File extension check
+            return file.name.toLowerCase().endsWith(type.toLowerCase())
+          } else {
+            // MIME type check
+            return fileType === type || fileType.startsWith(type.split('/')[0] + '/')
+          }
+        })
+        
+        if (!isValidType) {
+          alert(`Invalid file type. Accepted types: ${field.acceptedTypes}`)
+          event.target.value = ''
+          formData[field.name] = null
+          return
+        }
+      }
+
+      // Validate file size if specified
+      if (field.maxSize) {
+        const maxSizeInBytes = parseFileSize(field.maxSize)
+        if (file.size > maxSizeInBytes) {
+          alert(`File too large. Maximum size: ${field.maxSize}`)
+          event.target.value = ''
+          formData[field.name] = null
+          return
+        }
+      }
+
+      formData[field.name] = file
+    } else {
+      formData[field.name] = null
+    }
+  }
+
+  const getFileName = (file) => {
+    if (!file) return ''
+    return file.name || 'Selected file'
+  }
+
+  const parseFileSize = (sizeString) => {
+    const units = {
+      'B': 1,
+      'KB': 1024,
+      'MB': 1024 * 1024,
+      'GB': 1024 * 1024 * 1024
+    }
+    
+    const match = sizeString.match(/^(\d+(?:\.\d+)?)\s*(B|KB|MB|GB)$/i)
+    if (match) {
+      const size = parseFloat(match[1])
+      const unit = match[2].toUpperCase()
+      return size * units[unit]
+    }
+    
+    // Default to bytes if no unit specified
+    return parseInt(sizeString) || 0
   }
   
   watch(
