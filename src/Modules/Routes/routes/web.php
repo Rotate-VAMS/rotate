@@ -7,5 +7,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::group(['prefix' => 'routes', 'controller' => RoutesController::class], function () {
         Route::get('/', 'index')->name('routes.index');
         Route::post('/jxFetchRoutes', 'jxFetchRoutes')->name('routes.jxFetchRoutes');
+        Route::post('/jxCreateEditRoutes', 'jxCreateEditRoutes')->name('routes.jxCreateEditRoutes');
+        Route::post('/jxDeleteRoutes', 'jxDeleteRoutes')->name('routes.jxDeleteRoutes');
     });
 });

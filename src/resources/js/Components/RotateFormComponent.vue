@@ -24,13 +24,16 @@
               <label :for="field.name" class="text-sm font-medium text-gray-700">
                 {{ field.label }}
               </label>
-  
+              <!-- change background to grey if readonly -->
               <input
                 v-if="field.type === 'text' || field.type === 'number' || field.type === 'rank_time'"
                 :type="field.type === 'number' || field.type === 'rank_time' ? 'number' : 'text'"
                 :id="field.name"
                 v-model="formData[field.name]"
+                :readonly="field.readonly"
+                :disabled="field.disabled"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                :class="{ 'bg-gray-100': field.readonly || field.disabled }"
                 @input="handleInput($event, field)"
               />
 
@@ -72,6 +75,89 @@
                   {{ option.name }}
                 </option>
               </select>
+
+              <!-- Multi-select dropdown with search -->
+              <div
+                v-else-if="field.type === 'multiselect'"
+                class="relative"
+              >
+                <!-- Selected items display -->
+                <div class="min-h-[42px] p-2 border border-gray-300 rounded-md bg-white">
+                  <div class="flex flex-wrap gap-1">
+                    <div
+                      v-for="(item, index) in formData[field.name] || []"
+                      :key="index"
+                      class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-md"
+                    >
+                      <span>{{ item }}</span>
+                      <button
+                        type="button"
+                        @click="removeSelectedItem(field.name, index)"
+                        class="text-blue-600 hover:text-blue-800"
+                      >
+                        <XIcon class="w-3 h-3" />
+                      </button>
+                    </div>
+                    <input
+                      v-if="!dropdownOpen[field.name]"
+                      type="text"
+                      :placeholder="field.placeholder || 'Search and select...'"
+                      class="flex-1 min-w-0 border-none outline-none text-sm"
+                      @focus="openDropdown(field.name)"
+                      readonly
+                    />
+                  </div>
+                </div>
+
+                <!-- Dropdown -->
+                <div
+                  v-if="dropdownOpen[field.name]"
+                  class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
+                >
+                  <!-- Search input -->
+                  <div class="sticky top-0 bg-white border-b border-gray-200 p-2">
+                    <input
+                      type="text"
+                      :placeholder="field.searchPlaceholder || 'Search...'"
+                      v-model="searchQuery[field.name]"
+                      class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      @input="filterOptions(field.name)"
+                    />
+                  </div>
+
+                  <!-- Options list -->
+                  <div class="py-1">
+                    <div
+                      v-for="option in filteredOptions[field.name]"
+                      :key="option"
+                      @click="toggleSelection(field.name, option)"
+                      class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 flex items-center gap-2"
+                      :class="{ 'bg-blue-50': isSelected(field.name, option) }"
+                    >
+                      <div class="w-4 h-4 border border-gray-300 rounded flex items-center justify-center">
+                        <div
+                          v-if="isSelected(field.name, option)"
+                          class="w-2 h-2 bg-blue-600 rounded-sm"
+                        ></div>
+                      </div>
+                      <span>{{ option }}</span>
+                    </div>
+                    <div
+                      v-if="filteredOptions[field.name].length === 0"
+                      class="px-3 py-2 text-sm text-gray-500"
+                    >
+                      No options found
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Click outside to close -->
+                <div
+                  v-if="dropdownOpen[field.name]"
+                  class="fixed inset-0 z-40"
+                  @click="closeDropdown(field.name)"
+                ></div>
+              </div>
 
               <div
                 v-else-if="field.type === 'checkbox'"
@@ -140,7 +226,7 @@
 </template>
   
 <script setup>
-  import { ref, watch, reactive } from 'vue'
+  import { ref, watch, reactive, computed } from 'vue'
   import { XIcon, Upload } from 'lucide-vue-next'
   
   const props = defineProps({
@@ -154,6 +240,11 @@
   const emit = defineEmits(['submit', 'close'])
   
   const formData = reactive({})
+  
+  // Multi-select dropdown state
+  const dropdownOpen = reactive({})
+  const searchQuery = reactive({})
+  const filteredOptions = reactive({})
   
   const closeDrawer = () => {
     emit('close')
@@ -180,6 +271,61 @@
       // Update the form data with the cleaned value
       formData[field.name] = event.target.value
     }
+  }
+
+  // Multi-select dropdown functions
+  const openDropdown = (fieldName) => {
+    dropdownOpen[fieldName] = true
+    // Initialize filtered options if not already done
+    if (!filteredOptions[fieldName]) {
+      const field = props.fields.find(f => f.name === fieldName)
+      if (field && field.options) {
+        filteredOptions[fieldName] = [...field.options]
+      }
+    }
+  }
+
+  const closeDropdown = (fieldName) => {
+    dropdownOpen[fieldName] = false
+    searchQuery[fieldName] = ''
+    // Reset filtered options to show all
+    const field = props.fields.find(f => f.name === fieldName)
+    if (field && field.options) {
+      filteredOptions[fieldName] = [...field.options]
+    }
+  }
+
+  const filterOptions = (fieldName) => {
+    const field = props.fields.find(f => f.name === fieldName)
+    if (field && field.options) {
+      const query = searchQuery[fieldName] || ''
+      filteredOptions[fieldName] = field.options.filter(option =>
+        option.toLowerCase().includes(query.toLowerCase())
+      )
+    }
+  }
+
+  const toggleSelection = (fieldName, option) => {
+    if (!formData[fieldName]) {
+      formData[fieldName] = []
+    }
+    
+    const index = formData[fieldName].indexOf(option)
+    if (index > -1) {
+      formData[fieldName].splice(index, 1)
+    } else {
+      formData[fieldName].push(option)
+    }
+  }
+
+  const removeSelectedItem = (fieldName, index) => {
+    if (formData[fieldName]) {
+      formData[fieldName].splice(index, 1)
+    }
+  }
+
+  const isSelected = (fieldName, option) => {
+    return formData[fieldName] && formData[fieldName].includes(option)
   }
 
   const handleFileChange = (event, field) => {

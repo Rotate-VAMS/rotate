@@ -20,11 +20,12 @@
 </template>
 
 <script setup>
-import { Settings, Hash, Shield, Users, ShieldCheck } from 'lucide-vue-next'
+import { Settings, Hash, Shield, Users, ShieldCheck, PlaneIcon } from 'lucide-vue-next'
 const props = defineProps({
   active: String
 })
 const menu = [
+  { key: 'fleet', label: 'Fleet', icon: PlaneIcon },
   { key: 'customFields', label: 'Custom Fields', icon: Hash },
   { key: 'discord', label: 'Discord Integration', icon: Settings },
   { key: 'roles', label: 'Roles', icon: Users },

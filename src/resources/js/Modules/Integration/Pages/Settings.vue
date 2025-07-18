@@ -16,6 +16,7 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import SettingsSidebar from '../components/SettingsSidebar.vue'
+  import FleetPanel from '../components/FleetPanel.vue'
   import CustomFieldsPanel from '../components/CustomFieldsPanel.vue'
   import DiscordIntegrationPanel from '../components/DiscordIntegrationPanel.vue'
   import AccessControlPanel from '../components/AccessControlPanel.vue'
@@ -54,6 +55,7 @@
   
   const currentComponent = computed(() => {
     return {
+      fleet: FleetPanel,
       customFields: CustomFieldsPanel,
       discord: DiscordIntegrationPanel,
       access: AccessControlPanel,

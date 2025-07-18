@@ -53,4 +53,21 @@ class RoutesController extends Controller
             'routes' => $routes
         ]);
     }
+
+    public function jxCreateEditRoutes(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'flight_number' => 'required|string|max:255',
+            ''
+        ]);
+    }
+
+    public function jxDeleteRoutes(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'flight_number' => 'required|string|max:255',
+        ]);
+    }
 }
