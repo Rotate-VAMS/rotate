@@ -4,6 +4,7 @@ namespace Modules\Users\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomFieldConfiguration;
+use App\Models\CustomFieldValues;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
@@ -74,6 +75,12 @@ class UsersController extends Controller
         if (!$pilot->delete()) {
             $this->errorBag['hasErrors'] = true;
             $this->errorBag['errors'] = ['Failed to delete pilot'];
+            return response()->json($this->errorBag);
+        }
+
+        if (!CustomFieldValues::deleteCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PILOTS, $pilot->id)) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Failed to delete custom field values'];
             return response()->json($this->errorBag);
         }
 

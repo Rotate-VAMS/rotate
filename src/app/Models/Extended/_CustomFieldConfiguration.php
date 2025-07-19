@@ -38,6 +38,8 @@ class _CustomFieldConfiguration extends Model
     
     const SOURCE_TYPE_EVENTS = 3;
 
+    const SOURCE_TYPE_ROUTES = 4;
+
     public static function createCustomFieldConfiguration($data, $mode)
     {
         if ($mode === 'edit') {
@@ -65,6 +67,20 @@ class _CustomFieldConfiguration extends Model
     public static function getUserCustomFields()
     {
         $customFields = CustomFieldConfiguration::where('source_type', self::SOURCE_TYPE_PILOTS)->get();
+
+        // If custom field is a dropdown, get the options
+        foreach ($customFields as $customField) {
+            if ($customField->data_type === self::DATA_TYPE_DROPDOWN) {
+                $customField->options = CustomFieldOptions::where('field_id', $customField->id)->get();
+            }
+        }
+
+        return $customFields;
+    }
+
+    public static function getRouteCustomFields()
+    {
+        $customFields = CustomFieldConfiguration::where('source_type', self::SOURCE_TYPE_ROUTES)->get();
 
         // If custom field is a dropdown, get the options
         foreach ($customFields as $customField) {

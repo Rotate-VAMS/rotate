@@ -33,10 +33,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ImportIcon, UploadIcon, PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
+
+// Props
+const props = defineProps({
+  customFields: {
+    type: Array,
+    default: () => []
+  }
+})
 
 // Drawer state
 const showDrawer = ref(false)
@@ -47,7 +55,40 @@ const formData = ref({})
 const fleets = ref([])
 const ranks = ref([])
 
-// Computed form fields that update based on the toggle state
+// Function to convert custom fields to form fields
+const convertCustomFieldsToFormFields = (customFields) => {
+  return customFields.map(field => {
+    const formField = {
+      name: field.field_key,
+      label: field.field_name,
+      type: getFieldType(field.data_type),
+      required: field.is_required === 1,
+      description: field.field_description
+    }
+    
+    // Add options for dropdown fields
+    if (field.data_type === 6) { // Dropdown type
+      formField.options = [] // You might want to fetch options from another endpoint
+    }
+    
+    return formField
+  })
+}
+
+// Function to map data types to form field types
+const getFieldType = (dataType) => {
+  switch (dataType) {
+    case 1: return 'text' // Text
+    case 2: return 'number' // Integer
+    case 3: return 'number' // Float
+    case 4: return 'checkbox' // Boolean
+    case 5: return 'date' // Date
+    case 6: return 'select' // Dropdown
+    default: return 'text'
+  }
+}
+
+// Computed form fields that update based on the toggle state and custom fields
 const formFields = computed(() => {
   const baseFields = [
     { name: 'flight_number', label: 'Flight Number', type: 'text', required: true },
@@ -118,8 +159,15 @@ const formFields = computed(() => {
     })
   }
 
-  return baseFields
+  // Add custom fields
+  const customFormFields = convertCustomFieldsToFormFields(props.customFields)
+  return [...baseFields, ...customFormFields]
 })
+
+// Watch for custom fields changes and update form fields
+watch(() => props.customFields, (newCustomFields) => {
+  // The computed formFields will automatically update
+}, { immediate: true })
 
 // Open drawer for create
 const openDrawerForCreate = () => {
@@ -217,7 +265,29 @@ const submitForm = async (payload) => {
       payload.fleet_ids = fleetIds
     }
 
-    const response = await rotateDataService('/routes/jxCreateEditRoutes', payload)
+    // Separate custom fields from regular fields
+    const customData = {}
+    const regularData = {}
+    
+    // Get custom field keys
+    const customFieldKeys = props.customFields.map(field => field.field_key)
+    
+    // Separate the data
+    Object.keys(payload).forEach(key => {
+      if (customFieldKeys.includes(key)) {
+        customData[key] = payload[key]
+      } else {
+        regularData[key] = payload[key]
+      }
+    })
+    
+    // Add customData to the regular payload
+    const finalPayload = {
+      ...regularData,
+      customData: customData
+    }
+
+    const response = await rotateDataService('/routes/jxCreateEditRoutes', finalPayload)
     if (!response.hasErrors) {
       // Emit event to refresh routes list
       window.dispatchEvent(new CustomEvent('routes-updated'))
@@ -254,6 +324,18 @@ const handleOpenEditDrawer = async (event) => {
     use_aircraft_rank: route.use_aircraft_rank !== false, // Default to true if not explicitly false
   }
   
+  // Map custom fields from custom_fields array to direct properties
+  if (route.custom_fields && Array.isArray(route.custom_fields)) {
+    route.custom_fields.forEach(customField => {
+      // Find the custom field definition to get the field_key
+      const fieldDefinition = props.customFields.find(cf => cf.id === customField.field_id)
+      if (fieldDefinition) {
+        // Map the value to the field_key for the form
+        mappedRoute[fieldDefinition.field_key] = customField.value
+      }
+    })
+  }
+  
   openDrawerForEdit(mappedRoute)
 }
 
@@ -279,6 +361,18 @@ defineExpose({
         return fleetData ? fleetData.name : null
       }).filter(name => name !== null) : route.fleet_ids,
       use_aircraft_rank: route.use_aircraft_rank !== false, // Default to true if not explicitly false
+    }
+    
+    // Map custom fields from custom_fields array to direct properties
+    if (route.custom_fields && Array.isArray(route.custom_fields)) {
+      route.custom_fields.forEach(customField => {
+        // Find the custom field definition to get the field_key
+        const fieldDefinition = props.customFields.find(cf => cf.id === customField.field_id)
+        if (fieldDefinition) {
+          // Map the value to the field_key for the form
+          mappedRoute[fieldDefinition.field_key] = customField.value
+        }
+      })
     }
     
     formMode.value = 'edit'

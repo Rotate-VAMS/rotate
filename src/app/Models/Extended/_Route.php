@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Route;
 use App\Helpers\RotateConstants;
 use App\Helpers\RotateAirportHelper;
-
+use App\Models\CustomFieldValues;
 class _Route extends Model
 {
     const ROUTE_STATUS_ACTIVE = 1;
@@ -43,13 +43,20 @@ class _Route extends Model
         }
 
         $route->distance = RotateAirportHelper::distanceBetweenICAOs($data['origin_icao'], $data['destination_icao']);
-        // Fetch in hours
         $route->flight_time = $route->distance / 1000 * 60 / 60;
         $route->updated_at = now();
 
         if (!$route->save()) {
             return ['error' => 'Failed to save route'];
         }
+
+        // Handle and save custom data
+        if (isset($data['customData'])) {
+            foreach ($data['customData'] as $field_key => $value) {
+                CustomFieldValues::createCustomFieldValue(CustomFieldValues::SOURCE_TYPE_ROUTES, $route->id, $field_key, $value);
+            }
+        }
+
         return ['success' => 'Route saved successfully'];
     }
 }

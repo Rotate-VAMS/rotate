@@ -75,7 +75,7 @@ const formFields = [
   { name: 'field_description', label: 'Field Description', type: 'text', required: true },
   { name: 'data_type', label: 'Data Type', type: 'select', required: true, options: [{id:1, name:'Text'}, {id:2, name:'Integer (Eg.1, 2, 3)'}, {id:3, name:'Float (Eg. 1.1, 2.2, 3.3)'}, {id:4, name:'Boolean (Eg. true, false)'}, {id:5, name:'Date (Eg. 2021-01-01)'}, {id:6, name:'Dropdown'}] },
   { name: 'aggregation_type', label: 'Aggregation Type', type: 'select', required: true, options: [{id:1, name:'Sum'}, {id:2, name:'Average'}, {id:3, name:'Count'}, {id:4, name:'Min'}, {id:5, name:'Max'}] },
-  { name: 'source_type', label: 'Source', type: 'select', required: true, options: [{id:1, name:'Pilots'}, {id:2, name:'PIREPs'}, {id:3, name:'Events'}] },
+  { name: 'source_type', label: 'Source', type: 'select', required: true, options: [{id:1, name:'Pilots'}, {id:2, name:'PIREPs'}, {id:3, name:'Events'}, {id:4, name:'Routes'}] },
   { name: 'is_required', label: 'Is Required', type: 'checkbox', required: true },
 ]
 

@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\RotateAirportHelper;
+use App\Models\CustomFieldConfiguration;
+use App\Models\CustomFieldValues;
 
 class RoutesController extends Controller
 {
@@ -47,6 +49,7 @@ class RoutesController extends Controller
             $route->flight_time = $route->flight_time . ' hours';
             $route->rank_id = $route->min_rank_id;
             $route->minimum_rank = Rank::find($route->min_rank_id)->name;
+            $route->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_ROUTES, $route->id);
             return $route;
         });
 
@@ -98,7 +101,24 @@ class RoutesController extends Controller
         if (!$route) {
             return response()->json(['error' => 'Route not found']);
         }
+        if (!CustomFieldValues::deleteCustomFieldValues(CustomFieldValues::SOURCE_TYPE_ROUTES, $route->id)) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Failed to delete custom field values'];
+            return response()->json($this->errorBag);
+        }
         $route->delete();
-        return response()->json(['message' => 'Route deleted successfully']);
+        return response()->json([
+            'hasErrors' => false,
+            'message' => 'Route deleted successfully'
+        ]);
+    }
+
+    public function jxGetRouteCustomFields()
+    {
+        $customFields = CustomFieldConfiguration::getRouteCustomFields();
+        return response()->json([
+            'hasErrors' => false,
+            'data' => $customFields
+        ]);
     }
 }

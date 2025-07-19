@@ -7,6 +7,9 @@
         placeholder="Search routes..."
         class="input border border-gray-300 rounded-md px-4 py-2 w-1/2"
       />
+      <button class="btn-primary flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-blue-100 text-blue-800">
+        <FilterIcon class="w-4 h-4" /> Filters
+      </button>
     </div>
 
     <table class="w-full text-sm text-left text-gray-700">
@@ -19,6 +22,13 @@
           <th class="px-6 py-3">Flight Time</th>
           <th class="px-6 py-3">Minimum Rank</th>
           <th class="px-6 py-3">Status</th>
+          <th 
+            v-for="customField in customFields" 
+            :key="customField.id" 
+            class="px-6 py-3"
+          >
+            {{ customField.field_name }}
+          </th>
           <th class="px-6 py-3">Actions</th>
         </tr>
       </thead>
@@ -47,6 +57,15 @@
           </td>
           <td class="px-6 py-4">
             <div class="text-xs text-gray-400">{{ route.status ? 'Active' : 'Inactive' }}</div>
+          </td>
+          <td 
+            v-for="customField in customFields" 
+            :key="customField.id" 
+            class="px-6 py-4"
+          >
+            <div class="text-sm">
+              {{ getCustomFieldValue(route, customField.field_key) }}
+            </div>
           </td>
           <td class="px-6 py-4">
             <div class="flex items-center gap-2">
@@ -77,6 +96,14 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { FilterIcon, BadgeIcon, EditIcon, TrashIcon } from 'lucide-vue-next'
 import RotateDataService from '@/rotate.js'
 
+// Props
+const props = defineProps({
+  customFields: {
+    type: Array,
+    default: () => []
+  }
+})
+
 const routes = ref([])
 const search = ref('')
 const sortKey = ref('')
@@ -85,6 +112,30 @@ const sortAsc = ref(true)
 const statusText = {
   '1': 'Active',
   '0': 'Inactive'
+}
+
+// Function to get custom field value
+const getCustomFieldValue = (route, fieldKey) => {
+  // Check if route has custom_fields array
+  if (route.custom_fields && Array.isArray(route.custom_fields)) {
+    // Find the custom field that matches the field_key
+    const customField = route.custom_fields.find(field => {
+      // Find the corresponding custom field definition to get the field_key
+      const fieldDefinition = props.customFields.find(cf => cf.id === field.field_id)
+      return fieldDefinition && fieldDefinition.field_key === fieldKey
+    })
+    
+    if (customField) {
+      return customField.value_display
+    }
+  }
+  
+  // Check if route has the field directly (fallback)
+  if (route[fieldKey]) {
+    return route[fieldKey]
+  }
+  
+  return '-'
 }
 
 const fetchRoutes = async () => {
