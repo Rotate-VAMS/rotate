@@ -26,6 +26,7 @@ const props = defineProps({
 })
 const menu = [
   { key: 'fleet', label: 'Fleet', icon: PlaneIcon },
+  { key: 'flightTypes', label: 'Flight Types', icon: PlaneIcon },
   { key: 'customFields', label: 'Custom Fields', icon: Hash },
   { key: 'discord', label: 'Discord Integration', icon: Settings },
   { key: 'roles', label: 'Roles', icon: Users },

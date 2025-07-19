@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Integration\Http\Controllers\IntegrationController;
 use Modules\Integration\Http\Controllers\RanksController;
 use Modules\Integration\Http\Controllers\FleetsController;
+use Modules\Integration\Http\Controllers\FlightTypesController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Custom Fields
@@ -28,5 +29,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('jxFetchFleets', 'jxFetchFleets')->name('integrations.settings.jxFetchFleets');
         Route::post('jxDeleteFleet', 'jxDeleteFleet')->name('integrations.settings.jxDeleteFleet');
         Route::get('jxFetchAllFleets', 'jxFetchAllFleets')->name('integrations.settings.jxFetchAllFleets');
+    });
+
+    // Flight Types
+    Route::group(['prefix' => 'settings', 'controller' => FlightTypesController::class], function () {
+        Route::post('jxCreateEditFlightType', 'jxCreateEditFlightType')->name('integrations.settings.jxCreateEditFlightType');
+        Route::get('jxFetchFlightTypes', 'jxFetchFlightTypes')->name('integrations.settings.jxFetchFlightTypes');
+        Route::post('jxDeleteFlightType', 'jxDeleteFlightType')->name('integrations.settings.jxDeleteFlightType');
     });
 });        

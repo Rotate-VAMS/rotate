@@ -27,10 +27,10 @@
               </label>
               <!-- change background to grey if readonly -->
               <input
-                v-if="field.type === 'text' || field.type === 'number' || field.type === 'rank_time'"
-                :type="field.type === 'number' || field.type === 'rank_time' ? 'number' : 'text'"
+                v-if="field.type === 'text' || field.type === 'number' || field.type === 'rank_time' || field.type === 'float'"
+                :type="field.type === 'number' || field.type === 'rank_time' || field.type === 'float' ? 'number' : 'text'"
                 :id="field.name"
-                v-model="formData[field.name]"
+                :value="formData[field.name]"
                 :readonly="field.readonly"
                 :disabled="field.disabled"
                 :placeholder="field.placeholder"
@@ -292,7 +292,7 @@
     let value = event.target.value
     
     // Block text input for number and rank_time fields
-    if (field.type === 'number' || field.type === 'rank_time') {
+    if (field.type === 'number' || field.type === 'rank_time' || field.type == 'float') {
       // Remove any non-numeric characters except decimal point
       const numericValue = value.replace(/[^0-9.]/g, '')
       // Ensure only one decimal point
@@ -302,13 +302,11 @@
       } else {
         value = numericValue
       }
-      event.target.value = value
     }
     
     // Apply transform function if provided
     if (field.transform && typeof field.transform === 'function') {
       value = field.transform(value)
-      event.target.value = value
     }
     
     // Update the form data with the processed value
