@@ -17,12 +17,13 @@
   
           <form @submit.prevent="handleSubmit" class="p-4 space-y-4">
             <div
-              v-for="field in fields"
+              v-for="field in visibleFields"
               :key="field.name"
               class="space-y-1"
             >
               <label :for="field.name" class="text-sm font-medium text-gray-700">
                 {{ field.label }}
+                <span v-if="field.conditional?.required" class="text-red-500">*</span>
               </label>
               <!-- change background to grey if readonly -->
               <input
@@ -32,6 +33,7 @@
                 v-model="formData[field.name]"
                 :readonly="field.readonly"
                 :disabled="field.disabled"
+                :placeholder="field.placeholder"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md"
                 :class="{ 'bg-gray-100': field.readonly || field.disabled }"
                 @input="handleInput($event, field)"
@@ -161,17 +163,21 @@
 
               <div
                 v-else-if="field.type === 'checkbox'"
-                class="flex items-center space-x-3 py-2"
+                class="space-y-2"
               >
-                <label :for="field.name" class="inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    :id="field.name"
-                    v-model="formData[field.name]"
-                    class="sr-only peer"
-                  >
-                  <div class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
-                </label>
+                <div class="flex items-center space-x-3">
+                  <label :for="field.name" class="inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      :id="field.name"
+                      v-model="formData[field.name]"
+                      class="sr-only peer"
+                    >
+                    <div class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+                  </label>
+                  <span class="text-sm font-medium text-gray-700">{{ field.label }}</span>
+                </div>
+                <p v-if="field.helperText" class="text-xs text-gray-500 ml-14">{{ field.helperText }}</p>
               </div>
 
               <!-- File Upload Dropzone -->
@@ -245,6 +251,33 @@
   const dropdownOpen = reactive({})
   const searchQuery = reactive({})
   const filteredOptions = reactive({})
+
+  // Computed property to filter fields based on conditional logic
+  const visibleFields = computed(() => {
+    return props.fields.filter(field => {
+      // If no conditional logic, show the field
+      if (!field.conditional) {
+        return true
+      }
+
+      const { field: conditionalField, value, show } = field.conditional
+      
+      // Get the value of the conditional field
+      const conditionalValue = formData[conditionalField]
+      
+      // Check if the condition is met
+      if (show === true) {
+        // Show when condition is met
+        return conditionalValue === value
+      } else if (show === false) {
+        // Hide when condition is met
+        return conditionalValue !== value
+      }
+      
+      // Default behavior: show when condition is met
+      return conditionalValue === value
+    })
+  })
   
   const closeDrawer = () => {
     emit('close')
@@ -256,21 +289,30 @@
   }
 
   const handleInput = (event, field) => {
+    let value = event.target.value
+    
     // Block text input for number and rank_time fields
     if (field.type === 'number' || field.type === 'rank_time') {
-      const value = event.target.value
       // Remove any non-numeric characters except decimal point
       const numericValue = value.replace(/[^0-9.]/g, '')
       // Ensure only one decimal point
       const parts = numericValue.split('.')
       if (parts.length > 2) {
-        event.target.value = parts[0] + '.' + parts.slice(1).join('')
+        value = parts[0] + '.' + parts.slice(1).join('')
       } else {
-        event.target.value = numericValue
+        value = numericValue
       }
-      // Update the form data with the cleaned value
-      formData[field.name] = event.target.value
+      event.target.value = value
     }
+    
+    // Apply transform function if provided
+    if (field.transform && typeof field.transform === 'function') {
+      value = field.transform(value)
+      event.target.value = value
+    }
+    
+    // Update the form data with the processed value
+    formData[field.name] = value
   }
 
   // Multi-select dropdown functions
