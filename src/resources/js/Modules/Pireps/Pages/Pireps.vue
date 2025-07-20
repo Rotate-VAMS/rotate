@@ -91,20 +91,6 @@ const fetchPirepCustomFields = async () => {
 };
 fetchPirepCustomFields();
 
-// Fetch pireps
-
-const fetchPireps = async () => {
-  try {
-    const response = await rotateDataService('/pireps/jxFetchPireps');
-    if (!response.hasErrors) {
-      pireps.value = response.data;
-    }
-  } catch (error) {
-    console.error('Error fetching pireps:', error);
-  }
-};
-fetchPireps();
-
 // Handle edit pirep event
 const handleOpenEditDrawer = (event) => {
   if (pirepsHeaderRef.value) {

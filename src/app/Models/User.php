@@ -74,6 +74,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function rank()
+    {
+        return $this->belongsTo(Rank::class);
+    }
+
     public static function createEditPilot($data, $mode)
     {
         if ($mode === 'create') {

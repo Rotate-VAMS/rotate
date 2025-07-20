@@ -51,7 +51,7 @@ const logout = () => {
                 <circle cx="12" cy="12" r="10" />
               </svg>
               <span class="text-sm font-medium text-gray-700 hidden sm:inline">
-                {{ user?.name || 'User' }}
+                {{ user?.name || 'User' }} | {{ user?.rank || 'User' }}
               </span>
               <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

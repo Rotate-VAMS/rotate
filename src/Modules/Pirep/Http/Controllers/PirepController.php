@@ -35,6 +35,7 @@ class PirepController extends Controller
             ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')
             ->leftJoin('users', 'pireps.user_id', '=', 'users.id')
             ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name')
+            ->where('pireps.deleted_at', null)
             ->get();
 
         foreach ($pireps as $pirep) {
@@ -51,8 +52,8 @@ class PirepController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'route_id' => 'required|exists:routes,id',
-            'flight_time_hours' => 'required|integer|min:0',
-            'flight_time_minutes' => 'required|integer|min:0',
+            'flight_time_hours' => 'required|string|min:0',
+            'flight_time_minutes' => 'required|string|min:0',
             'flight_type_id' => 'required|exists:flight_types,id',
         ]);
         if ($validator->fails()) {
@@ -81,5 +82,26 @@ class PirepController extends Controller
             'hasErrors' => false,
             'data' => $customFields
         ]);
+    }
+
+    public function jxDeletePireps(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:pireps,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['hasErrors' => true, 'errors' => $validator->errors()]);
+        }
+
+        $pirep = Pirep::find($request->id);
+
+        if (!CustomFieldValues::deleteCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PIREPS, $pirep->id)) {
+            return response()->json(['hasErrors' => true, 'errors' => 'Failed to delete custom field values']);
+        }
+        if (!$pirep->delete()) {
+            return response()->json(['hasErrors' => true, 'errors' => 'Failed to delete pirep']);
+        }
+        return response()->json(['hasErrors' => false, 'message' => 'Pirep deleted successfully']);
     }
 }
