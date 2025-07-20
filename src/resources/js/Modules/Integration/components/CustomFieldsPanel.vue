@@ -52,6 +52,21 @@
       @close="showDrawer = false"
       @submit="submitForm"
     />
+
+    <!-- Configure Drawer -->
+    <div v-if="showConfigureDrawer" class="fixed inset-0 z-50 overflow-hidden">
+      <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+      <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+        <div class="w-screen max-w-md">
+          <CustomFieldDropdownConfigureComponent
+            :field="selectedFieldForConfigure"
+            :visible="showConfigureDrawer"
+            @close="showConfigureDrawer = false"
+            @save="handleConfigureSave"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -59,12 +74,17 @@
 import { ref } from 'vue'
 import { PlusIcon, EditIcon, TrashIcon, SettingsIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
+import CustomFieldDropdownConfigureComponent from './CustomFieldDropdownConfigureComponent.vue'
 import rotateDataService from '@/rotate.js'
 
 // Drawer state
 const showDrawer = ref(false)
 const formMode = ref('create')
 const formData = ref({})
+
+// Configure drawer state
+const showConfigureDrawer = ref(false)
+const selectedFieldForConfigure = ref(null)
 
 // Store fetched custom fields
 const customFields = ref([])
@@ -74,7 +94,6 @@ const formFields = [
   { name: 'field_name', label: 'Field Name', type: 'text', required: true },
   { name: 'field_description', label: 'Field Description', type: 'text', required: true },
   { name: 'data_type', label: 'Data Type', type: 'select', required: true, options: [{id:1, name:'Text'}, {id:2, name:'Integer (Eg.1, 2, 3)'}, {id:3, name:'Float (Eg. 1.1, 2.2, 3.3)'}, {id:4, name:'Boolean (Eg. true, false)'}, {id:5, name:'Date (Eg. 2021-01-01)'}, {id:6, name:'Dropdown'}] },
-  { name: 'aggregation_type', label: 'Aggregation Type', type: 'select', required: true, options: [{id:1, name:'Sum'}, {id:2, name:'Average'}, {id:3, name:'Count'}, {id:4, name:'Min'}, {id:5, name:'Max'}] },
   { name: 'source_type', label: 'Source', type: 'select', required: true, options: [{id:1, name:'Pilots'}, {id:2, name:'PIREPs'}, {id:3, name:'Events'}, {id:4, name:'Routes'}] },
   { name: 'is_required', label: 'Is Required', type: 'checkbox', required: true },
 ]
@@ -93,8 +112,8 @@ const editField = (field) => {
   showDrawer.value = true
 }
 const configureField = (field) => {
-  // Implement configuration logic or open a modal/drawer
-  alert('Configure: ' + field.name)
+  selectedFieldForConfigure.value = field
+  showConfigureDrawer.value = true
 }
 const deleteField = async (field) => {
   if (confirm(`Delete "${field.field_name}"?`)) {
@@ -115,6 +134,24 @@ const submitForm = async (payload) => {
     fetchCustomFields()
   } catch (e) {
     console.error(e)
+  }
+}
+
+// Handle configure save
+const handleConfigureSave = async (configuration) => {
+  try {
+    // Here you would call your backend API to save the configuration
+    console.log('Saving configuration:', configuration)
+    
+    // For now, just close the drawer and show a success message
+    showConfigureDrawer.value = false
+    alert('Configuration saved successfully!')
+    
+    // Optionally refresh the custom fields list
+    // fetchCustomFields()
+  } catch (e) {
+    console.error(e)
+    alert('Failed to save configuration')
   }
 }
 

@@ -13,7 +13,6 @@ class CustomFieldConfiguration extends _CustomFieldConfiguration
         'field_key',
         'field_description',
         'data_type',
-        'aggregation_type',
         'source_type',
         'is_required',
         'is_active',

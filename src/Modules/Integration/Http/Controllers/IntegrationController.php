@@ -29,7 +29,6 @@ class IntegrationController extends Controller
             'field_name' => 'required|string|max:255',
             'field_description' => 'required|string|max:255',
             'data_type' => 'required|integer',
-            'aggregation_type' => 'required|integer',
             'source_type' => 'required|integer',
             'is_required' => 'required|boolean',
         ]);

@@ -21,16 +21,6 @@ class _CustomFieldConfiguration extends Model
     const DATA_TYPE_DATE = 5;
 
     const DATA_TYPE_DROPDOWN = 6;
-
-    const AGGREGATION_TYPE_SUM = 1;
-    
-    const AGGREGATION_TYPE_AVERAGE = 2;
-    
-    const AGGREGATION_TYPE_COUNT = 3;
-    
-    const AGGREGATION_TYPE_MIN = 4;
-    
-    const AGGREGATION_TYPE_MAX = 5;
     
     const SOURCE_TYPE_PILOTS = 1;
     
@@ -53,7 +43,8 @@ class _CustomFieldConfiguration extends Model
         $customFieldConfiguration->field_name = $data['field_name'];
         $customFieldConfiguration->field_description = $data['field_description'];
         $customFieldConfiguration->data_type = $data['data_type'];
-        $customFieldConfiguration->aggregation_type = $data['aggregation_type'];
+        // TODO: remove aggregation type
+        $customFieldConfiguration->aggregation_type = 1;
         $customFieldConfiguration->source_type = $data['source_type'];
         $customFieldConfiguration->is_required = $data['is_required'];
         $customFieldConfiguration->is_active = true;
