@@ -92,7 +92,7 @@ class UsersController extends Controller
 
     public function jxGetUserCustomFields()
     {
-        $customFields = CustomFieldConfiguration::getUserCustomFields();
+        $customFields = CustomFieldConfiguration::getCustomFields(CustomFieldConfiguration::SOURCE_TYPE_PILOTS);
         return response()->json([
             'hasErrors' => false,
             'data' => $customFields

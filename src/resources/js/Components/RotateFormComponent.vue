@@ -18,195 +18,363 @@
           <form @submit.prevent="handleSubmit" class="p-4 space-y-4">
             <div
               v-for="field in visibleFields"
-              :key="field.name"
+              :key="field.name || field.group"
               class="space-y-1"
             >
-              <label :for="field.name" class="text-sm font-medium text-gray-700">
-                {{ field.label }}
-                <span v-if="field.conditional?.required" class="text-red-500">*</span>
-              </label>
-              <!-- change background to grey if readonly -->
-              <input
-                v-if="field.type === 'text' || field.type === 'number' || field.type === 'rank_time' || field.type === 'float'"
-                :type="field.type === 'number' || field.type === 'rank_time' || field.type === 'float' ? 'number' : 'text'"
-                :id="field.name"
-                :value="formData[field.name]"
-                :readonly="field.readonly"
-                :disabled="field.disabled"
-                :placeholder="field.placeholder"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md"
-                :class="{ 'bg-gray-100': field.readonly || field.disabled }"
-                @input="handleInput($event, field)"
-              />
+              <!-- Handle grouped fields -->
+              <div v-if="field.group" class="space-y-2">
+                <label class="text-sm font-medium text-gray-700">
+                  {{ field.group }}
+                </label>
+                <div class="grid grid-cols-2 gap-4">
+                  <div
+                    v-for="subField in field.fields"
+                    :key="subField.name"
+                    class="space-y-1"
+                  >
+                    <label :for="subField.name" class="text-sm font-medium text-gray-700">
+                      {{ subField.label }}
+                      <span v-if="subField.required" class="text-red-500">*</span>
+                    </label>
+                    
+                    <!-- Render sub-field based on type -->
+                    <input
+                      v-if="subField.type === 'text' || subField.type === 'number' || subField.type === 'rank_time' || subField.type === 'float'"
+                      :type="subField.type === 'number' || subField.type === 'rank_time' || subField.type === 'float' ? 'number' : 'text'"
+                      :id="subField.name"
+                      :value="formData[subField.name]"
+                      :readonly="subField.readonly"
+                      :disabled="subField.disabled"
+                      :placeholder="subField.placeholder"
+                      :min="subField.min"
+                      :max="subField.max"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      :class="{ 'bg-gray-100': subField.readonly || subField.disabled }"
+                      @input="handleInput($event, subField)"
+                    />
 
-              <input
-                v-else-if="field.type === 'time'"
-                type="time"
-                :id="field.name"
-                v-model="formData[field.name]"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md"
-              />
+                    <input
+                      v-else-if="subField.type === 'time'"
+                      type="time"
+                      :id="subField.name"
+                      v-model="formData[subField.name]"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
 
-              <input
-                v-else-if="field.type === 'datetime-local'"
-                type="datetime-local"
-                :id="field.name"
-                v-model="formData[field.name]"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md"
-              />
+                    <input
+                      v-else-if="subField.type === 'datetime-local'"
+                      type="datetime-local"
+                      :id="subField.name"
+                      v-model="formData[subField.name]"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
 
-              <textarea
-                v-else-if="field.type === 'textarea'"
-                :id="field.name"
-                v-model="formData[field.name]"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md"
-              ></textarea>
-  
-              <select
-                v-else-if="field.type === 'select'"
-                :id="field.name"
-                v-model="formData[field.name]"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md"
-              >
-                <option disabled value="">Select...</option>
-                <option
-                  v-for="option in field.options"
-                  :key="option.id"
-                  :value="option.id"
-                >
-                  {{ option.name }}
-                </option>
-              </select>
+                    <textarea
+                      v-else-if="subField.type === 'textarea'"
+                      :id="subField.name"
+                      v-model="formData[subField.name]"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    ></textarea>
 
-              <!-- Multi-select dropdown with search -->
-              <div
-                v-else-if="field.type === 'multiselect'"
-                class="relative"
-              >
-                <!-- Selected items display -->
-                <div class="min-h-[42px] p-2 border border-gray-300 rounded-md bg-white">
-                  <div class="flex flex-wrap gap-1">
-                    <div
-                      v-for="(item, index) in formData[field.name] || []"
-                      :key="index"
-                      class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-md"
+                    <select
+                      v-else-if="subField.type === 'select'"
+                      :id="subField.name"
+                      v-model="formData[subField.name]"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md"
                     >
-                      <span>{{ item }}</span>
+                      <option disabled value="">Select...</option>
+                      <option
+                        v-for="option in subField.options"
+                        :key="option.id"
+                        :value="option.id"
+                      >
+                        {{ option.name }}
+                      </option>
+                    </select>
+
+                    <div
+                      v-else-if="subField.type === 'checkbox'"
+                      class="space-y-2"
+                    >
+                      <div class="flex items-center space-x-3">
+                        <label :for="subField.name" class="inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            :id="subField.name"
+                            v-model="formData[subField.name]"
+                            class="sr-only peer"
+                          >
+                          <div class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+                        </label>
+                        <span class="text-sm font-medium text-gray-700">{{ subField.label }}</span>
+                      </div>
+                      <p v-if="subField.helperText" class="text-xs text-gray-500 ml-14">{{ subField.helperText }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Handle regular fields -->
+              <div v-else>
+                <label :for="field.name" class="text-sm font-medium text-gray-700">
+                  {{ field.label }}
+                  <span v-if="field.conditional?.required" class="text-red-500">*</span>
+                </label>
+                <!-- change background to grey if readonly -->
+                <input
+                  v-if="field.type === 'text' || field.type === 'number' || field.type === 'rank_time' || field.type === 'float'"
+                  :type="field.type === 'number' || field.type === 'rank_time' || field.type === 'float' ? 'number' : 'text'"
+                  :id="field.name"
+                  :value="formData[field.name]"
+                  :readonly="field.readonly"
+                  :disabled="field.disabled"
+                  :placeholder="field.placeholder"
+                  :min="field.min"
+                  :max="field.max"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  :class="{ 'bg-gray-100': field.readonly || field.disabled }"
+                  @input="handleInput($event, field)"
+                />
+
+                <input
+                  v-else-if="field.type === 'time'"
+                  type="time"
+                  :id="field.name"
+                  v-model="formData[field.name]"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+
+                <input
+                  v-else-if="field.type === 'datetime-local'"
+                  type="datetime-local"
+                  :id="field.name"
+                  v-model="formData[field.name]"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+
+                <textarea
+                  v-else-if="field.type === 'textarea'"
+                  :id="field.name"
+                  v-model="formData[field.name]"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                ></textarea>
+
+                <select
+                  v-else-if="field.type === 'select'"
+                  :id="field.name"
+                  v-model="formData[field.name]"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                >
+                  <option disabled value="">Select...</option>
+                  <option
+                    v-for="option in field.options"
+                    :key="option.id"
+                    :value="option.id"
+                  >
+                    {{ option.name }}
+                  </option>
+                </select>
+
+                <!-- Searchable single select dropdown -->
+                <div
+                  v-else-if="field.type === 'searchable-select'"
+                  class="relative"
+                >
+                  <!-- Selected item display -->
+                  <div class="min-h-[42px] p-2 border border-gray-300 rounded-md bg-white">
+                    <div class="flex items-center justify-between">
+                      <span v-if="getSelectedOptionName(field.name)" class="text-sm">
+                        {{ getSelectedOptionName(field.name) }}
+                      </span>
+                      <span v-else class="text-gray-400 text-sm">
+                        {{ field.placeholder || 'Select...' }}
+                      </span>
                       <button
                         type="button"
-                        @click="removeSelectedItem(field.name, index)"
-                        class="text-blue-600 hover:text-blue-800"
+                        @click="toggleSearchableDropdown(field.name)"
+                        class="text-gray-400 hover:text-gray-600"
                       >
-                        <XIcon class="w-3 h-3" />
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
                       </button>
                     </div>
-                    <input
-                      v-if="!dropdownOpen[field.name]"
-                      type="text"
-                      :placeholder="field.placeholder || 'Search and select...'"
-                      class="flex-1 min-w-0 border-none outline-none text-sm"
-                      @focus="openDropdown(field.name)"
-                      readonly
-                    />
-                  </div>
-                </div>
-
-                <!-- Dropdown -->
-                <div
-                  v-if="dropdownOpen[field.name]"
-                  class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
-                >
-                  <!-- Search input -->
-                  <div class="sticky top-0 bg-white border-b border-gray-200 p-2">
-                    <input
-                      type="text"
-                      :placeholder="field.searchPlaceholder || 'Search...'"
-                      v-model="searchQuery[field.name]"
-                      class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      @input="filterOptions(field.name)"
-                    />
                   </div>
 
-                  <!-- Options list -->
-                  <div class="py-1">
-                    <div
-                      v-for="option in filteredOptions[field.name]"
-                      :key="option"
-                      @click="toggleSelection(field.name, option)"
-                      class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 flex items-center gap-2"
-                      :class="{ 'bg-blue-50': isSelected(field.name, option) }"
-                    >
-                      <div class="w-4 h-4 border border-gray-300 rounded flex items-center justify-center">
-                        <div
-                          v-if="isSelected(field.name, option)"
-                          class="w-2 h-2 bg-blue-600 rounded-sm"
-                        ></div>
+                  <!-- Dropdown -->
+                  <div
+                    v-if="searchableDropdownOpen[field.name]"
+                    class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
+                  >
+                    <!-- Search input -->
+                    <div class="sticky top-0 bg-white border-b border-gray-200 p-2">
+                      <input
+                        type="text"
+                        :placeholder="field.searchPlaceholder || 'Search...'"
+                        v-model="searchableSearchQuery[field.name]"
+                        class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        @input="filterSearchableOptions(field.name)"
+                      />
+                    </div>
+
+                    <!-- Options list -->
+                    <div class="py-1">
+                      <div
+                        v-for="option in filteredSearchableOptions[field.name]"
+                        :key="option.id"
+                        @click="selectSearchableOption(field.name, option)"
+                        class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                        :class="{ 'bg-blue-50': isSearchableOptionSelected(field.name, option) }"
+                      >
+                        {{ option.name }}
                       </div>
-                      <span>{{ option }}</span>
-                    </div>
-                    <div
-                      v-if="filteredOptions[field.name].length === 0"
-                      class="px-3 py-2 text-sm text-gray-500"
-                    >
-                      No options found
+                      <div
+                        v-if="filteredSearchableOptions[field.name].length === 0"
+                        class="px-3 py-2 text-sm text-gray-500"
+                      >
+                        No options found
+                      </div>
                     </div>
                   </div>
+
+                  <!-- Click outside to close -->
+                  <div
+                    v-if="searchableDropdownOpen[field.name]"
+                    class="fixed inset-0 z-40"
+                    @click="closeSearchableDropdown(field.name)"
+                  ></div>
                 </div>
 
-                <!-- Click outside to close -->
+                <!-- Multi-select dropdown with search -->
                 <div
-                  v-if="dropdownOpen[field.name]"
-                  class="fixed inset-0 z-40"
-                  @click="closeDropdown(field.name)"
-                ></div>
-              </div>
-
-              <div
-                v-else-if="field.type === 'checkbox'"
-                class="space-y-2"
-              >
-                <div class="flex items-center space-x-3">
-                  <label :for="field.name" class="inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      :id="field.name"
-                      v-model="formData[field.name]"
-                      class="sr-only peer"
-                    >
-                    <div class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
-                  </label>
-                  <span class="text-sm font-medium text-gray-700">{{ field.label }}</span>
-                </div>
-                <p v-if="field.helperText" class="text-xs text-gray-500 ml-14">{{ field.helperText }}</p>
-              </div>
-
-              <!-- File Upload Dropzone -->
-              <div
-                v-else-if="field.type === 'file'"
-                class="flex items-center justify-center w-full"
-              >
-                <label :for="field.name" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                  <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload class="w-8 h-8 mb-4 text-gray-500" />
-                    <p class="mb-2 text-sm text-gray-500">
-                      <span class="font-semibold">Click to upload</span> or drag and drop
-                    </p>
-                    <p class="text-xs text-gray-500">
-                      {{ field.acceptedTypes || 'All file types' }} 
-                      {{ field.maxSize ? `(MAX. ${field.maxSize})` : '' }}
-                    </p>
-                    <div v-if="formData[field.name]" class="mt-2 text-sm text-green-600">
-                      File selected: {{ getFileName(formData[field.name]) }}
+                  v-else-if="field.type === 'multiselect'"
+                  class="relative"
+                >
+                  <!-- Selected items display -->
+                  <div class="min-h-[42px] p-2 border border-gray-300 rounded-md bg-white">
+                    <div class="flex flex-wrap gap-1">
+                      <div
+                        v-for="(item, index) in formData[field.name] || []"
+                        :key="index"
+                        class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-md"
+                      >
+                        <span>{{ item }}</span>
+                        <button
+                          type="button"
+                          @click="removeSelectedItem(field.name, index)"
+                          class="text-blue-600 hover:text-blue-800"
+                        >
+                          <XIcon class="w-3 h-3" />
+                        </button>
+                      </div>
+                      <input
+                        v-if="!dropdownOpen[field.name]"
+                        type="text"
+                        :placeholder="field.placeholder || 'Search and select...'"
+                        class="flex-1 min-w-0 border-none outline-none text-sm"
+                        @focus="openDropdown(field.name)"
+                        readonly
+                      />
                     </div>
                   </div>
-                  <input 
-                    :id="field.name" 
-                    type="file" 
-                    class="hidden" 
-                    :accept="field.acceptedTypes"
-                    @change="handleFileChange($event, field)"
-                  />
-                </label>
+
+                  <!-- Dropdown -->
+                  <div
+                    v-if="dropdownOpen[field.name]"
+                    class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
+                  >
+                    <!-- Search input -->
+                    <div class="sticky top-0 bg-white border-b border-gray-200 p-2">
+                      <input
+                        type="text"
+                        :placeholder="field.searchPlaceholder || 'Search...'"
+                        v-model="searchQuery[field.name]"
+                        class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        @input="filterOptions(field.name)"
+                      />
+                    </div>
+
+                    <!-- Options list -->
+                    <div class="py-1">
+                      <div
+                        v-for="option in filteredOptions[field.name]"
+                        :key="option"
+                        @click="toggleSelection(field.name, option)"
+                        class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 flex items-center gap-2"
+                        :class="{ 'bg-blue-50': isSelected(field.name, option) }"
+                      >
+                        <div class="w-4 h-4 border border-gray-300 rounded flex items-center justify-center">
+                          <div
+                            v-if="isSelected(field.name, option)"
+                            class="w-2 h-2 bg-blue-600 rounded-sm"
+                          ></div>
+                        </div>
+                        <span>{{ option }}</span>
+                      </div>
+                      <div
+                        v-if="filteredOptions[field.name].length === 0"
+                        class="px-3 py-2 text-sm text-gray-500"
+                      >
+                        No options found
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Click outside to close -->
+                  <div
+                    v-if="dropdownOpen[field.name]"
+                    class="fixed inset-0 z-40"
+                    @click="closeDropdown(field.name)"
+                  ></div>
+                </div>
+
+                <div
+                  v-else-if="field.type === 'checkbox'"
+                  class="space-y-2"
+                >
+                  <div class="flex items-center space-x-3">
+                    <label :for="field.name" class="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        :id="field.name"
+                        v-model="formData[field.name]"
+                        class="sr-only peer"
+                      >
+                      <div class="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+                    </label>
+                    <span class="text-sm font-medium text-gray-700">{{ field.label }}</span>
+                  </div>
+                  <p v-if="field.helperText" class="text-xs text-gray-500 ml-14">{{ field.helperText }}</p>
+                </div>
+
+                <!-- File Upload Dropzone -->
+                <div
+                  v-else-if="field.type === 'file'"
+                  class="flex items-center justify-center w-full"
+                >
+                  <label :for="field.name" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload class="w-8 h-8 mb-4 text-gray-500" />
+                      <p class="mb-2 text-sm text-gray-500">
+                        <span class="font-semibold">Click to upload</span> or drag and drop
+                      </p>
+                      <p class="text-xs text-gray-500">
+                        {{ field.acceptedTypes || 'All file types' }} 
+                        {{ field.maxSize ? `(MAX. ${field.maxSize})` : '' }}
+                      </p>
+                      <div v-if="formData[field.name]" class="mt-2 text-sm text-green-600">
+                        File selected: {{ getFileName(formData[field.name]) }}
+                      </div>
+                    </div>
+                    <input 
+                      :id="field.name" 
+                      type="file" 
+                      class="hidden" 
+                      :accept="field.acceptedTypes"
+                      @change="handleFileChange($event, field)"
+                    />
+                  </label>
+                </div>
               </div>
             </div>
   
@@ -251,6 +419,11 @@
   const dropdownOpen = reactive({})
   const searchQuery = reactive({})
   const filteredOptions = reactive({})
+
+  // Searchable single select dropdown state
+  const searchableDropdownOpen = reactive({})
+  const searchableSearchQuery = reactive({})
+  const filteredSearchableOptions = reactive({})
 
   // Computed property to filter fields based on conditional logic
   const visibleFields = computed(() => {
@@ -366,6 +539,53 @@
 
   const isSelected = (fieldName, option) => {
     return formData[fieldName] && formData[fieldName].includes(option)
+  }
+
+  // Searchable single select dropdown functions
+  const toggleSearchableDropdown = (fieldName) => {
+    searchableDropdownOpen[fieldName] = !searchableDropdownOpen[fieldName]
+    if (searchableDropdownOpen[fieldName]) {
+      const field = props.fields.find(f => f.name === fieldName)
+      if (field && field.options) {
+        filteredSearchableOptions[fieldName] = [...field.options]
+      }
+    }
+  }
+
+  const closeSearchableDropdown = (fieldName) => {
+    searchableDropdownOpen[fieldName] = false
+    searchableSearchQuery[fieldName] = ''
+    // Reset filtered options to show all
+    const field = props.fields.find(f => f.name === fieldName)
+    if (field && field.options) {
+      filteredSearchableOptions[fieldName] = [...field.options]
+    }
+  }
+
+  const filterSearchableOptions = (fieldName) => {
+    const field = props.fields.find(f => f.name === fieldName)
+    if (field && field.options) {
+      const query = searchableSearchQuery[fieldName] || ''
+      filteredSearchableOptions[fieldName] = field.options.filter(option =>
+        option.name.toLowerCase().includes(query.toLowerCase())
+      )
+    }
+  }
+
+  const selectSearchableOption = (fieldName, option) => {
+    formData[fieldName] = option.id
+    closeSearchableDropdown(fieldName)
+  }
+
+  const isSearchableOptionSelected = (fieldName, option) => {
+    return formData[fieldName] === option.id
+  }
+
+  const getSelectedOptionName = (fieldName) => {
+    const field = props.fields.find(f => f.name === fieldName)
+    if (!field || !field.options) return null
+    const selectedOption = field.options.find(option => option.id === formData[fieldName])
+    return selectedOption ? selectedOption.name : null
   }
 
   const handleFileChange = (event, field) => {

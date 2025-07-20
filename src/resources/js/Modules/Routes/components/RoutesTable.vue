@@ -140,7 +140,7 @@ const getCustomFieldValue = (route, fieldKey) => {
 
 const fetchRoutes = async () => {
   try {
-    const response = await RotateDataService('/routes/jxFetchRoutes', {})
+    const response = await RotateDataService('/routes/jxFetchRoutes', { scope: 'active' })
     routes.value = response.data || []
   } catch (e) {
     console.error(e)

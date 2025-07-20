@@ -2,7 +2,7 @@
   <AppLayout title="Pilots">
     <div class="space-y-6">
       <AppBreadcrumb :items="breadcrumbs" />
-      <PirepsHeader />
+      <PirepsHeader ref="pirepsHeaderRef" :custom-fields="pirepCustomFields" />
 
       <!-- Analytics Cards -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -48,7 +48,7 @@
             v-bind="pirep"
           />
         </div>
-        <PirepsTable v-else />
+        <PirepsTable v-else :custom-fields="pirepCustomFields" />
       </div>
     </div>
   </AppLayout>
@@ -62,17 +62,55 @@ import PirepsAnalyticsCard from '../components/PirepsAnalyticsCard.vue';
 import PirepsTable from '../components/PirepsTable.vue';
 import BoardingPass from '../components/BoardingPass.vue';
 import { Users, Activity, Clock, Star } from 'lucide-vue-next';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import rotateDataService from '@/rotate.js';
 
 const page = usePage();
-
 const breadcrumbs = page.props.breadcrumbs || [];
+const pirepsHeaderRef = ref(null);
+const pirepCustomFields = ref([]);
+const pireps = ref([]);
+
+const icons = { Users, Activity, Clock, Star };
 const analytics = ref({
   myPireps: 4,
   allPireps: 6,
 });
-const icons = { Users, Activity, Clock, Star };
+
+// Fetch pirep custom fields
+const fetchPirepCustomFields = async () => {
+  try {
+    const response = await rotateDataService('/pireps/jxGetPirepCustomFields');
+    if (!response.hasErrors) {
+      pirepCustomFields.value = response.data;
+    }
+  } catch (error) {
+    console.error('Error fetching pirep custom fields:', error);
+  }
+};
+fetchPirepCustomFields();
+
+// Fetch pireps
+
+const fetchPireps = async () => {
+  try {
+    const response = await rotateDataService('/pireps/jxFetchPireps');
+    if (!response.hasErrors) {
+      pireps.value = response.data;
+    }
+  } catch (error) {
+    console.error('Error fetching pireps:', error);
+  }
+};
+fetchPireps();
+
+// Handle edit pirep event
+const handleOpenEditDrawer = (event) => {
+  if (pirepsHeaderRef.value) {
+    pirepsHeaderRef.value.openDrawerForEdit(event.detail);
+  }
+};
 
 const getViewFromQuery = () => {
   const params = new URLSearchParams(window.location.search);
@@ -97,43 +135,10 @@ onMounted(() => {
   window.addEventListener('popstate', () => {
     viewMode.value = getViewFromQuery();
   });
+  window.addEventListener('open-edit-drawer', handleOpenEditDrawer);
 });
 
-// Sample data, replace with actual fetched data
-const pireps = ref([
-  {
-    id: 1,
-    departure: 'KJFK',
-    arrival: 'EGLL',
-    flight_code: 'RO142',
-    flight_time: '7h 42m',
-    pilot: 'John Smith',
-    distance: '3,459 NM',
-    aircraft: ['Boeing 777-300ER'],
-    fuel: '24,580 lbs',
-    score: 95,
-    multiplier: '2.5x',
-    computed: '19h 15m',
-    status: 'Completed',
-    barcode: 'PIREP-001',
-    timeAgo: '2h ago',
-  },
-  {
-    id: 2,
-    departure: 'KLAX',
-    arrival: 'RJTT',
-    flight_code: 'RO287',
-    flight_time: '11h 20m',
-    pilot: 'Sarah Johnson',
-    distance: '5,487 NM',
-    aircraft: ['Airbus A350-900'],
-    fuel: '32,120 lbs',
-    score: 88,
-    multiplier: '1.8x',
-    computed: '20h 24m',
-    status: 'In-Progress',
-    barcode: 'PIREP-002',
-    timeAgo: '4h ago',
-  }
-]);
+onUnmounted(() => {
+  window.removeEventListener('open-edit-drawer', handleOpenEditDrawer);
+});
 </script>

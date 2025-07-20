@@ -64,23 +64,9 @@ class _CustomFieldConfiguration extends Model
         return $customFieldConfiguration;
     }
 
-    public static function getUserCustomFields()
+    public static function getCustomFields($sourceType)
     {
-        $customFields = CustomFieldConfiguration::where('source_type', self::SOURCE_TYPE_PILOTS)->get();
-
-        // If custom field is a dropdown, get the options
-        foreach ($customFields as $customField) {
-            if ($customField->data_type === self::DATA_TYPE_DROPDOWN) {
-                $customField->options = CustomFieldOptions::where('field_id', $customField->id)->get();
-            }
-        }
-
-        return $customFields;
-    }
-
-    public static function getRouteCustomFields()
-    {
-        $customFields = CustomFieldConfiguration::where('source_type', self::SOURCE_TYPE_ROUTES)->get();
+        $customFields = CustomFieldConfiguration::where('source_type', $sourceType)->get();
 
         // If custom field is a dropdown, get the options
         foreach ($customFields as $customField) {

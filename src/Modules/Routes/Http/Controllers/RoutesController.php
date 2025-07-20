@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Helpers\RotateAirportHelper;
 use App\Models\CustomFieldConfiguration;
 use App\Models\CustomFieldValues;
+use Illuminate\Support\Facades\Auth;
 
 class RoutesController extends Controller
 {
@@ -36,9 +37,21 @@ class RoutesController extends Controller
         ]);
     }
 
-    public function jxFetchRoutes()
+    public function jxFetchRoutes(Request $request)
     {
+        $scope = $request->scope;
         $routes = Route::all();
+        if ($scope === 'active') {
+            $routes = $routes->where('status', Route::ROUTE_STATUS_ACTIVE);
+        }
+        if ($scope === 'inactive') {
+            $routes = $routes->where('status', Route::ROUTE_STATUS_INACTIVE);
+        }
+        if ($scope === 'pireps') {
+            $userRank = Auth::user()->rank_id;
+            $routes = $routes->where('min_rank_id', '<=', $userRank)->where('status', Route::ROUTE_STATUS_ACTIVE);
+        }
+
         $routes = $routes->map(function ($route) {
             $route->origin_icao = $route->origin;
             $route->destination_icao = $route->destination;
@@ -115,7 +128,7 @@ class RoutesController extends Controller
 
     public function jxGetRouteCustomFields()
     {
-        $customFields = CustomFieldConfiguration::getRouteCustomFields();
+        $customFields = CustomFieldConfiguration::getCustomFields(CustomFieldConfiguration::SOURCE_TYPE_ROUTES);
         return response()->json([
             'hasErrors' => false,
             'data' => $customFields
