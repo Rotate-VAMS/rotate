@@ -75,6 +75,10 @@ class User extends Authenticatable
         ];
     }
 
+    const PILOT_STATUS_ACTIVE = '1';
+
+    const PILOT_STATUS_INACTIVE = '0';
+
     public function rank()
     {
         return $this->belongsTo(Rank::class);

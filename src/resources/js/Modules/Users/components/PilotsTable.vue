@@ -92,6 +92,15 @@
               >
                 <TrashIcon class="w-4 h-4" />
               </button>
+              <button 
+                @click="togglePilotStatus(pilot)"
+                :class="pilot.status == '1' ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'"
+                class="p-1 rounded"
+                :title="pilot.status == '1' ? 'Deactivate Pilot' : 'Activate Pilot'"
+              >
+                <ShieldMinusIcon v-if="pilot.status == '1'" class="w-4 h-4" />
+                <ShieldCheckIcon v-else class="w-4 h-4" />
+              </button>
             </div>
           </td>
         </tr>
@@ -102,7 +111,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FilterIcon, BadgeIcon, EditIcon, TrashIcon } from 'lucide-vue-next'
+import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ShieldCheckIcon, ShieldMinusIcon } from 'lucide-vue-next'
 import rotateDataService from '@/rotate.js'
 
 // Props
@@ -174,6 +183,14 @@ const deletePilot = async (pilot) => {
       console.error(e)
       alert('Error occurred while deleting pilot')
     }
+  }
+}
+
+const togglePilotStatus = async (pilot) => {
+  const response = await rotateDataService('/pilots/jxTogglePilotStatus', { id: pilot.id })
+  if (!response.hasErrors) {
+    alert(response.message || 'Pilot status toggled successfully')
+    fetchPilots()
   }
 }
 

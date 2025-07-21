@@ -7,7 +7,7 @@ use Modules\Integration\Http\Controllers\FleetsController;
 use Modules\Integration\Http\Controllers\FlightTypesController;
 use Modules\Integration\Http\Controllers\RolesController;
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
     // Custom Fields
     Route::group(['prefix' => 'settings', 'controller' => IntegrationController::class], function () {
         Route::get('/', 'index')->name('integrations.settings');

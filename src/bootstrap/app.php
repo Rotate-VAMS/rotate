@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        // Register PilotActiveCheck as an alias for use in route groups
+        $middleware->alias([
+            'pilot.active' => \App\Http\Middleware\PilotActiveCheck::class,
+        ]);
+
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {

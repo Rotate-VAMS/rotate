@@ -99,4 +99,30 @@ class UsersController extends Controller
             'data' => $customFields
         ]);
     }
+
+    public function jxTogglePilotStatus(Request $request)
+    {
+        $pilot = User::find($request->id);
+        if (!$pilot) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Pilot not found'];
+            return response()->json($this->errorBag);
+        }
+        if ($pilot->status == User::PILOT_STATUS_ACTIVE) {
+            $pilot->status = User::PILOT_STATUS_INACTIVE;
+            $message = 'Pilot deactivated successfully';
+        } else {
+            $pilot->status = User::PILOT_STATUS_ACTIVE;
+            $message = 'Pilot activated successfully';
+        }
+        if (!$pilot->save()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Failed to toggle pilot status'];
+            return response()->json($this->errorBag);
+        }
+        return response()->json([
+            'hasErrors' => false,
+            'message' => $message
+        ]);
+    }
 }
