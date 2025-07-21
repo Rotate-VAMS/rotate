@@ -21,7 +21,7 @@
           <div>
             <h3 class="font-semibold text-base mb-1">{{ role.name }}</h3>
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-2" v-if="role.name !== 'admin'">
             <button class="btn btn-sm flex items-center gap-2" @click="editRole(role)">
               <EditIcon class="w-4 h-4" />
               <span class="text-sm">Edit</span>
@@ -30,6 +30,13 @@
               <TrashIcon class="w-4 h-4" />
               <span class="text-sm">Delete</span>
             </button>
+            <button class="btn btn-sm flex items-center gap-2" @click="configureRole(role)">
+              <SettingsIcon class="w-4 h-4" />
+              <span class="text-sm">Configure</span>
+            </button>
+          </div>
+          <div class="flex gap-2" v-else>
+            <span class="text-sm text-gray-500">Admin Role - Cannot be edited or deleted</span>
           </div>
         </div>
       </div>
@@ -110,6 +117,10 @@
         fetchRoles()
       }
     }
+  }
+
+  const configureRole = (role) => {
+    console.log(role)
   }
   
   // Submit handler

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             FlightTypeSeeder::class,
             UserSeeder::class,
+            PermissionSeeder::class,
         ]);
     }
 }
