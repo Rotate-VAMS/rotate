@@ -45,8 +45,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Roles and RBAC
     Route::group(['prefix' => 'settings', 'controller' => RolesController::class], function () {
+        // Roles
         Route::post('jxCreateEditRole', 'jxCreateEditRole')->name('integrations.settings.jxCreateEditRole');
         Route::get('jxFetchRoles', 'jxFetchRoles')->name('integrations.settings.jxFetchRoles');
         Route::post('jxDeleteRole', 'jxDeleteRole')->name('integrations.settings.jxDeleteRole');
+
+        // Permissions
+        Route::get('jxFetchPermissions', 'jxFetchPermissions')->name('integrations.settings.jxFetchPermissions');
+        Route::post('jxGiveRolePermissions', 'jxGiveRolePermissions')->name('integrations.settings.jxGiveRolePermissions');
+        Route::post('jxRevokeRolePermissions', 'jxRevokeRolePermissions')->name('integrations.settings.jxRevokeRolePermissions');
     });
 });        

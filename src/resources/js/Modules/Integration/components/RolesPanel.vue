@@ -55,21 +55,41 @@
         @submit="submitForm"
       />
     </div>
+  
+    <!-- Modular RBAC Drawer -->
+    <RBACDrawerComponent
+      :visible="showRBACDrawer"
+      :role="selectedRole"
+      :permissions="rbacPermissions"
+      :rolePermissions="rbacRolePermissions"
+      :onClose="() => showRBACDrawer = false"
+      :onToggle="togglePermission"
+      :isAdmin="selectedRole?.name === 'admin'"
+    />
   </template>
   
   <script setup>
   import { ref, computed } from 'vue'
   import { PlusIcon, EditIcon, TrashIcon, SettingsIcon } from 'lucide-vue-next'
   import RotateFormComponent from '@/Components/RotateFormComponent.vue'
+  import RBACDrawerComponent from './RBACDrawerComponent.vue'
   import rotateDataService from '@/rotate.js'
   
   // Drawer state
   const showDrawer = ref(false)
+  const showRBACDrawer = ref(false)
   const formMode = ref('create')
   const formData = ref({})
+  const selectedRole = ref(null)
   
   // Store fetched roles
   const roles = ref([])
+  const permissions = ref([])
+
+  // --- RBAC Permission State ---
+  const rbacPermissions = ref([]) // All permissions
+  const rbacRolePermissions = ref([]) // Permissions for selected role
+  
   // Form fields structure with computed properties to include dynamic options
   const formFields = computed(() => {
     if (formMode.value === 'create') {
@@ -119,8 +139,11 @@
     }
   }
 
+  // Open RBAC drawer for a role
   const configureRole = (role) => {
-    console.log(role)
+    selectedRole.value = role
+    rbacRolePermissions.value = role.permissions ? role.permissions.map(p => p.id) : []
+    showRBACDrawer.value = true
   }
   
   // Submit handler
@@ -145,5 +168,36 @@
     }
   }
 
+  // Fetch all permissions (for RBAC grid)
+  const fetchPermissions = async () => {
+    try {
+      const response = await rotateDataService('/settings/jxFetchPermissions')
+      permissions.value = response.data || []
+      rbacPermissions.value = response.data || []
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  // Toggle permission for a role
+  const togglePermission = async (permissionId, enabled) => {
+    if (!selectedRole.value) return
+    const roleId = selectedRole.value.id
+    try {
+      if (enabled) {
+        await rotateDataService('/settings/jxGiveRolePermissions', { role_id: roleId, permission_id: permissionId })
+        rbacRolePermissions.value.push(permissionId)
+      } else {
+        await rotateDataService('/settings/jxRevokeRolePermissions', { role_id: roleId, permission_id: permissionId })
+        rbacRolePermissions.value = rbacRolePermissions.value.filter(id => id !== permissionId)
+      }
+      // Optionally, refresh roles to update their permissions
+      fetchRoles()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   fetchRoles()
+  fetchPermissions()
   </script>
