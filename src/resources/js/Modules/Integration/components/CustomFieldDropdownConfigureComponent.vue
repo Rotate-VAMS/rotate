@@ -67,7 +67,7 @@
             />
           </div>
           <button
-            @click="removeCustomValue(index)"
+            @click="removeCustomValue(field.id, value, index)"
             class="text-red-500 hover:text-red-700 p-1"
             title="Remove this value"
           >
@@ -114,8 +114,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { XIcon, PlusIcon, TrashIcon } from 'lucide-vue-next'
+import rotateDataService from '@/rotate.js'
 
 const props = defineProps({
   field: {
@@ -133,22 +134,53 @@ const emit = defineEmits(['close', 'save'])
 // State
 const selectedValueType = ref('')
 const customValues = ref([])
+const loading = ref(false)
+
+// Fetch current dropdown config and options on mount
+const fetchDropdownConfig = async () => {
+  if (!props.field?.id) return
+  loading.value = true
+  try {
+    // Fetch the field to get dropdown_value_type
+    // (Assume field already has dropdown_value_type if passed from parent, else fetch all fields and find it)
+    selectedValueType.value = props.field.dropdown_value_type || ''
+    // Fetch options if custom input
+    if (selectedValueType.value === 7 || selectedValueType.value === '7') {
+      const response = await rotateDataService('/settings/jxFetchCustomFieldOptions?field_id=' + props.field.id)
+      if (!response.hasErrors && Array.isArray(response.data)) {
+        customValues.value = response.data.map(label => ({ label, value: label }))
+      } else {
+        customValues.value = []
+      }
+    } else {
+      customValues.value = []
+    }
+  } catch (e) {
+    customValues.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchDropdownConfig()
+})
 
 // Computed
 const canSave = computed(() => {
-  if (selectedValueType.value === 7) {
-    return customValues.value.length > 0 && customValues.value.every(v => v.label.trim())
+  if (selectedValueType.value === 7 || selectedValueType.value === '7') {
+    return customValues.value.length > 0 && customValues.value.every(v => v.label && v.label.trim())
   }
   return selectedValueType.value !== ''
 })
 
 // Methods
-const handleValueTypeChange = () => {
-  if (selectedValueType.value === 7) {
-    // Custom input - values will be managed in this component
+const handleValueTypeChange = async () => {
+  if (selectedValueType.value === 7 || selectedValueType.value === '7') {
+    customValues.value = []
+  } else {
     customValues.value = []
   }
-  // For other value types, no form needed - handled by backend
 }
 
 const getValueTypeName = (valueType) => {
@@ -164,8 +196,6 @@ const getValueTypeName = (valueType) => {
   return names[valueType] || 'Unknown'
 }
 
-// Removed form-related methods as they're no longer needed
-
 const addCustomValue = () => {
   customValues.value.push({
     label: '',
@@ -173,17 +203,41 @@ const addCustomValue = () => {
   })
 }
 
-const removeCustomValue = (index) => {
+const removeCustomValue = async (field_id, value, index) => {
+  // If the value exists in backend, delete it
+  const response = await rotateDataService('/settings/jxDeleteCustomFieldOption', { value: value.value, field_id: field_id })
+  if (!response.hasErrors) {
+    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Option deleted' } }))
+  } else {
+    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: response.errors?.[0] || 'Delete failed' } }))
+  }
   customValues.value.splice(index, 1)
 }
 
-const saveConfiguration = () => {
-  const configuration = {
-    fieldId: props.field.id,
-    valueType: selectedValueType.value,
-    customValues: selectedValueType.value === 7 ? customValues.value : null
+const saveConfiguration = async () => {
+  loading.value = true
+  try {
+    let payload = {
+      field_id: props.field.id,
+      dropdown_value_type: Number(selectedValueType.value),
+      options: []
+    }
+    if (Number(selectedValueType.value) === 7) {
+      payload.options = customValues.value.map(v => v.label)
+    } else {
+      payload.options = []
+    }
+    const response = await rotateDataService('/settings/jxCreateEditCustomFieldOptions', payload)
+    if (!response.hasErrors) {
+      window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: response.message || 'Configuration saved' } }))
+      emit('save', payload)
+    } else {
+      window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: response.errors?.[0] || 'Save failed' } }))
+    }
+  } catch (e) {
+    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Save failed' } }))
+  } finally {
+    loading.value = false
   }
-  
-  emit('save', configuration)
 }
 </script>

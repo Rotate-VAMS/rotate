@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use App\Models\CustomFieldConfiguration;
+use App\Models\CustomFieldOptions;
 
 class IntegrationController extends Controller
 {
@@ -78,6 +79,86 @@ class IntegrationController extends Controller
         return response()->json([
             'hasErrors' => false,
             'message' => 'Custom field configuration deleted successfully'
+        ]);
+    }
+
+    public function jxCreateEditCustomFieldOptions(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'field_id' => 'required|integer',
+            'dropdown_value_type' => 'required|integer',
+            'options' => 'nullable|array',
+        ]);
+
+        if ($validator->fails()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = $validator->errors();
+            return response()->json($this->errorBag);
+        }
+        $mode = $request->id ? 'edit' : 'create';
+        $cfc = CustomFieldConfiguration::find($request->field_id);
+        if (!$cfc) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Custom field configuration not found'];
+            return response()->json($this->errorBag);
+        }
+        $cfc->dropdown_value_type = $request->dropdown_value_type;
+        if (!$cfc->save()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Failed to update custom field configuration'];
+            return response()->json($this->errorBag);
+        }
+        if ($request->dropdown_value_type == CustomFieldOptions::CUSTOM_VALUES_AS_CUSTOM_INPUT) {
+            if (!CustomFieldOptions::createCustomFieldOption($request->all(), $mode)) {
+                $this->errorBag['hasErrors'] = true;
+                $this->errorBag['errors'] = ['Failed to create custom field option'];
+                return response()->json($this->errorBag);
+            }
+        }
+
+        return response()->json([
+            'hasErrors' => false,
+            'message' => $mode === 'create' ? 'Custom field option created successfully' : 'Custom field option updated successfully'
+        ]);
+    }
+
+    public function jxFetchCustomFieldOptions(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'field_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = $validator->errors();
+            return response()->json($this->errorBag);
+        }
+
+        $customFieldOptions = CustomFieldOptions::fetchCustomFieldOptions($request->field_id);
+        return response()->json([
+            'hasErrors' => false,
+            'data' => $customFieldOptions
+        ]);
+    }
+
+    public function jxDeleteCustomFieldOption(Request $request)
+    {
+        $customFieldOption = CustomFieldOptions::where('field_id', $request->field_id)->where('label', $request->value)->first();
+        if (!$customFieldOption) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Custom field option not found'];
+            return response()->json($this->errorBag);
+        }
+
+        if (!$customFieldOption->delete()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Failed to delete custom field option'];
+            return response()->json($this->errorBag);
+        }
+
+        return response()->json([
+            'hasErrors' => false,
+            'message' => 'Custom field option deleted successfully'
         ]);
     }
 }

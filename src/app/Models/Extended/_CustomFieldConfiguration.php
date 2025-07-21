@@ -62,7 +62,7 @@ class _CustomFieldConfiguration extends Model
         // If custom field is a dropdown, get the options
         foreach ($customFields as $customField) {
             if ($customField->data_type === self::DATA_TYPE_DROPDOWN) {
-                $customField->options = CustomFieldOptions::where('field_id', $customField->id)->get();
+                $customField->options = CustomFieldOptions::fetchCustomFieldOptions($customField->id);
             }
         }
 

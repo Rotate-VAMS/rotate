@@ -69,9 +69,15 @@ const convertCustomFieldsToFormFields = (customFields) => {
     
     // Add options for dropdown fields
     if (field.data_type === 6) { // Dropdown type
-      formField.options = [] // You might want to fetch options from another endpoint
+      // If options is an array of strings, map to array of { id, name }
+      if (Array.isArray(field.options)) {
+        formField.options = field.options.map(opt => ({ id: opt, name: opt }))
+      } else if (typeof field.options === 'object') {
+        formField.options = Object.values(field.options).map(opt => ({ id: opt, name: opt }))
+      } else {
+        formField.options = []
+      }
     }
-    
     return formField
   })
 }
@@ -319,10 +325,10 @@ defineExpose({
 
 // Add event listeners
 onMounted(() => {
-  window.addEventListener('open-edit-drawer', handleOpenEditDrawer)
+  window.addEventListener('edit-pirep', handleOpenEditDrawer)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('open-edit-drawer', handleOpenEditDrawer)
+  window.removeEventListener('edit-pirep', handleOpenEditDrawer)
 })
 </script> 

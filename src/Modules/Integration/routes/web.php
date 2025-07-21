@@ -13,6 +13,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('jxCreateEditCustomFields', 'jxCreateEditCustomFields')->name('integrations.settings.jxCreateEditCustomFields');
         Route::get('jxFetchCustomFields', 'jxFetchCustomFields')->name('integrations.settings.jxFetchCustomFields');
         Route::post('jxDeleteCustomField', 'jxDeleteCustomField')->name('integrations.settings.jxDeleteCustomField');
+        
+        // Custom Field Options
+        Route::post('jxCreateEditCustomFieldOptions', 'jxCreateEditCustomFieldOptions')->name('integrations.settings.jxCreateEditCustomFieldOptions');
+        Route::get('jxFetchCustomFieldOptions', 'jxFetchCustomFieldOptions')->name('integrations.settings.jxFetchCustomFieldOptions');
+        Route::post('jxDeleteCustomFieldOption', 'jxDeleteCustomFieldOption')->name('integrations.settings.jxDeleteCustomFieldOption');
     });
 
 
