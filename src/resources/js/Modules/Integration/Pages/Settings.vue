@@ -20,7 +20,7 @@
   import FlightTypesPanel from '../components/FlightTypesPanel.vue'
   import CustomFieldsPanel from '../components/CustomFieldsPanel.vue'
   import DiscordIntegrationPanel from '../components/DiscordIntegrationPanel.vue'
-  import AccessControlPanel from '../components/AccessControlPanel.vue'
+  import RolesPanel from '../components/RolesPanel.vue'
   import RanksPanel from '../components/RanksPanel.vue'
   import { usePage } from '@inertiajs/vue3'
   import AppLayout from '@/Layouts/AppLayout.vue'
@@ -60,8 +60,8 @@
       flightTypes: FlightTypesPanel,
       customFields: CustomFieldsPanel,
       discord: DiscordIntegrationPanel,
-      access: AccessControlPanel,
       ranks: RanksPanel,
+      roles: RolesPanel,
     }[activeTab.value]
   })
 </script>

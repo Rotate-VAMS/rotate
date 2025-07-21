@@ -5,6 +5,7 @@ use Modules\Integration\Http\Controllers\IntegrationController;
 use Modules\Integration\Http\Controllers\RanksController;
 use Modules\Integration\Http\Controllers\FleetsController;
 use Modules\Integration\Http\Controllers\FlightTypesController;
+use Modules\Integration\Http\Controllers\RolesController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Custom Fields
@@ -19,7 +20,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('jxFetchCustomFieldOptions', 'jxFetchCustomFieldOptions')->name('integrations.settings.jxFetchCustomFieldOptions');
         Route::post('jxDeleteCustomFieldOption', 'jxDeleteCustomFieldOption')->name('integrations.settings.jxDeleteCustomFieldOption');
     });
-
 
     // Ranks
     Route::group(['prefix' => 'settings', 'controller' => RanksController::class], function () {
@@ -41,5 +41,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('jxCreateEditFlightType', 'jxCreateEditFlightType')->name('integrations.settings.jxCreateEditFlightType');
         Route::get('jxFetchFlightTypes', 'jxFetchFlightTypes')->name('integrations.settings.jxFetchFlightTypes');
         Route::post('jxDeleteFlightType', 'jxDeleteFlightType')->name('integrations.settings.jxDeleteFlightType');
+    });
+
+    // Roles and RBAC
+    Route::group(['prefix' => 'settings', 'controller' => RolesController::class], function () {
+        Route::post('jxCreateEditRole', 'jxCreateEditRole')->name('integrations.settings.jxCreateEditRole');
+        Route::get('jxFetchRoles', 'jxFetchRoles')->name('integrations.settings.jxFetchRoles');
+        Route::post('jxDeleteRole', 'jxDeleteRole')->name('integrations.settings.jxDeleteRole');
     });
 });        
