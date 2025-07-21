@@ -55,7 +55,7 @@
                 :key="flight"
                 class="bg-gray-200 text-xs rounded-full px-3 py-1 font-medium"
               >
-                {{ flight.flight_number }}
+                {{ flight.origin }} - {{ flight.destination }}
               </span>
             </div>
           </td>

@@ -42,6 +42,7 @@ class UsersController extends Controller
             'callsign' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'rank_id' => 'required|integer',
+            'role_id' => 'required|integer',
         ]);
 
         if ($validator->fails()) {

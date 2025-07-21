@@ -13,6 +13,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Rank;
 use App\Models\Pirep;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -110,13 +111,20 @@ class User extends Authenticatable
         $pilot->password = Hash::make(env('DEFAULT_PASSWORD'));
         $pilot->created_at = now();
         $pilot->updated_at = now();
-        $pilot->save();
+        if (!$pilot->save()) {
+            return ['error' => 'Failed to save pilot'];
+        }
 
         // Handle custom fields
         if (isset($data['customData'])) {
             foreach ($data['customData'] as $field_key => $value) {
                 CustomFieldValues::createCustomFieldValue(CustomFieldValues::SOURCE_TYPE_PILOTS, $pilot->id, $field_key, $value);
             }
+        }
+
+        // Handle roles assignment
+        if (isset($data['role_id'])) {
+            $pilot->roles()->sync([$data['role_id']]);
         }
 
         return $pilot;
@@ -134,13 +142,27 @@ class User extends Authenticatable
                 'email' => $pilot->email,
                 'rank_id' => $pilot->rank_id,
                 'rank' => Rank::find($pilot->rank_id)->name,
-                'flying_hours' => $pilot->flying_hours,
+                'role' => $pilot->roles->pluck('name'),
+                'role_id' => $pilot->roles->pluck('id')->first(),
+                'flying_hours' => $pilot->flying_hours/60,
                 'flights' => Pirep::where('user_id', $pilot->id)->count(),
-                'recent_flights' => Pirep::where('user_id', $pilot->id)->orderBy('created_at', 'desc')->take(5)->get(),
+                'recent_flights' => User::getPilotLatestFlightLogs($pilot->id),
                 'status' => $pilot->status,
                 'custom_fields' => CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PILOTS, $pilot->id)
             ];
         }
         return $gridData;
+    }
+
+    public static function getPilotLatestFlightLogs($pilotId)
+    {
+        $flights = DB::table('pireps')
+            ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
+            ->select('routes.origin', 'routes.destination')
+            ->where('pireps.user_id', $pilotId)
+            ->orderBy('pireps.created_at', 'desc')
+            ->take(5)
+            ->get();
+        return $flights;
     }
 }

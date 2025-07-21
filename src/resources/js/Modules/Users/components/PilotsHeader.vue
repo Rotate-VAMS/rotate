@@ -56,7 +56,8 @@ const formFields = ref([
   { name: 'name', label: 'Full Name', type: 'text', required: true },
   { name: 'callsign', label: 'Callsign', type: 'text', required: true },
   { name: 'email', label: 'Email', type: 'text', required: true },
-  { name: 'rank_id', label: 'Rank', type: 'select', required: true, options: []}
+  { name: 'rank_id', label: 'Rank', type: 'select', required: true, options: []},
+  { name: 'role_id', label: 'Roles', type: 'select', required: true, options: []}
 ])
 
 // Function to convert custom fields to form fields
@@ -98,7 +99,8 @@ watch(() => props.customFields, (newCustomFields) => {
     { name: 'name', label: 'Full Name', type: 'text', required: true },
     { name: 'callsign', label: 'Callsign', type: 'text', required: true },
     { name: 'email', label: 'Email', type: 'text', required: true },
-    { name: 'rank_id', label: 'Rank', type: 'select', required: true, options: []}
+    { name: 'rank_id', label: 'Rank', type: 'select', required: true, options: []},
+    { name: 'role_id', label: 'Role', type: 'select', required: true, options: []}
   ]
   
   const customFormFields = convertCustomFieldsToFormFields(newCustomFields)
@@ -131,7 +133,21 @@ const fetchRanks = async () => {
   }
 }
 
+const fetchRoles = async () => {
+  try {
+    const response = await rotateDataService('/settings/jxFetchRoles')
+    const roleOptions = response.data.map(role => ({
+      id: role.id,
+      name: role.name
+    }))
+    formFields.value.find(field => field.name === 'role_id').options = roleOptions
+  } catch (e) {
+    console.error('Error fetching roles:', e)
+  }
+}
+
 fetchRanks()
+fetchRoles()
 
 // Submit handler
 const submitForm = async (payload) => {
