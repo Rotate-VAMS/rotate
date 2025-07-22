@@ -25,7 +25,11 @@ class _Documents extends Model
     
     const DOCUMENT_TYPE_DOCUMENT = 4;
 
+    const DOCUMENT_TYPE_LOGO = 5;
+
     const DEFAULT_IMAGE = '/asset/images/default_image.jpg';
+
+    const DEFAULT_LOGO = '/asset/images/logo-rotate-black.png';
 
     public static function createEditDocument($entityType, $entityId, $documentData)
     {

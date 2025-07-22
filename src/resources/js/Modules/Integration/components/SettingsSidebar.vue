@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { Settings, Hash, Shield, Users, ShieldCheck, PlaneIcon, PlaneTakeoff, UsersIcon } from 'lucide-vue-next'
+import { Settings, Hash, Shield, Users, ShieldCheck, PlaneIcon, PlaneTakeoff, UsersIcon, ImageIcon } from 'lucide-vue-next'
 const props = defineProps({
   active: String
 })
@@ -31,5 +31,6 @@ const menu = [
   { key: 'discord', label: 'Discord Integration', icon: Settings },
   { key: 'roles', label: 'Roles & Permissions', icon: UsersIcon },
   { key: 'ranks', label: 'Ranks', icon: ShieldCheck },
+  { key: 'logo', label: 'Logo', icon: ImageIcon },
 ]
 </script>

@@ -5,6 +5,7 @@ use Modules\Integration\Http\Controllers\IntegrationController;
 use Modules\Integration\Http\Controllers\RanksController;
 use Modules\Integration\Http\Controllers\FleetsController;
 use Modules\Integration\Http\Controllers\FlightTypesController;
+use Modules\Integration\Http\Controllers\LogoController;
 use Modules\Integration\Http\Controllers\RolesController;
 
 Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
@@ -54,5 +55,12 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::get('jxFetchPermissions', 'jxFetchPermissions')->name('integrations.settings.jxFetchPermissions');
         Route::post('jxGiveRolePermissions', 'jxGiveRolePermissions')->name('integrations.settings.jxGiveRolePermissions');
         Route::post('jxRevokeRolePermissions', 'jxRevokeRolePermissions')->name('integrations.settings.jxRevokeRolePermissions');
+    });
+
+    // Logo
+    Route::group(['prefix' => 'settings', 'controller' => LogoController::class], function () {
+        Route::post('jxCreateEditLogo', 'jxCreateEditLogo')->name('integrations.settings.jxCreateEditLogo');
+        Route::get('jxFetchLogo', 'jxFetchLogo')->name('integrations.settings.jxFetchLogo');
+        Route::post('jxDeleteLogo', 'jxDeleteLogo')->name('integrations.settings.jxDeleteLogo');
     });
 });        

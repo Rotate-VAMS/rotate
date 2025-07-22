@@ -2,6 +2,7 @@
 import { ref, provide } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import RotateToast from '@/Components/RotateToast.vue';
+import rotateDataService from '@/rotate.js'
 
 const props = defineProps({
     title: String,
@@ -11,6 +12,8 @@ const title = ref(props.title);
 const page = usePage();
 const user = page.props.auth?.user || {};
 const showDropdown = ref(false);
+const logo = ref('');
+const logoDefault = ref(false);
 
 const logout = () => {
     router.post(route('logout'), {
@@ -19,6 +22,20 @@ const logout = () => {
     });
 };
 
+const fetchLogo = async () => {
+    const response = await rotateDataService('/settings/jxFetchLogo');
+    if (response.hasErrors) {
+        showToast(response.message, 'error');
+        return;
+    }
+    logo.value = response.data;
+    logoDefault.value = response.default;
+}
+
+fetchLogo();
+
+provide('logo', logo);
+provide('logoDefault', logoDefault);
 // --- Toast logic ---
 const toastActive = ref(false)
 const toastMessage = ref('')
@@ -68,7 +85,7 @@ provide('showToast', showToast)
       <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-3 sm:py-4 gap-2 sm:gap-0">
         <!-- Logo Section -->
         <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto justify-center sm:justify-start">
-          <img src="/asset/images/logo-rotate-black.png" alt="Logo" class="h-8 w-auto sm:h-10" />
+          <img :src="logo" alt="Logo" class="h-8 w-auto sm:h-10" />
           <span class="text-base sm:text-lg font-semibold hidden sm:inline">Rotate</span>
         </div>
 

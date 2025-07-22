@@ -3,10 +3,10 @@
         <div class="space-y-6">
             <AppBreadcrumb :items="breadcrumbs" />
             <SettingsHeader />
-            <div class="flex flex-row gap-6">
+            <div class="flex flex-row flex-wrap gap-6">
                 <SettingsSidebar :active="activeTab" @navigate="changeTab" />
                 <div class="flex-1">
-                    <component :is="currentComponent" />
+                    <component :is="currentComponent" @logo-updated="fetchLogo" />
                 </div>
             </div>
         </div>
@@ -14,7 +14,7 @@
   </template>
   
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, inject } from 'vue'
   import SettingsSidebar from '../components/SettingsSidebar.vue'
   import FleetPanel from '../components/FleetPanel.vue'
   import FlightTypesPanel from '../components/FlightTypesPanel.vue'
@@ -22,6 +22,7 @@
   import DiscordIntegrationPanel from '../components/DiscordIntegrationPanel.vue'
   import RolesPanel from '../components/RolesPanel.vue'
   import RanksPanel from '../components/RanksPanel.vue'
+  import LogoPanel from '../components/LogoPanel.vue'
   import { usePage } from '@inertiajs/vue3'
   import AppLayout from '@/Layouts/AppLayout.vue'
   import AppBreadcrumb from '@/Components/AppBreadcrumb.vue'
@@ -62,6 +63,7 @@
       discord: DiscordIntegrationPanel,
       ranks: RanksPanel,
       roles: RolesPanel,
+      logo: LogoPanel,
     }[activeTab.value]
   })
 </script>
