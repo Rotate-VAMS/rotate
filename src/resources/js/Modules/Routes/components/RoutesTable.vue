@@ -120,7 +120,9 @@
                   <div class="text-s text-gray-400">{{ route.name_route }}</div>
                 </td>
                 <td class="px-4 sm:px-6 py-4">
-                  <div v-for="(aircraft, key) in route.fleet_names" :key="key" class="text-xs text-gray-400">{{ aircraft }} - {{ key }}</div>
+                  <div class="flex flex-wrap gap-1 overflow-x-auto max-w-xs whitespace-nowrap">
+                    <div v-for="(aircraft, key) in route.fleet_names" :key="key" class="bg-gray-200 text-xs rounded-full px-3 py-1 font-medium">{{ aircraft }} - {{ key }}</div>
+                  </div>
                 </td>
                 <td class="px-4 sm:px-6 py-4 text-center font-medium">{{ route.distance }} NM</td>
                 <td class="px-4 sm:px-6 py-4">
@@ -204,7 +206,9 @@
               <div class="text-s text-gray-400">{{ route.name_route }}</div>
             </td>
             <td class="px-4 sm:px-6 py-4">
-              <div v-for="(aircraft, key) in route.fleet_names" :key="key" class="text-xs text-gray-400">{{ aircraft }} - {{ key }}</div>
+              <div class="flex flex-wrap gap-1 overflow-x-auto max-w-xs whitespace-nowrap">
+                <div v-for="(aircraft, key) in route.fleet_names" :key="key" class="bg-gray-200 text-xs rounded-full px-3 py-1 font-medium">{{ aircraft }} - {{ key }}</div>
+              </div>
             </td>
             <td class="px-4 sm:px-6 py-4 text-center font-medium">{{ route.distance }} NM</td>
             <td class="px-4 sm:px-6 py-4">

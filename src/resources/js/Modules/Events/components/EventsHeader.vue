@@ -1,15 +1,15 @@
 <template>
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800">View Events</h1>
-        <p class="text-sm text-gray-500">View and manage all events in your airline. Monitor performance, track progress, and oversee event operations.</p>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
+      <div class="w-full sm:w-auto">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">View Events</h1>
+        <p class="text-xs sm:text-sm text-gray-500 mt-1">View and manage all events in your airline. Monitor performance, track progress, and oversee event operations.</p>
       </div>
-      <div class="flex items-center gap-2" v-if="user.permissions.includes('create-event')">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0" v-if="user.permissions.includes('create-event')">
         <button 
           @click="openDrawerForCreate"
-          class="btn-primary bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-bold rounded-md px-4 py-2 flex items-center gap-2"
+          class="btn-primary bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto"
         >
-          <PlusIcon class="w-4 h-4" /> Create New Event
+          <PlusIcon class="w-4 h-4" /> <span>Create New Event</span>
         </button>
       </div>
 

@@ -25,9 +25,6 @@
         <div v-if="search" class="text-sm text-gray-500">
           {{ filteredPireps.length }} of {{ pireps.length }} pireps
         </div>
-        <button class="btn-primary flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-blue-100 text-blue-800">
-          <FilterIcon class="w-4 h-4" /> Filters
-        </button>
       </div>
     </div>
 

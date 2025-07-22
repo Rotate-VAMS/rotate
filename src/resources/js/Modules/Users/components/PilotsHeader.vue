@@ -1,21 +1,21 @@
 <template>
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800">View Pilots</h1>
-        <p class="text-sm text-gray-500">View and manage all pilots in your airline. Monitor performance, track progress, and oversee pilot operations.</p>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
+      <div class="w-full sm:w-auto">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">View Pilots</h1>
+        <p class="text-xs sm:text-sm text-gray-500 mt-1">View and manage all pilots in your airline. Monitor performance, track progress, and oversee pilot operations.</p>
       </div>
-      <div class="flex items-center gap-2" v-if="user.permissions.includes('create-user')">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0" v-if="user.permissions.includes('create-user')">
         <button 
           @click="openDrawerForCreate"
-          class="btn-primary bg-indigo-500 text-white text-bold rounded-md px-4 py-2 flex items-center gap-2"
+          class="btn-primary bg-indigo-500 text-white font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto"
         >
-          <PlusIcon class="w-4 h-4" /> Add Pilot
+          <PlusIcon class="w-4 h-4" /> <span>Add Pilot</span>
         </button>
-        <button class="btn-white bg-white text-gray-800 text-bold rounded-md px-4 py-2 flex items-center gap-2">
-          <ImportIcon class="w-4 h-4" /> Import
+        <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
+          <ImportIcon class="w-4 h-4" /> <span>Import</span>
         </button>
-        <button class="btn-white bg-white text-gray-800 text-bold rounded-md px-4 py-2 flex items-center gap-2">
-          <UploadIcon class="w-4 h-4" /> Export
+        <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
+          <UploadIcon class="w-4 h-4" /> <span>Export</span>
         </button> 
       </div>
 
