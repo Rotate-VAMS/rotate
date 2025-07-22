@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Documents;
 use App\Models\EventAttendance;
+use App\Models\CustomFieldConfiguration;
+use App\Models\CustomFieldValues;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -79,6 +81,7 @@ class EventsController extends Controller
         $events = Event::where('event_date_time', '>=', time())->orderBy('event_date_time', 'asc')->get();
         foreach ($events as $event) {
             $event->attendees = EventAttendance::where('event_id', $event->id)->get()->pluck('user_id')->toArray();
+            $event->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_EVENTS, $event->id);
         }
         foreach ($events as $event) {
             $cover_image = Documents::fetchDocument(Documents::ENTITY_TYPE_EVENT, $event->id);
@@ -153,6 +156,15 @@ class EventsController extends Controller
         return response()->json([
             'hasErrors' => false,
             'message' => 'Event deregistered successfully'
+        ]);
+    }
+
+    public function jxFetchCustomFields(Request $request)
+    {
+        $customFields = CustomFieldConfiguration::getCustomFields(CustomFieldConfiguration::SOURCE_TYPE_EVENTS);
+        return response()->json([
+            'hasErrors' => false,
+            'data' => $customFields
         ]);
     }
 }

@@ -43,8 +43,6 @@ class _CustomFieldConfiguration extends Model
         $customFieldConfiguration->field_name = $data['field_name'];
         $customFieldConfiguration->field_description = $data['field_description'];
         $customFieldConfiguration->data_type = $data['data_type'];
-        // TODO: remove aggregation type
-        $customFieldConfiguration->aggregation_type = 1;
         $customFieldConfiguration->source_type = $data['source_type'];
         $customFieldConfiguration->is_required = $data['is_required'];
         $customFieldConfiguration->is_active = true;

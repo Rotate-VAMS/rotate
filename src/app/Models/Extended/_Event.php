@@ -5,6 +5,7 @@ namespace App\Models\Extended;
 use App\Models\Documents;
 use App\Models\Event;
 use App\Models\EventAttendance;
+use App\Models\CustomFieldValues;
 use Illuminate\Database\Eloquent\Model;
 
 class _Event extends Model
@@ -39,6 +40,14 @@ class _Event extends Model
                 return ['error' => $document['error']];
             }
         }
+
+        // Handle custom fields
+        if (isset($data['customData'])) {
+            foreach ($data['customData'] as $field_key => $value) {
+                CustomFieldValues::createCustomFieldValue(CustomFieldValues::SOURCE_TYPE_EVENTS, $event->id, $field_key, $value);
+            }
+        }
+
         return $event;
     }
 

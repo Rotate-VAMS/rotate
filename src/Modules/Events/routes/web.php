@@ -11,5 +11,6 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::post('/jxDeleteEvent', 'jxDeleteEvent')->name('events.jxDeleteEvent');
         Route::post('/jxRegisterForEvent', 'jxRegisterForEvent')->name('events.jxRegisterForEvent');
         Route::post('/jxDeRegisterForEvent', 'jxDeRegisterForEvent')->name('events.jxDeRegisterForEvent');
+        Route::get('/jxFetchCustomFields', 'jxFetchCustomFields')->name('events.jxFetchCustomFields');
     });
 });

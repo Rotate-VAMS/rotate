@@ -35,6 +35,7 @@
           <th class="px-6 py-3">Route</th>
           <th class="px-6 py-3">Aircraft</th>
           <th class="px-6 py-3">Cover Image</th>
+          <th v-for="customField in props.customFields" :key="customField.id" class="px-6 py-3">{{ customField.field_name }}</th>
           <th class="px-6 py-3" v-if="user.permissions.includes('edit-event') || user.permissions.includes('delete-event')">Actions</th>
         </tr>
       </thead>
@@ -74,6 +75,9 @@
             <div v-else class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
               <span class="text-gray-400 text-xs">No Image</span>
             </div>
+          </td>
+          <td v-for="customField in props.customFields" :key="customField.id" class="px-6 py-4">
+            <div class="text-sm">{{ getCustomFieldValue(event, customField.field_key) }}</div>
           </td>
           <td class="px-6 py-4" v-if="user.permissions.includes('edit-event') || user.permissions.includes('delete-event')">
             <div class="flex items-center gap-2">
@@ -118,6 +122,14 @@ import { usePage } from '@inertiajs/vue3';
 const page = usePage();
 const user = page.props.auth.user;
 
+// Accept customFields as a prop
+const props = defineProps({
+  customFields: {
+    type: Array,
+    default: () => []
+  }
+})
+
 const events = ref([])
 const search = ref('')
 
@@ -158,6 +170,23 @@ const filteredEvents = computed(() => {
     return false
   })
 })
+
+// Helper to get custom field value from event
+const getCustomFieldValue = (event, fieldKey) => {
+  if (event.custom_fields && Array.isArray(event.custom_fields)) {
+    const customField = event.custom_fields.find(field => {
+      const fieldDefinition = props.customFields.find(cf => cf.id === field.field_id)
+      return fieldDefinition && fieldDefinition.field_key === fieldKey
+    })
+    if (customField) {
+      return customField.value
+    }
+  }
+  if (event[fieldKey]) {
+    return event[fieldKey]
+  }
+  return '-'
+}
 
 // Format date time
 const formatDateTime = (dateTime) => {

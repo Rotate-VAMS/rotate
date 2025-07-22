@@ -9,7 +9,7 @@
         <EventsAnalyticsCard title="Active Events" :value="analytics.activeEvents" :icon="icons.Activity" />
         </div>
   
-      <EventsTable />
+      <EventsCardViewComponent />
     </div>
     </AppLayout>
   </template>
@@ -17,7 +17,7 @@
   <script setup>
   import EventsAnalyticsCard from '../components/EventsAnalyticsCard.vue';
   import EventsHeader from '../components/EventsHeader.vue';
-  import EventsTable from '../components/EventsTable.vue';
+  import EventsCardViewComponent from '../components/EventsCardViewComponent.vue';
   import AppLayout from '@/Layouts/AppLayout.vue';
   import AppBreadcrumb from '@/Components/AppBreadcrumb.vue';
   import { Users, Activity, Clock, Star } from 'lucide-vue-next';
