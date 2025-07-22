@@ -39,7 +39,7 @@ class RoutesController extends Controller
 
     public function jxFetchRoutes(Request $request)
     {
-        $scope = $request->scope;
+        $scope = $request->scope ?? 'all';
         $routes = Route::all();
         if ($scope === 'active') {
             $routes = $routes->where('status', Route::ROUTE_STATUS_ACTIVE);
@@ -132,6 +132,34 @@ class RoutesController extends Controller
         return response()->json([
             'hasErrors' => false,
             'data' => $customFields
+        ]);
+    }
+
+    public function jxToggleRouteStatus(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = $validator->errors();
+            return response()->json($this->errorBag);
+        }
+        $route = Route::find($request->id);
+        if (!$route) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Route not found'];
+            return response()->json($this->errorBag);
+        }
+        $route->status = $route->status == Route::ROUTE_STATUS_ACTIVE ? Route::ROUTE_STATUS_INACTIVE : Route::ROUTE_STATUS_ACTIVE;
+        if (!$route->save()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['errors'] = ['Failed to update route status'];
+            return response()->json($this->errorBag);
+        }
+        return response()->json([
+            'hasErrors' => false,
+            'message' => 'Route status updated successfully'
         ]);
     }
 }

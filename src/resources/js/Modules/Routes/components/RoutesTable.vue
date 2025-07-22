@@ -247,6 +247,15 @@
                 >
                   <TrashIcon class="w-4 h-4" />
                 </button>
+                <button 
+                  v-if="user.permissions.includes('edit-route')"
+                  @click="toggleRouteStatus(route)"
+                  :class="route.status ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'"
+                  :title="route.status ? 'Deactivate Route' : 'Activate Route'"
+                >
+                  <BadgeCheckIcon v-if="!route.status" class="w-4 h-4" />
+                  <BadgeXIcon v-else class="w-4 h-4" />
+                </button>
               </div>
             </td>
           </tr>
@@ -258,7 +267,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-vue-next'
+import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronRightIcon, BadgeCheckIcon, BadgeXIcon } from 'lucide-vue-next'
 import RotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 
@@ -477,7 +486,7 @@ const toggleGroup = (groupKey) => {
 
 const fetchRoutes = async () => {
   try {
-    const response = await RotateDataService('/routes/jxFetchRoutes', { scope: 'active' })
+    const response = await RotateDataService('/routes/jxFetchRoutes', { scope: 'all' })
     routes.value = response.data || []
   } catch (e) {
     console.error(e)
@@ -504,6 +513,16 @@ const deleteRoute = async (route) => {
       console.error(e)
       alert('Error occurred while deleting route')
     }
+  }
+}
+
+const toggleRouteStatus = async (route) => {
+  const response = await RotateDataService('/routes/jxToggleRouteStatus', { id: route.id })
+  if (!response.hasErrors) {
+    alert(response.message || 'Route status updated successfully')
+    fetchRoutes()
+  } else {
+    alert(response.message || 'Error occurred while updating route status')
   }
 }
 
