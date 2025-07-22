@@ -7,12 +7,38 @@
       <!-- Analytics Cards -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <PirepsAnalyticsCard title="My Pireps" :value="analytics.myPireps" :icon="icons.Users" />
-        <PirepsAnalyticsCard title="All Pireps" :value="analytics.allPireps" :icon="icons.Activity" />
+        <PirepsAnalyticsCard title="All Pireps" :value="analytics.totalPireps" :icon="icons.Activity" />
       </div>
 
-      <!-- View Toggle -->
-      <div class="flex justify-between items-center mb-4">
-        <div></div> <!-- spacer -->
+      <!-- Filter and View Toggle -->
+      <div class="flex justify-between flex-wrap gap-2 items-center mb-4">
+        <!-- Pireps Filter Toggle -->
+        <div class="flex gap-2">
+          <button
+            @click="switchFilter('my')"
+            :class="[
+              'px-4 py-2 rounded-md text-sm font-medium',
+              pirepFilter === 'my'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ]"
+          >
+            My Pireps
+          </button>
+          <button
+            @click="switchFilter('all')"
+            :class="[
+              'px-4 py-2 rounded-md text-sm font-medium',
+              pirepFilter === 'all'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ]"
+          >
+            All Pireps
+          </button>
+        </div>
+
+        <!-- View Toggle -->
         <div class="flex gap-2">
           <button
             @click="switchView('cards')"
@@ -45,10 +71,11 @@
           <BoardingPass
             v-for="pirep in pireps"
             :key="pirep.id"
-            v-bind="pirep"
+            :pirep="pirep"
+            :custom-fields="pirepCustomFields"
           />
         </div>
-        <PirepsTable v-else :custom-fields="pirepCustomFields" />
+        <PirepsTable v-else :custom-fields="pirepCustomFields" :pireps="pireps" />
       </div>
     </div>
   </AppLayout>
@@ -62,7 +89,7 @@ import PirepsAnalyticsCard from '../components/PirepsAnalyticsCard.vue';
 import PirepsTable from '../components/PirepsTable.vue';
 import BoardingPass from '../components/BoardingPass.vue';
 import { Users, Activity, Clock, Star } from 'lucide-vue-next';
-import { ref, onMounted, onUnmounted, inject } from 'vue';
+import { ref, onMounted, onUnmounted, inject, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import rotateDataService from '@/rotate.js';
 
@@ -74,10 +101,7 @@ const pireps = ref([]);
 const showToast = inject('showToast');
 
 const icons = { Users, Activity, Clock, Star };
-const analytics = ref({
-  myPireps: 4,
-  allPireps: 6,
-});
+const analytics = ref({});
 
 // Fetch pirep custom fields
 const fetchPirepCustomFields = async () => {
@@ -93,6 +117,20 @@ const fetchPirepCustomFields = async () => {
     showToast('Error fetching pirep custom fields', 'error');
   }
 };
+
+const fetchPireps = async (filter = 'my') => {
+  try {
+    const response = await rotateDataService('/pireps/jxFetchPireps', {
+      filter: filter
+    })
+    pireps.value = response.data || []
+    analytics.value = response.analytics || {}
+  } catch (e) {
+    console.error(e)
+    showToast('Error fetching pireps', 'error')
+  }
+}
+
 fetchPirepCustomFields();
 
 // Handle edit pirep event
@@ -107,6 +145,11 @@ const getViewFromQuery = () => {
   return params.get('view') || 'cards';
 };
 
+const getFilterFromQuery = () => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('filter') || 'my';
+};
+
 const setViewInQuery = (view) => {
   const params = new URLSearchParams(window.location.search);
   params.set('view', view);
@@ -114,16 +157,37 @@ const setViewInQuery = (view) => {
   window.history.replaceState({}, '', newUrl);
 };
 
+const setFilterInQuery = (filter) => {
+  const params = new URLSearchParams(window.location.search);
+  params.set('filter', filter);
+  const newUrl = `${window.location.pathname}?${params.toString()}`;
+  window.history.replaceState({}, '', newUrl);
+};
+
 const viewMode = ref(getViewFromQuery());
+const pirepFilter = ref(getFilterFromQuery());
 
 const switchView = (mode) => {
   viewMode.value = mode;
   setViewInQuery(mode);
 };
 
+const switchFilter = (filter) => {
+  pirepFilter.value = filter;
+  setFilterInQuery(filter);
+};
+
+// Watch for filter changes and refetch data
+watch(pirepFilter, (newFilter) => {
+  fetchPireps(newFilter);
+});
+
 onMounted(() => {
+  fetchPireps(pirepFilter.value);
+
   window.addEventListener('popstate', () => {
     viewMode.value = getViewFromQuery();
+    pirepFilter.value = getFilterFromQuery();
   });
   window.addEventListener('open-edit-drawer', handleOpenEditDrawer);
 });

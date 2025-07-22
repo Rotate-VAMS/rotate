@@ -12,7 +12,7 @@ class FleetsController extends Controller
 {
     public function jxFetchAllFleets(Request $request)
     {
-        $file = storage_path('app/helpers/'.Fleet::FLEET_DATA_FILE);
+        $file = base_path(Fleet::FLEET_DATA_FILE);
     
         if (!file_exists($file)) {
             return response()->json([

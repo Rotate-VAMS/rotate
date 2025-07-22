@@ -116,19 +116,22 @@ const props = defineProps({
   customFields: {
     type: Array,
     default: () => []
+  },
+  pireps: {
+    type: Array,
+    default: () => []
   }
 })
 
-const pireps = ref([])
 const search = ref('')
 
 // Computed property for filtered pireps
 const filteredPireps = computed(() => {
-  if (!search.value) return pireps.value
+  if (!search.value) return props.pireps
   
   const searchTerm = search.value.toLowerCase().trim()
   
-  return pireps.value.filter(pirep => {
+  return props.pireps.filter(pirep => {
     // Search in route
     if (pirep.route?.toLowerCase().includes(searchTerm)) return true
     
@@ -186,16 +189,6 @@ const formatFlightTime = (totalMinutes) => {
   return `${hours}h ${minutes}m`;
 };
 
-const fetchPireps = async () => {
-  try {
-    const response = await RotateDataService('/pireps/jxFetchPireps')
-    pireps.value = response.data || []
-  } catch (e) {
-    console.error(e)
-    showToast('Error fetching pireps', 'error')
-  }
-}
-
 // Action handlers
 const editPirep = (pirep) => {
   // Emit event to parent component to open edit drawer
@@ -209,12 +202,12 @@ const deletePirep = async (pirep) => {
     return;
   }
   showToast(response.message || 'Pirep deleted successfully', 'success')
-  fetchPireps()
+  window.dispatchEvent(new CustomEvent('pireps-updated'))
 }
 
 // Event listeners
 const handlePirepsUpdated = () => {
-  fetchPireps()
+  window.dispatchEvent(new CustomEvent('pireps-updated'))
 }
 
 const handleEditPirep = (event) => {
@@ -223,7 +216,6 @@ const handleEditPirep = (event) => {
 }
 
 onMounted(() => {
-  fetchPireps()
   window.addEventListener('pireps-updated', handlePirepsUpdated)
   window.addEventListener('edit-pirep', handleEditPirep)
 })

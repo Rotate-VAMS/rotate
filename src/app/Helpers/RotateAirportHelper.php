@@ -4,6 +4,10 @@ namespace App\Helpers;
 
 class RotateAirportHelper
 {
+    const HELPER_DOCUMENT_AIRPORTS = 'public/asset/helpers/airports.csv';
+    
+    const HELPER_DOCUMENT_AIRLINES = 'public/asset/helpers/iata_airlines.csv';
+    
     protected static ?array $airportData = null;
 
     // Load CSV into memory (once)
@@ -11,8 +15,7 @@ class RotateAirportHelper
     {
         if (self::$airportData !== null) return;
 
-        $file = storage_path('app/helpers/airports.csv');
-
+        $file = base_path(self::HELPER_DOCUMENT_AIRPORTS);
         if (!file_exists($file)) {
             self::$airportData = [];
             return;
@@ -78,5 +81,33 @@ class RotateAirportHelper
         $c = 2 * asin(sqrt($a));
 
         return round($earthRadius * $c, 2);
+    }
+
+    // Airline to ICAO
+    public static function airlineToICAO(string $airline): ?string
+    {
+        static $airlineData = null;
+        $csvPath = base_path(self::HELPER_DOCUMENT_AIRLINES);
+
+        if ($airlineData === null) {
+            if (!file_exists($csvPath)) {
+                $airlineData = [];
+            } else {
+                $handle = fopen($csvPath, 'r');
+                $headers = fgetcsv($handle, 0, '^');
+                $data = [];
+                while (($row = fgetcsv($handle, 0, '^')) !== false) {
+                    $entry = array_combine($headers, $row);
+                    if (!empty($entry['iata_code'])) {
+                        $data[strtoupper($entry['iata_code'])] = $entry['name'] ?? null;
+                    }
+                }
+                fclose($handle);
+                $airlineData = $data;
+            }
+        }
+
+        $airline = strtoupper($airline);
+        return $airlineData[$airline] ?? null;
     }
 }

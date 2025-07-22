@@ -9,9 +9,11 @@ use Inertia\Inertia;
 use App\Models\CustomFieldConfiguration;
 use App\Models\Pirep;
 use App\Models\CustomFieldValues;
+use App\Models\FlightType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\RotateAirportHelper;
 
 class PirepController extends Controller
 {
@@ -28,24 +30,41 @@ class PirepController extends Controller
         return Inertia::render('Pireps/Pages/Pireps', ['breadcrumbs' => $breadcrumbs]);
     }
 
-    public function jxFetchPireps()
+    public function jxFetchPireps(Request $request)
     {
+        $filter = $request->filter;
+
         $pireps = DB::table('pireps')
             ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
             ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')
             ->leftJoin('users', 'pireps.user_id', '=', 'users.id')
             ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name')
             ->where('pireps.deleted_at', null)
-            ->get();
+            ->orderBy('pireps.created_at', 'desc');
+
+        if ($filter === 'my') {
+            $pireps->where('pireps.user_id', Auth::user()->id);
+        }
+
+        $pireps = $pireps->get();
 
         foreach ($pireps as $pirep) {
             $pirep->route = $pirep->origin . ' - ' . $pirep->destination;
             $pirep->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PIREPS, $pirep->id);
+            $pirep->origin_city = RotateAirportHelper::icaoToCity($pirep->origin);
+            $pirep->destination_city = RotateAirportHelper::icaoToCity($pirep->destination);
             $pirep->flight_time = $pirep->flight_time;
             $pirep->computed_flight_time = $pirep->computed_flight_time;
+            $pirep->multiplier = FlightType::find($pirep->flight_type_id)->multiplier ?? 1;
+            $pirep->airline = RotateAirportHelper::airlineToICAO(substr($pirep->flight_number, 0, 2)) ?? '-';
         }
 
-        return response()->json(['message' => 'Pireps fetched successfully', 'data' => $pireps]);
+        $analyticsData = [
+            'myPireps' => $pireps->where('user_id', Auth::user()->id)->count(),
+            'totalPireps' => $pireps->count()
+        ];
+
+        return response()->json(['message' => 'Pireps fetched successfully', 'data' => $pireps, 'analytics' => $analyticsData]);
     }
 
     public function jxCreateEditPirep(Request $request)

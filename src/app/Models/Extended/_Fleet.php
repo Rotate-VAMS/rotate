@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class _Fleet extends Model
 {
-    const FLEET_DATA_FILE = 'fleet_data.csv';
+    const FLEET_DATA_FILE = 'public/asset/helpers/fleet_data.csv';
 
     public static function createEditFleet($data, $mode)
     {
