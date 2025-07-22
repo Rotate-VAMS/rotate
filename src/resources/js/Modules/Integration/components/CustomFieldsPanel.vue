@@ -109,6 +109,7 @@ const openDrawerForCreate = () => {
 const editField = (field) => {
   formMode.value = 'edit'
   formData.value = { ...field }
+  formData.value.is_required = formData.value.is_required === 1 ? true : false
   showDrawer.value = true
 }
 const configureField = (field) => {
@@ -128,6 +129,7 @@ const deleteField = async (field) => {
 // Submit handler
 const submitForm = async (payload) => {
   try {
+    payload.is_required = payload.is_required === true ? 1 : 0
     const response = await rotateDataService('/settings/jxCreateEditCustomFields', payload)
     // Optional: show success toast, refresh list
     showDrawer.value = false

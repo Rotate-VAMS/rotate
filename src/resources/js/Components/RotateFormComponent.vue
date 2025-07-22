@@ -453,6 +453,10 @@
   })
   
   const closeDrawer = () => {
+    // Reset form data
+    Object.keys(formData).forEach(key => {
+      formData[key] = null
+    })
     emit('close')
   }
   
