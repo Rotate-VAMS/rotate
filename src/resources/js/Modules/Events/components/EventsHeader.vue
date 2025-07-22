@@ -4,7 +4,7 @@
         <h1 class="text-3xl font-bold text-gray-800">View Events</h1>
         <p class="text-sm text-gray-500">View and manage all events in your airline. Monitor performance, track progress, and oversee event operations.</p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2" v-if="user.permissions.includes('create-event')">
         <button 
           @click="openDrawerForCreate"
           class="btn-primary bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-bold rounded-md px-4 py-2 flex items-center gap-2"
@@ -31,6 +31,10 @@ import { ref } from 'vue'
 import { PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+const user = page.props.auth.user;
 
 // Document type constants (matching backend)
 const _Documents = {
@@ -52,7 +56,7 @@ const formFields = ref([
   { name: 'event_date_time', label: 'Event Date & Time', type: 'datetime-local', required: true },
   { name: 'origin', label: 'Origin', type: 'text', required: true },
   { name: 'destination', label: 'Destination', type: 'text', required: true },
-  { name: 'aircraft', label: 'Aircraft', type: 'text', required: true },
+  { name: 'aircraft', label: 'Aircraft', type: 'multiselect', required: true, options: [] },
   { name: 'cover_image', label: 'Cover Image', type: 'file', required: false, acceptedTypes: 'image/jpeg,image/png,image/jpg,image/gif,image/svg+xml', maxSize: '2MB' }
 ])
 
@@ -130,12 +134,21 @@ const sendRequest = async (payload) => {
   }
 }
 
+const fetchAllFleets = async () => {
+  const response = await rotateDataService('/settings/jxFetchAllFleets')
+  formFields.value[5].options = response.data.map(fleet => fleet)
+}
+
+fetchAllFleets()
+
 // Expose methods for parent components
 defineExpose({
   openDrawerForCreate,
   openDrawerForEdit: (event) => {
     formMode.value = 'edit'
     const editData = { ...event }
+    // Handle aircraft
+    editData.aircraft = JSON.parse(editData.aircraft)
     
     // Convert backend date format to datetime-local format for editing
     if (editData.event_date_time) {

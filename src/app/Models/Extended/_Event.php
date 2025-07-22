@@ -24,7 +24,7 @@ class _Event extends Model
         $event->event_date_time = strtotime($data['event_date_time']);
         $event->origin = $data['origin'];
         $event->destination = $data['destination'];
-        $event->aircraft = $data['aircraft'];
+        $event->aircraft = json_encode($data['aircraft']);
         $event->created_at = now();
         $event->updated_at = now();
         

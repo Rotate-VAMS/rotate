@@ -4,7 +4,7 @@
         <h1 class="text-3xl font-bold text-gray-800">View Pilots</h1>
         <p class="text-sm text-gray-500">View and manage all pilots in your airline. Monitor performance, track progress, and oversee pilot operations.</p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2" v-if="user.permissions.includes('create-user')">
         <button 
           @click="openDrawerForCreate"
           class="btn-primary bg-indigo-500 text-white text-bold rounded-md px-4 py-2 flex items-center gap-2"
@@ -37,6 +37,10 @@ import { ref, watch } from 'vue'
 import { ImportIcon, UploadIcon, PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+const user = page.props.auth.user;
 
 // Props
 const props = defineProps({

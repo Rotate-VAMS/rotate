@@ -1,15 +1,34 @@
 <template>
   <div class="relative overflow-x-auto shadow-lg sm:rounded-xl glassmorphism">
     <div class="flex justify-between items-center p-4">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Search pireps..."
-        class="input border border-gray-300 rounded-md px-4 py-2 w-1/2"
-      />
-      <button class="btn-primary flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-blue-100 text-blue-800">
-        <FilterIcon class="w-4 h-4" /> Filters
-      </button>
+      <div class="relative w-1/2">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <FilterIcon class="h-5 w-5 text-gray-400" />
+        </div>
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Search pireps..."
+          class="input border border-gray-300 rounded-md pl-10 pr-10 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+        <button
+          v-if="search"
+          @click="search = ''"
+          class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="flex items-center gap-4">
+        <div v-if="search" class="text-sm text-gray-500">
+          {{ filteredPireps.length }} of {{ pireps.length }} pireps
+        </div>
+        <button class="btn-primary flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-blue-100 text-blue-800">
+          <FilterIcon class="w-4 h-4" /> Filters
+        </button>
+      </div>
     </div>
 
     <table class="w-full text-sm text-left text-gray-700">
@@ -27,12 +46,12 @@
           >
             {{ customField.field_name }}
           </th>
-          <th class="px-6 py-3">Actions</th>
+          <th class="px-6 py-3" v-if="user.permissions.includes('edit-pirep') || user.permissions.includes('delete-pirep')">Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr
-          v-for="pirep in pireps"
+          v-for="pirep in filteredPireps"
           :key="pirep.id"
           class="border-b hover:bg-gray-50"
         >
@@ -59,9 +78,10 @@
               {{ getCustomFieldValue(pirep, customField.field_key) }}
             </div>
           </td>
-          <td class="px-6 py-4">
+          <td class="px-6 py-4" v-if="user.permissions.includes('edit-pirep') || user.permissions.includes('delete-pirep')">
             <div class="flex items-center gap-2">
               <button 
+                v-if="user.permissions.includes('edit-pirep')"
                 @click="editPirep(pirep)"
                 class="text-blue-600 hover:text-blue-800 p-1 rounded"
                 title="Edit Pirep"
@@ -69,6 +89,7 @@
                 <EditIcon class="w-4 h-4" />
               </button>
               <button 
+                v-if="user.permissions.includes('delete-pirep')"
                 @click="deletePirep(pirep)"
                 class="text-red-600 hover:text-red-800 p-1 rounded"
                 title="Delete Pirep"
@@ -84,9 +105,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { FilterIcon, BadgeIcon, EditIcon, TrashIcon } from 'lucide-vue-next'
 import RotateDataService from '@/rotate.js'
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+const user = page.props.auth.user;
 
 // Props
 const props = defineProps({
@@ -98,6 +123,30 @@ const props = defineProps({
 
 const pireps = ref([])
 const search = ref('')
+
+// Computed property for filtered pireps
+const filteredPireps = computed(() => {
+  if (!search.value) return pireps.value
+  
+  const searchTerm = search.value.toLowerCase().trim()
+  
+  return pireps.value.filter(pirep => {
+    // Search in route
+    if (pirep.route?.toLowerCase().includes(searchTerm)) return true
+    
+    // Search in flight number
+    if (pirep.flight_number?.toLowerCase().includes(searchTerm)) return true
+    
+    // Search in flight type
+    if (pirep.flight_type_name?.toLowerCase().includes(searchTerm)) return true
+    
+    // Search in pilot name
+    if (pirep.pilot_name?.toLowerCase().includes(searchTerm)) return true
+    
+    return false
+  })
+})
+
 const sortKey = ref('')
 const sortAsc = ref(true)
 

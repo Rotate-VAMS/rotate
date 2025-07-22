@@ -34,7 +34,8 @@ class EventsController extends Controller
             'event_date_time' => 'required|date',
             'origin' => 'required|string|max:255',
             'destination' => 'required|string|max:255',
-            'aircraft' => 'required|string|max:255',
+            'aircraft' => 'array',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -79,7 +80,11 @@ class EventsController extends Controller
 
         $events = Event::all();
         foreach ($events as $event) {
-            $event->cover_image = Documents::fetchDocument(Documents::ENTITY_TYPE_EVENT, $event->id);
+            $cover_image = Documents::fetchDocument(Documents::ENTITY_TYPE_EVENT, $event->id);
+            if (isset($cover_image['error'])) {
+                $cover_image = null;
+            }
+            $event->cover_image = $cover_image;
         }
         return response()->json([
             'hasErrors' => false,

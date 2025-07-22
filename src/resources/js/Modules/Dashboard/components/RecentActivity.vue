@@ -4,7 +4,7 @@
         <LineChartIcon class="h-10 w-10 text-indigo-600 bg-gradient-to-r from-indigo-200 to-purple-200 rounded-lg p-2 mr-4" />
         <h2 class="text-2xl font-semibold text-gray-800 mb-2">Recent Pilot Activity</h2>
       </div>
-      <p class="text-sm text-gray-500 mb-4">Latest PIREPs submitted by your pilots</p>
+      <p class="text-sm text-gray-500 mb-4">Latest PIREPs submitted by pilots</p>
   
       <div v-for="activity in activities" :key="activity.id" class="flex items-center justify-between mb-4 bg-white rounded-xl p-4">
         <div class="flex items-center space-x-3">

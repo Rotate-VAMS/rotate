@@ -95,7 +95,7 @@ class _Documents extends Model
             ->get();
             
         if ($document->isEmpty()) {
-            return ['error' => 'Document not found'];
+            return ['error' => 'Document does not exist'];
         }
 
         // Get file extension from the original filename

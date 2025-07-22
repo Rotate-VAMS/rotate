@@ -1,15 +1,29 @@
 <template>
   <div class="relative overflow-x-auto shadow-lg sm:rounded-xl glassmorphism">
     <div class="flex justify-between items-center p-4">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Search events..."
-        class="input border border-gray-300 rounded-md px-4 py-2 w-1/2"
-      />
-      <button class="btn-primary flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-blue-100 text-blue-800">
-        <FilterIcon class="w-4 h-4" /> Filters
-      </button>
+      <div class="relative w-1/2">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <FilterIcon class="h-5 w-5 text-gray-400" />
+        </div>
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Search events..."
+          class="input border border-gray-300 rounded-md pl-10 pr-10 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+        <button
+          v-if="search"
+          @click="search = ''"
+          class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div v-if="search" class="text-sm text-gray-500">
+        {{ filteredEvents.length }} of {{ events.length }} events
+      </div>
     </div>
 
     <table class="w-full text-sm text-left text-gray-700">
@@ -21,7 +35,7 @@
           <th class="px-6 py-3">Route</th>
           <th class="px-6 py-3">Aircraft</th>
           <th class="px-6 py-3">Cover Image</th>
-          <th class="px-6 py-3">Actions</th>
+          <th class="px-6 py-3" v-if="user.permissions.includes('edit-event') || user.permissions.includes('delete-event')">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -47,7 +61,11 @@
             </div>
           </td>
           <td class="px-6 py-4">
-            <div class="text-sm">{{ event.aircraft }}</div>
+            <div class="text-sm flex gap-1 overflow-x-auto max-w-xs whitespace-nowrap">
+              <span v-for="aircraft in JSON.parse(event.aircraft)" :key="aircraft" class="bg-gray-200 text-xs rounded-full px-3 py-1 font-medium">
+                {{ aircraft }}
+              </span>
+            </div>
           </td>
           <td class="px-6 py-4">
             <div v-if="event.cover_image" class="w-12 h-12 rounded-lg overflow-hidden">
@@ -57,9 +75,10 @@
               <span class="text-gray-400 text-xs">No Image</span>
             </div>
           </td>
-          <td class="px-6 py-4">
+          <td class="px-6 py-4" v-if="user.permissions.includes('edit-event') || user.permissions.includes('delete-event')">
             <div class="flex items-center gap-2">
               <button 
+                v-if="user.permissions.includes('edit-event')"
                 @click="editEvent(event)"
                 class="text-blue-600 hover:text-blue-800 p-1 rounded"
                 title="Edit Event"
@@ -67,6 +86,7 @@
                 <EditIcon class="w-4 h-4" />
               </button>
               <button 
+                v-if="user.permissions.includes('delete-event')"
                 @click="deleteEvent(event)"
                 class="text-red-600 hover:text-red-800 p-1 rounded"
                 title="Delete Event"
@@ -85,6 +105,10 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { FilterIcon, EditIcon, TrashIcon } from 'lucide-vue-next'
 import rotateDataService from '@/rotate.js'
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+const user = page.props.auth.user;
 
 const events = ref([])
 const search = ref('')
@@ -93,24 +117,49 @@ const search = ref('')
 const filteredEvents = computed(() => {
   if (!search.value) return events.value
   
-  return events.value.filter(event => 
-    event.event_name?.toLowerCase().includes(search.value.toLowerCase()) ||
-    event.event_description?.toLowerCase().includes(search.value.toLowerCase()) ||
-    event.origin?.toLowerCase().includes(search.value.toLowerCase()) ||
-    event.destination?.toLowerCase().includes(search.value.toLowerCase()) ||
-    event.aircraft?.toLowerCase().includes(search.value.toLowerCase())
-  )
+  const searchTerm = search.value.toLowerCase().trim()
+  
+  return events.value.filter(event => {
+    // Search in event name
+    if (event.event_name?.toLowerCase().includes(searchTerm)) return true
+    
+    // Search in event description
+    if (event.event_description?.toLowerCase().includes(searchTerm)) return true
+    
+    // Search in origin
+    if (event.origin?.toLowerCase().includes(searchTerm)) return true
+    
+    // Search in destination
+    if (event.destination?.toLowerCase().includes(searchTerm)) return true
+    
+    // Search in aircraft (handle JSON parsing)
+    if (event.aircraft) {
+      try {
+        const aircraftArray = JSON.parse(event.aircraft)
+        if (Array.isArray(aircraftArray)) {
+          return aircraftArray.some(aircraft => 
+            aircraft.toLowerCase().includes(searchTerm)
+          )
+        }
+      } catch (e) {
+        // If JSON parsing fails, search in the raw string
+        if (event.aircraft.toLowerCase().includes(searchTerm)) return true
+      }
+    }
+    
+    return false
+  })
 })
 
 // Format date time
 const formatDateTime = (dateTime) => {
   if (!dateTime) return '-'
-  return new Date(dateTime).toLocaleString()
+  return new Date(dateTime*1000).toLocaleString()
 }
 
 const fetchEvents = async () => {
   try {
-    const response = await rotateDataService('/events/jxFetchEvents', { id: 1 }) // Send a default id if required by backend
+    const response = await rotateDataService('/events/jxFetchEvents') // Send a default id if required by backend
     events.value = response.data || []
   } catch (e) {
     console.error(e)
