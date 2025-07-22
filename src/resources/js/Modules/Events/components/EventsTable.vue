@@ -93,6 +93,14 @@
               >
                 <TrashIcon class="w-4 h-4" />
               </button>
+              <button 
+                @click="event.attendees.includes(user.id) ? deregisterForEvent(event) : registerForEvent(event)"
+                :class="event.attendees.includes(user.id) ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'"
+                :title="event.attendees.includes(user.id) ? 'Deregister for Event' : 'Register for Event'"
+              >
+                <TicketCheckIcon v-if="!event.attendees.includes(user.id)" class="w-4 h-4" />
+                <TicketXIcon v-else class="w-4 h-4" />
+              </button>
             </div>
           </td>
         </tr>
@@ -103,7 +111,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FilterIcon, EditIcon, TrashIcon } from 'lucide-vue-next'
+import { FilterIcon, EditIcon, TrashIcon, TicketCheckIcon, TicketXIcon } from 'lucide-vue-next'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 
@@ -163,6 +171,26 @@ const fetchEvents = async () => {
     events.value = response.data || []
   } catch (e) {
     console.error(e)
+  }
+}
+
+const registerForEvent = async (event) => {
+  const response = await rotateDataService('/events/jxRegisterForEvent', { id: event.id })
+  if (!response.hasErrors) {
+    alert(response.message || 'Event registered successfully')
+    fetchEvents()
+  } else {
+    alert(response.message || 'Error occurred while registering for event')
+  }
+}
+
+const deregisterForEvent = async (event) => {
+  const response = await rotateDataService('/events/jxDeRegisterForEvent', { id: event.id })
+  if (!response.hasErrors) {
+    alert(response.message || 'Event deregistered successfully')
+    fetchEvents()
+  } else {
+    alert(response.message || 'Error occurred while deregistering for event')
   }
 }
 

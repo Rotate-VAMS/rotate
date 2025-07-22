@@ -9,5 +9,7 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::get('/jxFetchEvents', 'jxFetchEvents')->name('events.jxFetchEvents');
         Route::post('/jxCreateEditEvent', 'jxCreateEditEvent')->name('events.jxCreateEditEvent');
         Route::post('/jxDeleteEvent', 'jxDeleteEvent')->name('events.jxDeleteEvent');
+        Route::post('/jxRegisterForEvent', 'jxRegisterForEvent')->name('events.jxRegisterForEvent');
+        Route::post('/jxDeRegisterForEvent', 'jxDeRegisterForEvent')->name('events.jxDeRegisterForEvent');
     });
 });
