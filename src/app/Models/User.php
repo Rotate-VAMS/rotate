@@ -148,7 +148,7 @@ class User extends Authenticatable
                 'rank' => Rank::find($pilot->rank_id)->name,
                 'role' => $pilot->roles->pluck('name'),
                 'role_id' => $pilot->roles->pluck('id')->first(),
-                'flying_hours' => $pilot->flying_hours/60,
+                'flying_hours' => round($pilot->flying_hours/60, 2),
                 'flights' => Pirep::where('user_id', $pilot->id)->count(),
                 'recent_flights' => User::getPilotLatestFlightLogs($pilot->id),
                 'status' => $pilot->status,

@@ -134,6 +134,7 @@ const props = defineProps({
 
 const events = ref([])
 const search = ref('')
+const emit = defineEmits(['update:analytics'])
 
 // Computed property for filtered events
 const filteredEvents = computed(() => {
@@ -200,6 +201,7 @@ const fetchEvents = async () => {
   try {
     const response = await rotateDataService('/events/jxFetchEvents') // Send a default id if required by backend
     events.value = response.data || []
+    emit('update:analytics', response.analytics || {})
   } catch (e) {
     console.error(e)
   }

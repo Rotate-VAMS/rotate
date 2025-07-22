@@ -1,7 +1,7 @@
 <template>
   <div class="relative">
     <div class="flex justify-between items-center p-4">
-      <div class="relative w-1/2">
+      <div class="relative w-1/2" v-if="viewMode === 'card'">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <FilterIcon class="h-5 w-5 text-gray-400" />
         </div>
@@ -20,6 +20,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
+      </div>
+      <div class="w-1/2" v-else>
+        <!-- SPACER DIV -->
       </div>
       <div v-if="search" class="text-sm text-gray-500">
         {{ filteredEvents.length }} of {{ events.length }} events
@@ -95,7 +98,7 @@
           </div>
         </div>
       </div>
-      <EventsTable v-else :customFields="customFields" />
+      <EventsTable v-else :customFields="customFields" @update:analytics="updateAnalytics" />
     </div>
   </div>
 </template>
@@ -117,6 +120,7 @@ const customFields = ref([])
 const loading = ref(true)
 const search = ref('')
 const viewMode = ref(localStorage.getItem('eventsViewMode') || 'card')
+const emit = defineEmits(['update:analytics'])
 
 const setViewMode = (mode) => {
   viewMode.value = mode
@@ -187,6 +191,7 @@ const fetchEvents = async () => {
   try {
     const response = await rotateDataService('/events/jxFetchEvents')
     events.value = response.data || []
+    emit('update:analytics', response.analytics || {})
   } catch (e) {
     console.error(e)
   }
@@ -243,6 +248,10 @@ const handleEventsUpdated = () => {
 
 const handleEditEvent = (event) => {
   window.dispatchEvent(new CustomEvent('open-edit-drawer', { detail: event.detail }))
+}
+
+const updateAnalytics = (analytics) => {
+  analytics.value = analytics || {}
 }
 
 onMounted(() => {

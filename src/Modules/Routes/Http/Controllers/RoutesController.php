@@ -66,9 +66,15 @@ class RoutesController extends Controller
             return $route;
         });
 
+        $analyticsData = [
+            'totalRoutes' => Route::count(),
+            'activeRoutes' => Route::where('status', Route::ROUTE_STATUS_ACTIVE)->count(),
+        ];
+
         return response()->json([
             'message' => 'Routes fetched successfully',
-            'data' => $routes
+            'data' => $routes,
+            'analytics' => $analyticsData
         ]);
     }
 

@@ -6,11 +6,11 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <PilotsAnalyticsCard title="Total Pilots" :value="analytics.totalPilots" :icon="icons.Users" />
         <PilotsAnalyticsCard title="Active Pilots" :value="analytics.activePilots" :icon="icons.Activity" />
-        <PilotsAnalyticsCard title="Total Flying Hours" :value="analytics.totalHours" :icon="icons.Clock" />
-        <PilotsAnalyticsCard title="Average Rating" :value="analytics.avgRating" :icon="icons.Star" />
+        <PilotsAnalyticsCard title="Total Flying Hours" :value="formatFlightTime(analytics.totalFlyingHours)" :icon="icons.Clock" />
+        <PilotsAnalyticsCard title="Total Flying Distance" :value="analytics.totalFlyingDistance" :icon="icons.Star" unit="NM" />
       </div>
   
-      <PilotsTable :custom-fields="userCustomFields" />
+      <PilotsTable :custom-fields="userCustomFields" @analytics-updated="handleAnalyticsUpdated" />
     </div>
     </AppLayout>
   </template>
@@ -35,11 +35,21 @@
 
   const icons = { Users, Activity, Clock, Star };
   const analytics = ref({
-    totalPilots: 6,
-    activePilots: 4,
-    totalHours: '5,433h',
-    avgRating: '3.8',
+    totalPilots: 0,
+    activePilots: 0,
+    totalFlyingHours: 0,
+    totalFlyingDistance: 0,
   });
+
+  // Handle analytics update from PilotsTable
+  const handleAnalyticsUpdated = (analyticsData) => {
+    analytics.value = {
+      totalPilots: analyticsData.totalPilots || 0,
+      activePilots: analyticsData.activePilots || 0,
+      totalFlyingHours: analyticsData.totalFlyingHours || 0,
+      totalFlyingDistance: analyticsData.totalFlyingDistance || 0,
+    }
+  }
 
   // Handle edit pilot event
   const handleOpenEditDrawer = (event) => {
@@ -47,6 +57,14 @@
       pilotsHeaderRef.value.openDrawerForEdit(event.detail)
     }
   }
+  const formatFlightTime = (totalMinutes) => {
+    if (totalMinutes === null || totalMinutes === undefined) {
+      return '-';
+    }
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}h ${minutes}m`;
+  };
 
   // Fetch user custom fields
   const fetchUserCustomFields = async () => {

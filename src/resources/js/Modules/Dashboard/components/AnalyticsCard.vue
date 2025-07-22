@@ -4,7 +4,6 @@
         <div>
           <p class="text-sm text-gray-500">{{ title }}</p>
           <p class="text-2xl font-bold text-gray-800">{{ value }}</p>
-          <p class="text-xs text-green-500" v-if="growth">+{{ growth }} from last month</p>
         </div>
         <div class="p-2 rounded-full" :class="bgClass">
           <component :is="icon" class="w-6 h-6 text-white" />
@@ -20,7 +19,6 @@
   const props = defineProps({
     title: String,
     value: [Number, String],
-    growth: [Number, String],
     type: String
   });
   

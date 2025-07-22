@@ -49,7 +49,6 @@ class PirepController extends Controller
         $pireps = $pireps->get();
 
         foreach ($pireps as $pirep) {
-            $pirep->route = $pirep->origin . ' - ' . $pirep->destination;
             $pirep->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PIREPS, $pirep->id);
             $pirep->origin_city = RotateAirportHelper::icaoToCity($pirep->origin);
             $pirep->destination_city = RotateAirportHelper::icaoToCity($pirep->destination);

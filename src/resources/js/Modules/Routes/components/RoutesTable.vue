@@ -287,6 +287,7 @@ const routes = ref([])
 const search = ref('')
 const groupBy = ref('')
 const collapsedGroups = ref([])
+const emit = defineEmits(['update:analytics'])
 
 // Computed property for groupable custom fields (integer, text, dropdown)
 const groupableCustomFields = computed(() => {
@@ -489,6 +490,7 @@ const fetchRoutes = async () => {
   try {
     const response = await RotateDataService('/routes/jxFetchRoutes', { scope: 'all' })
     routes.value = response.data || []
+    emit('update:analytics', response.analytics || {})
   } catch (e) {
     console.error(e)
     showToast('Error fetching routes', 'error')

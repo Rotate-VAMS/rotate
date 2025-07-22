@@ -87,6 +87,11 @@ class EventsController extends Controller
     public function jxFetchEvents(Request $request)
     {
         $events = Event::where('event_date_time', '>=', time())->orderBy('event_date_time', 'asc')->get();
+        $analyticsData = [
+            'totalEvents' => Event::count(),
+            'activeEvents' => $events->where('event_date_time', '>=', time())->count(),
+        ];
+        
         foreach ($events as $event) {
             $event->attendees = EventAttendance::where('event_id', $event->id)->get()->pluck('user_id')->toArray();
             $event->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_EVENTS, $event->id);
@@ -100,7 +105,8 @@ class EventsController extends Controller
         }
         return response()->json([
             'hasErrors' => false,
-            'data' => $events
+            'data' => $events,
+            'analytics' => $analyticsData
         ]);
     }
 

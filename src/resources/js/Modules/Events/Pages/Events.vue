@@ -5,11 +5,11 @@
       <EventsHeader ref="eventsHeaderRef" />
   
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <EventsAnalyticsCard title="Total Events" :value="analytics.totalEvents" :icon="icons.Users" />
-        <EventsAnalyticsCard title="Active Events" :value="analytics.activeEvents" :icon="icons.Activity" />
+        <EventsAnalyticsCard title="Total Events" :value="analyticsData.totalEvents" :icon="icons.Users" />
+        <EventsAnalyticsCard title="Active Events" :value="analyticsData.activeEvents" :icon="icons.Activity" />
         </div>
   
-      <EventsCardViewComponent />
+      <EventsCardViewComponent @update:analytics="updateAnalytics" />
     </div>
     </AppLayout>
   </template>
@@ -27,12 +27,15 @@
   const page = usePage();
   const breadcrumbs = page.props.breadcrumbs || []
   const eventsHeaderRef = ref(null)
-
   const icons = { Users, Activity, Clock, Star };
-  const analytics = ref({
-    totalEvents: 6,
-    activeEvents: 4,
-  });
+  const analyticsData = ref({});
+
+  const updateAnalytics = (analytics) => {
+    analyticsData.value = {
+      totalEvents: analytics.totalEvents || 0,
+      activeEvents: analytics.activeEvents || 0,
+    }
+  }
 
   // Handle edit event
   const handleOpenEditDrawer = (event) => {

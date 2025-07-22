@@ -5,10 +5,12 @@ namespace Modules\Users\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\CustomFieldConfiguration;
 use App\Models\CustomFieldValues;
+use App\Models\Pirep;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class UsersController extends Controller
 {
@@ -29,9 +31,17 @@ class UsersController extends Controller
     public function jxFetchPilots()
     {
         $pilots = User::fetchAllPilots();
+        $analyticsUsers = User::all();
+        $analyticsData = [
+            'totalPilots' => $analyticsUsers->count(),
+            'activePilots' => $analyticsUsers->where('status', User::PILOT_STATUS_ACTIVE)->count(),
+            'totalFlyingHours' => $analyticsUsers->sum('flying_hours'),
+            'totalFlyingDistance' => DB::table('pireps')->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')->sum('routes.distance'),
+        ];
         return response()->json([
             'hasErrors' => false,
-            'data' => $pilots
+            'data' => $pilots,
+            'analytics' => $analyticsData
         ]);
     }
 

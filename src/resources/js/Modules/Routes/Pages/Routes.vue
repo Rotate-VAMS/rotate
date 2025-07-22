@@ -5,11 +5,11 @@
       <RoutesHeader ref="routesHeaderRef" :custom-fields="routeCustomFields" />
   
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <RoutesAnalyticsCard title="Total Routes" :value="analytics.totalRoutes" :icon="icons.Users" />
-        <RoutesAnalyticsCard title="Active Routes" :value="analytics.activeRoutes" :icon="icons.Activity" />
+        <RoutesAnalyticsCard title="Total Routes" :value="analyticsData.totalRoutes" :icon="icons.Users" />
+        <RoutesAnalyticsCard title="Active Routes" :value="analyticsData.activeRoutes" :icon="icons.Activity" />
         </div>
   
-      <RoutesTable :custom-fields="routeCustomFields" />
+      <RoutesTable :custom-fields="routeCustomFields" @update:analytics="updateAnalytics" />
     </div>
     </AppLayout>
   </template>
@@ -32,9 +32,9 @@
   const routeCustomFields = ref([])
 
   const icons = { Users, Activity, Clock, Star };
-  const analytics = ref({
-    totalRoutes: page.props.analyticsData.total_routes,
-    activeRoutes: page.props.analyticsData.total_active_routes,
+  const analyticsData = ref({
+    totalRoutes: 0,
+    activeRoutes: 0,
   });
 
   // Fetch route custom fields
@@ -56,6 +56,13 @@
   const handleOpenEditDrawer = (event) => {
     if (routesHeaderRef.value) {
       routesHeaderRef.value.openDrawerForEdit(event.detail)
+    }
+  }
+
+  const updateAnalytics = (analytics) => {
+    analyticsData.value = {
+      totalRoutes: analytics.totalRoutes || 0,
+      activeRoutes: analytics.activeRoutes || 0,
     }
   }
 

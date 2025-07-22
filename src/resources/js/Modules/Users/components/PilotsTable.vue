@@ -307,10 +307,15 @@ const props = defineProps({
   }
 })
 
+// Emits
+const emit = defineEmits(['analytics-updated'])
+
 const pilots = ref([])
 const search = ref('')
 const groupBy = ref('')
 const collapsedGroups = ref([])
+const analytics = ref({})
+
 
 // Computed property for groupable custom fields (integer, text, dropdown)
 const groupableCustomFields = computed(() => {
@@ -484,6 +489,10 @@ const fetchPilots = async () => {
   try {
     const response = await rotateDataService('/pilots/jxFetchPilots', {})
     pilots.value = response.data || []
+    analytics.value = response.analytics || {}
+    
+    // Emit analytics data to parent component
+    emit('analytics-updated', analytics.value)
   } catch (e) {
     console.error(e)
     showToast('Error fetching pilots', 'error')

@@ -8,16 +8,16 @@
 
     <div v-for="activity in activities" :key="activity.id" class="flex flex-row xs:flex-row xs:items-center justify-between mb-3 sm:mb-4 bg-white rounded-xl p-3 sm:p-4 gap-2 xs:gap-0">
       <div class="flex items-center space-x-2 sm:space-x-3">
-        <div class="bg-indigo-500 text-white rounded-full h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center text-base sm:text-lg">
-          {{ activity.initials }}
+        <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center text-base sm:text-lg">
+          {{ activity.pilot_name.charAt(0) }}
         </div>
         <div>
-          <p class="font-medium text-xs sm:text-sm">{{ activity.name }}</p>
-          <p class="text-xs text-gray-500">{{ activity.route }} · {{ activity.aircraft }}</p>
+          <p class="font-medium text-xs sm:text-sm">{{ activity.pilot_name }}</p>
+          <p class="text-xs text-gray-500">{{ activity.origin }} → {{ activity.destination }} · {{ activity.flight_number }}</p>
         </div>
       </div>
       <div class="text-xs text-right">
-        <span :class="statusColor(activity.status)" class="px-2 py-1 rounded-full text-white">{{ activity.status }}</span>
+        <span class="px-2 py-1 rounded-full text-white bg-gradient-to-r from-green-500 to-green-700">{{ activity.distance }}NM</span>
         <p class="text-gray-400 text-xs mt-2 sm:mt-3">{{ activity.time_ago }}</p>
       </div>
     </div>
