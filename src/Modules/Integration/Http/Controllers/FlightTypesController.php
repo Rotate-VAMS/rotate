@@ -18,7 +18,7 @@ class FlightTypesController extends Controller
 
         if ($validator->fails()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $validator->errors();
+            $this->errorBag['message'] = $validator->errors()->first();
             return response()->json($this->errorBag);
         }
 
@@ -26,7 +26,7 @@ class FlightTypesController extends Controller
         $flightType = FlightType::createFlightType($request->all(), $mode);
         if (!$flightType) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = 'Failed to create flight type';
+            $this->errorBag['message'] = 'Failed to create flight type';
             return response()->json($this->errorBag);
         }
         return response()->json([
@@ -49,12 +49,12 @@ class FlightTypesController extends Controller
         $flightType = FlightType::find($request->id);
         if (!$flightType) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = 'Flight type not found';
+            $this->errorBag['message'] = 'Flight type not found';
             return response()->json($this->errorBag);
         }
         if (!$flightType->delete()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = 'Failed to delete flight type';
+            $this->errorBag['message'] = 'Failed to delete flight type';
             return response()->json($this->errorBag);
         }
         $flightType->delete();

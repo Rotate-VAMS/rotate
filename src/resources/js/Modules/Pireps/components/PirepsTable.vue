@@ -102,11 +102,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
 import { FilterIcon, BadgeIcon, EditIcon, TrashIcon } from 'lucide-vue-next'
 import RotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 
+const showToast = inject('showToast');
 const page = usePage();
 const user = page.props.auth.user;
 
@@ -191,6 +192,7 @@ const fetchPireps = async () => {
     pireps.value = response.data || []
   } catch (e) {
     console.error(e)
+    showToast('Error fetching pireps', 'error')
   }
 }
 
@@ -201,20 +203,13 @@ const editPirep = (pirep) => {
 }
 
 const deletePirep = async (pirep) => {
-  if (confirm(`Delete pirep for pilot "${pirep.pilot_name}"?`)) {
-    try {
-      const response = await RotateDataService('/pireps/jxDeletePireps', { id: pirep.id })
-      if (!response.hasErrors) {
-        alert(response.message || 'Pirep deleted successfully')
-        fetchPireps()
-      } else {
-        alert(response.message || 'Error occurred')
-      }
-    } catch (e) {
-      console.error(e)
-      alert('Error occurred while deleting pirep')
-    }
+  const response = await RotateDataService('/pireps/jxDeletePireps', { id: pirep.id })
+  if (response.hasErrors) {
+    showToast(response.message || 'Error occurred', 'error')
+    return;
   }
+  showToast(response.message || 'Pirep deleted successfully', 'success')
+  fetchPireps()
 }
 
 // Event listeners

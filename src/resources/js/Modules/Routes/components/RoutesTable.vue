@@ -266,11 +266,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
 import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronRightIcon, BadgeCheckIcon, BadgeXIcon } from 'lucide-vue-next'
 import RotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 
+const showToast = inject('showToast');
 const page = usePage();
 const user = page.props.auth.user;
 
@@ -490,6 +491,7 @@ const fetchRoutes = async () => {
     routes.value = response.data || []
   } catch (e) {
     console.error(e)
+    showToast('Error fetching routes', 'error')
   }
 }
 
@@ -500,30 +502,23 @@ const editRoute = (route) => {
 }
 
 const deleteRoute = async (route) => {
-  if (confirm(`Delete route "${route.flight_number}"?`)) {
-    try {
-      const response = await RotateDataService('/routes/jxDeleteRoutes', { id: route.id })
-      if (!response.hasErrors) {
-        alert(response.message || 'Route deleted successfully')
-        fetchRoutes()
-      } else {
-        alert(response.message || 'Error occurred')
-      }
-    } catch (e) {
-      console.error(e)
-      alert('Error occurred while deleting route')
-    }
+  const response = await RotateDataService('/routes/jxDeleteRoutes', { id: route.id })
+  if (response.hasErrors) {
+    showToast(response.message || 'Error occurred', 'error')
+    return;
   }
+  showToast(response.message || 'Route deleted successfully', 'success')
+  fetchRoutes()
 }
 
 const toggleRouteStatus = async (route) => {
   const response = await RotateDataService('/routes/jxToggleRouteStatus', { id: route.id })
-  if (!response.hasErrors) {
-    alert(response.message || 'Route status updated successfully')
-    fetchRoutes()
-  } else {
-    alert(response.message || 'Error occurred while updating route status')
+  if (response.hasErrors) {
+    showToast(response.message || 'Error occurred while updating route status', 'error')
+    return;
   }
+  showToast(response.message || 'Route status updated successfully', 'success')
+  fetchRoutes()
 }
 
 // Event listeners

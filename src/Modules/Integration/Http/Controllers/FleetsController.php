@@ -84,7 +84,7 @@ class FleetsController extends Controller
 
         if ($validator->fails()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $validator->errors();
+            $this->errorBag['message'] = $validator->errors();
             return response()->json($this->errorBag);
         }
 
@@ -92,7 +92,7 @@ class FleetsController extends Controller
         $result = Fleet::createEditFleet($request->all(), $mode);
         if ($result['hasErrors']) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $result['errors'];
+            $this->errorBag['message'] = $result['errors'];
             return response()->json($this->errorBag);
         }
 
@@ -123,13 +123,13 @@ class FleetsController extends Controller
         $fleet = Fleet::find($request->id);
         if (!$fleet) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Fleet not found'];
+            $this->errorBag['message'] = 'Fleet not found';
             return response()->json($this->errorBag);
         }
     
         if (!$fleet->delete()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to delete fleet'];
+            $this->errorBag['message'] = 'Failed to delete fleet';
             return response()->json($this->errorBag);
         }
     

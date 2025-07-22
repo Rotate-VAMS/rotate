@@ -38,7 +38,9 @@ import { ImportIcon, UploadIcon, PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
+import { inject } from 'vue'
 
+const showToast = inject('showToast');
 const page = usePage();
 const user = page.props.auth.user;
 
@@ -133,7 +135,8 @@ const fetchRanks = async () => {
       rankField.options = rankOptions
     }
   } catch (e) {
-    console.error('Error fetching ranks:', e)
+    console.error(e)
+    showToast('Error fetching ranks', 'error')
   }
 }
 
@@ -146,7 +149,8 @@ const fetchRoles = async () => {
     }))
     formFields.value.find(field => field.name === 'role_id').options = roleOptions
   } catch (e) {
-    console.error('Error fetching roles:', e)
+    console.error(e)
+    showToast('Error fetching roles', 'error')
   }
 }
 
@@ -155,7 +159,6 @@ fetchRoles()
 
 // Submit handler
 const submitForm = async (payload) => {
-  try {
     // Separate custom fields from regular fields
     const customData = {}
     const regularData = {}
@@ -179,14 +182,13 @@ const submitForm = async (payload) => {
     }
     
     const response = await rotateDataService('/pilots/jxCreateEditPilot', finalPayload)
-    if (!response.hasErrors) {
-      // Emit event to refresh pilots list
-      window.dispatchEvent(new CustomEvent('pilots-updated'))
-      showDrawer.value = false
+    if (response.hasErrors) {
+      showToast(response.message || 'Error occurred', 'error')
+      return;
     }
-  } catch (e) {
-    console.error(e)
-  }
+    showToast(response.message || 'Pilot created successfully', 'success')
+    window.dispatchEvent(new CustomEvent('pilots-updated'))
+    showDrawer.value = false
 }
 
 // Expose methods for parent components

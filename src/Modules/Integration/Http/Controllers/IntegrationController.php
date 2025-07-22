@@ -36,13 +36,13 @@ class IntegrationController extends Controller
 
         if ($validator->fails()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $validator->errors();
+            $this->errorBag['message'] = $validator->errors();
             return response()->json($this->errorBag);
         }
         $mode = $request->id ? 'edit' : 'create';
         if (!CustomFieldConfiguration::createCustomFieldConfiguration($request->all(), $mode)) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to create custom field configuration'];
+            $this->errorBag['message'] = 'Failed to create custom field configuration';
             return response()->json($this->errorBag);
         }
 
@@ -66,13 +66,13 @@ class IntegrationController extends Controller
         $customFieldConfiguration = CustomFieldConfiguration::find($request->id);
         if (!$customFieldConfiguration) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Custom field configuration not found'];
+            $this->errorBag['message'] = 'Custom field configuration not found';
             return response()->json($this->errorBag);
         }
 
         if (!CustomFieldConfiguration::deleteCustomFieldConfiguration($request->id)) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to delete custom field configuration'];
+            $this->errorBag['message'] = 'Failed to delete custom field configuration';
             return response()->json($this->errorBag);
         }
 
@@ -92,26 +92,26 @@ class IntegrationController extends Controller
 
         if ($validator->fails()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $validator->errors();
+            $this->errorBag['message'] = $validator->errors();
             return response()->json($this->errorBag);
         }
         $mode = $request->id ? 'edit' : 'create';
         $cfc = CustomFieldConfiguration::find($request->field_id);
         if (!$cfc) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Custom field configuration not found'];
+            $this->errorBag['message'] = 'Custom field configuration not found';
             return response()->json($this->errorBag);
         }
         $cfc->dropdown_value_type = $request->dropdown_value_type;
         if (!$cfc->save()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to update custom field configuration'];
+            $this->errorBag['message'] = 'Failed to update custom field configuration';
             return response()->json($this->errorBag);
         }
         if ($request->dropdown_value_type == CustomFieldOptions::CUSTOM_VALUES_AS_CUSTOM_INPUT) {
             if (!CustomFieldOptions::createCustomFieldOption($request->all(), $mode)) {
                 $this->errorBag['hasErrors'] = true;
-                $this->errorBag['errors'] = ['Failed to create custom field option'];
+                $this->errorBag['message'] = 'Failed to create custom field option';
                 return response()->json($this->errorBag);
             }
         }
@@ -130,7 +130,7 @@ class IntegrationController extends Controller
 
         if ($validator->fails()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $validator->errors();
+            $this->errorBag['message'] = $validator->errors();
             return response()->json($this->errorBag);
         }
 
@@ -146,13 +146,13 @@ class IntegrationController extends Controller
         $customFieldOption = CustomFieldOptions::where('field_id', $request->field_id)->where('label', $request->value)->first();
         if (!$customFieldOption) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Custom field option not found'];
+            $this->errorBag['message'] = 'Custom field option not found';
             return response()->json($this->errorBag);
         }
 
         if (!$customFieldOption->delete()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to delete custom field option'];
+            $this->errorBag['message'] = 'Failed to delete custom field option';
             return response()->json($this->errorBag);
         }
 

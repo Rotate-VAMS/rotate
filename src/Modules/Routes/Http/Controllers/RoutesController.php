@@ -87,7 +87,7 @@ class RoutesController extends Controller
 
         if ($validator->fails()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $validator->errors();
+            $this->errorBag['message'] = $validator->errors()->first();
             return response()->json($this->errorBag);
         }
 
@@ -95,7 +95,7 @@ class RoutesController extends Controller
         $route = Route::createEditRoute($request->all(), $mode);
         if (isset($route['error'])) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $route['error'];
+            $this->errorBag['message'] = $route['error'];
             return response()->json($this->errorBag);
         }
         return response()->json([
@@ -112,11 +112,13 @@ class RoutesController extends Controller
         ]);
         $route = Route::find($request->id);
         if (!$route) {
-            return response()->json(['error' => 'Route not found']);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Route not found';
+            return response()->json($this->errorBag);
         }
         if (!CustomFieldValues::deleteCustomFieldValues(CustomFieldValues::SOURCE_TYPE_ROUTES, $route->id)) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to delete custom field values'];
+            $this->errorBag['message'] = 'Failed to delete custom field values';
             return response()->json($this->errorBag);
         }
         $route->delete();
@@ -142,19 +144,19 @@ class RoutesController extends Controller
         ]);
         if ($validator->fails()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $validator->errors();
+            $this->errorBag['message'] = $validator->errors()->first();
             return response()->json($this->errorBag);
         }
         $route = Route::find($request->id);
         if (!$route) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Route not found'];
+            $this->errorBag['message'] = 'Route not found';
             return response()->json($this->errorBag);
         }
         $route->status = $route->status == Route::ROUTE_STATUS_ACTIVE ? Route::ROUTE_STATUS_INACTIVE : Route::ROUTE_STATUS_ACTIVE;
         if (!$route->save()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to update route status'];
+            $this->errorBag['message'] = 'Failed to update route status';
             return response()->json($this->errorBag);
         }
         return response()->json([

@@ -33,12 +33,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, inject } from 'vue'
 import { ImportIcon, UploadIcon, PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 
+const showToast = inject('showToast');
 const page = usePage();
 const user = page.props.auth.user;
 
@@ -179,23 +180,23 @@ const submitForm = async (payload) => {
   try {
     // Basic validation
     if (!payload.route_id) {
-      alert('Please select a route.')
+      showToast('Please select a route.', 'error')
       return
     }
     
     // Validate flight time fields
     if (!payload.flight_time_hours || payload.flight_time_hours < 0 || payload.flight_time_hours > 23) {
-      alert('Please enter a valid flight time hours (0-23).')
+      showToast('Please enter a valid flight time hours (0-23).', 'error')
       return
     }
     
     if (!payload.flight_time_minutes || payload.flight_time_minutes < 0 || payload.flight_time_minutes > 59) {
-      alert('Please enter a valid flight time minutes (0-59).')
+      showToast('Please enter a valid flight time minutes (0-59).', 'error')
       return
     }
     
     if (!payload.flight_type_id) {
-      alert('Please select a flight type.')
+      showToast('Please select a flight type.', 'error')
       return
     }
 
@@ -229,13 +230,16 @@ const submitForm = async (payload) => {
     }
 
     const response = await rotateDataService('/pireps/jxCreateEditPirep', finalSubmitPayload)
-    if (!response.hasErrors) {
-      // Emit event to refresh pireps list
-      window.dispatchEvent(new CustomEvent('pireps-updated'))
-      showDrawer.value = false
+    if (response.hasErrors) {
+      showToast(response.message, 'error')
+      return;
     }
+    showToast(response.message, 'success')
+    window.dispatchEvent(new CustomEvent('pireps-updated'))
+    showDrawer.value = false
   } catch (e) {
     console.error(e)
+    showToast('Error occurred while saving pirep', 'error')
   }
 }
 

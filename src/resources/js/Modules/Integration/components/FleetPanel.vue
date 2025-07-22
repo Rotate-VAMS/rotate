@@ -52,11 +52,12 @@
   </template>
   
   <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, inject } from 'vue'
   import { PlusIcon, EditIcon, TrashIcon, SettingsIcon } from 'lucide-vue-next'
   import RotateFormComponent from '@/Components/RotateFormComponent.vue'
   import rotateDataService from '@/rotate.js'
-  
+
+  const showToast = inject('showToast')
   // Drawer state
   const showDrawer = ref(false)
   const formMode = ref('create')
@@ -115,20 +116,24 @@
     showDrawer.value = true
   }
   const deleteFleet = async (fleet) => {
-    if (confirm(`Delete "${fleet.fleet_name}"?`)) {
       const response = await rotateDataService('/settings/jxDeleteFleet', { id: fleet.id })
-      if (!response.hasErrors) {
-        alert(response.message)
-        fetchFleets()
+      if (response.hasErrors) {
+        showToast(response.message, 'error')
+        return;
       }
-    }
+      showToast(response.message, 'success')
+    fetchFleets()
   }
   
   // Submit handler
   const submitForm = async (payload) => {
     try {
       const response = await rotateDataService('/settings/jxCreateEditFleet', payload)
-      // Optional: show success toast, refresh list
+      if (response.hasErrors) {
+        showToast(response.message, 'error')
+        return;
+      }
+      showToast(response.message, 'success')
       showDrawer.value = false
       fetchFleets()
     } catch (e) {

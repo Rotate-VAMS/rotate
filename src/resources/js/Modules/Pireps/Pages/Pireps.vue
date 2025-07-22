@@ -62,7 +62,7 @@ import PirepsAnalyticsCard from '../components/PirepsAnalyticsCard.vue';
 import PirepsTable from '../components/PirepsTable.vue';
 import BoardingPass from '../components/BoardingPass.vue';
 import { Users, Activity, Clock, Star } from 'lucide-vue-next';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, inject } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import rotateDataService from '@/rotate.js';
 
@@ -71,6 +71,7 @@ const breadcrumbs = page.props.breadcrumbs || [];
 const pirepsHeaderRef = ref(null);
 const pirepCustomFields = ref([]);
 const pireps = ref([]);
+const showToast = inject('showToast');
 
 const icons = { Users, Activity, Clock, Star };
 const analytics = ref({
@@ -82,11 +83,14 @@ const analytics = ref({
 const fetchPirepCustomFields = async () => {
   try {
     const response = await rotateDataService('/pireps/jxGetPirepCustomFields');
-    if (!response.hasErrors) {
-      pirepCustomFields.value = response.data;
+    if (response.hasErrors) {
+      showToast(response.message, 'error');
+      return;
     }
-  } catch (error) {
-    console.error('Error fetching pirep custom fields:', error);
+    pirepCustomFields.value = response.data;
+  } catch (e) {
+    console.error(e)
+    showToast('Error fetching pirep custom fields', 'error');
   }
 };
 fetchPirepCustomFields();

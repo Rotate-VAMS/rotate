@@ -52,11 +52,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { PlusIcon, EditIcon, TrashIcon, SettingsIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
 
+const showToast = inject('showToast')
 // Drawer state
 const showDrawer = ref(false)
 const formMode = ref('create')
@@ -85,20 +86,24 @@ const editFlightType = (flightType) => {
   showDrawer.value = true
 }
 const deleteFlightType = async (flightType) => {
-  if (confirm(`Delete "${flightType.flight_type}"?`)) {
-    const response = await rotateDataService('/settings/jxDeleteFlightType', { id: flightType.id })
-    if (!response.hasErrors) {
-      alert(response.message)
-      fetchFlightTypes()
-    }
+  const response = await rotateDataService('/settings/jxDeleteFlightType', { id: flightType.id })
+  if (response.hasErrors) {
+    showToast(response.message, 'error')
+    return;
   }
+  showToast(response.message, 'success')
+  fetchFlightTypes()
 }
 
 // Submit handler
 const submitForm = async (payload) => {
   try {
     const response = await rotateDataService('/settings/jxCreateEditFlightType', payload)
-    // Optional: show success toast, refresh list
+    if (response.hasErrors) {
+      showToast(response.message, 'error')
+      return;
+    }
+    showToast(response.message, 'success')
     showDrawer.value = false
     fetchFlightTypes()
   } catch (e) {

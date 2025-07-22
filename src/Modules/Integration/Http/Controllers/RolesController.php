@@ -29,19 +29,25 @@ class RolesController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['hasErrors' => true, 'errors' => $validator->errors()]);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
         }
 
         if ($request->id) {
             $role = Role::find($request->id);
             $role->name = $request->name;
             if (!$role->save()) {
-                return response()->json(['hasErrors' => true, 'errors' => 'Failed to update role']);
+                $this->errorBag['hasErrors'] = true;
+                $this->errorBag['message'] = 'Failed to update role';
+                return response()->json($this->errorBag);
             }
         } else {
             $role = Role::create(['name' => $request->name]);
             if (!$role) {
-                return response()->json(['hasErrors' => true, 'errors' => 'Failed to create role']);
+                $this->errorBag['hasErrors'] = true;
+                $this->errorBag['message'] = 'Failed to create role';
+                return response()->json($this->errorBag);
             }
         }
 
@@ -52,11 +58,15 @@ class RolesController extends Controller
     {
         $role = Role::find($request->id);
         if (!$role) {
-            return response()->json(['hasErrors' => true, 'errors' => 'Role not found']);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Role not found';
+            return response()->json($this->errorBag);
         }
 
         if (!$role->delete()) {
-            return response()->json(['hasErrors' => true, 'errors' => 'Failed to delete role']);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Failed to delete role';
+            return response()->json($this->errorBag);
         }
 
         return response()->json(['hasErrors' => false, 'message' => 'Role deleted successfully']);
@@ -79,13 +89,17 @@ class RolesController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['hasErrors' => true, 'errors' => $validator->errors()]);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
         }
 
         $role = Role::find($request->role_id);
         $permission = Permission::where('id', $request->permission_id)->first();
         if (!$role || !$permission) {
-            return response()->json(['hasErrors' => true, 'errors' => 'Role not found']);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Role not found';
+            return response()->json($this->errorBag);
         }
 
         $role->givePermissionTo($permission);
@@ -101,13 +115,17 @@ class RolesController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['hasErrors' => true, 'errors' => $validator->errors()]);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
         }
 
         $role = Role::find($request->role_id);
         $permission = Permission::where('id', $request->permission_id)->first();
         if (!$role || !$permission) {
-            return response()->json(['hasErrors' => true, 'errors' => 'Role not found']);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Role not found';
+            return response()->json($this->errorBag);
         }
 
         $role->revokePermissionTo($permission);

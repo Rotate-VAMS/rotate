@@ -37,7 +37,9 @@
   
   <script setup>
   import { useForm } from '@inertiajs/vue3'
-  
+  import { inject } from 'vue'
+
+  const showToast = inject('showToast');
   const form = useForm({
     email: '',
     password: '',
@@ -50,6 +52,9 @@
       remember: form.remember ? 'on' : '',
     })).post(route('login'), {
       onFinish: () => form.reset('password'),
+      onError: (errors) => {
+        showToast(errors.message || 'Invalid credentials', 'error')
+      }
     })
   }
   </script>

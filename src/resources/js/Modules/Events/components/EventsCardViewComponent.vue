@@ -106,7 +106,9 @@ import { FilterIcon, EditIcon, TrashIcon, TicketCheckIcon, TicketXIcon } from 'l
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 import EventsTable from './EventsTable.vue'
+import { inject } from 'vue'
 
+const showToast = inject('showToast');
 const page = usePage();
 const user = page.props.auth.user;
 
@@ -198,22 +200,22 @@ const fetchAll = async () => {
 
 const registerForEvent = async (event) => {
   const response = await rotateDataService('/events/jxRegisterForEvent', { id: event.id })
-  if (!response.hasErrors) {
-    alert(response.message || 'Event registered successfully')
-    fetchEvents()
-  } else {
-    alert(response.message || 'Error occurred while registering for event')
+  if (response.hasErrors) {
+    showToast(response.message || 'Error occurred while registering for event', 'error')
+    return;
   }
+  showToast(response.message || 'Event registered successfully', 'success')
+  fetchEvents()
 }
 
 const deregisterForEvent = async (event) => {
   const response = await rotateDataService('/events/jxDeRegisterForEvent', { id: event.id })
-  if (!response.hasErrors) {
-    alert(response.message || 'Event deregistered successfully')
-    fetchEvents()
-  } else {
-    alert(response.message || 'Error occurred while deregistering for event')
+  if (response.hasErrors) {
+    showToast(response.message || 'Error occurred while deregistering for event', 'error')
+    return;
   }
+  showToast(response.message || 'Event deregistered successfully', 'success')
+  fetchEvents()
 }
 
 const editEvent = (event) => {
@@ -221,19 +223,17 @@ const editEvent = (event) => {
 }
 
 const deleteEvent = async (event) => {
-  if (confirm(`Delete event "${event.event_name}"?`)) {
-    try {
+  try {
       const response = await rotateDataService('/events/jxDeleteEvent', { id: event.id })
-      if (!response.hasErrors) {
-        alert(response.message || 'Event deleted successfully')
-        fetchEvents()
-      } else {
-        alert(response.message || 'Error occurred while deleting event')
+      if (response.hasErrors) {
+        showToast(response.message || 'Error occurred while deleting event', 'error')
+        return;
       }
+      showToast(response.message || 'Event deleted successfully', 'success')
+      fetchEvents()
     } catch (e) {
       console.error(e)
-      alert('Error occurred while deleting event')
-    }
+    showToast('Error occurred while deleting event', 'error')
   }
 }
 

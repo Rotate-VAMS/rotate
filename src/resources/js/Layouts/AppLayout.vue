@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, provide } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import RotateToast from '@/Components/RotateToast.vue';
 
 const props = defineProps({
     title: String,
@@ -17,6 +18,33 @@ const logout = () => {
         onSuccess: () => router.visit('/login'),
     });
 };
+
+// --- Toast logic ---
+const toastActive = ref(false)
+const toastMessage = ref('')
+const toastType = ref('success')
+let toastTimeout = null
+
+function showToast(message, type = 'success') {
+  toastMessage.value = message
+  toastType.value = type
+  toastActive.value = true
+  if (toastTimeout) clearTimeout(toastTimeout)
+  toastTimeout = setTimeout(() => {
+    toastActive.value = false
+  }, 5000)
+}
+function closeToast() {
+  toastActive.value = false
+  if (toastTimeout) clearTimeout(toastTimeout)
+}
+// Provide showToast globally
+provide('showToast', showToast)
+// --- End Toast logic ---
+
+// Usage: In any child component, use:
+//   const showToast = inject('showToast')
+//   showToast('Message', 'success'|'alert'|'error')
 </script>
 
 <template>
@@ -24,6 +52,16 @@ const logout = () => {
     <Head :title="title">
       <meta name="csrf-token" :content="$page.props.csrf_token" />
     </Head>
+
+    <!-- Toast Overlay -->
+    <RotateToast
+      v-if="toastActive"
+      :message="toastMessage"
+      :type="toastType"
+      :active="toastActive"
+      :overlay="true"
+      @close="closeToast"
+    />
 
     <!-- Header -->
     <header class="bg-white shadow-md sticky top-0 z-50">

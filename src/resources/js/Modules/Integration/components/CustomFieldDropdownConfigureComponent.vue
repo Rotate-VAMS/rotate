@@ -114,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { XIcon, PlusIcon, TrashIcon } from 'lucide-vue-next'
 import rotateDataService from '@/rotate.js'
 
@@ -130,6 +130,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'save'])
+const showToast = inject('showToast')
 
 // State
 const selectedValueType = ref('')
@@ -206,11 +207,11 @@ const addCustomValue = () => {
 const removeCustomValue = async (field_id, value, index) => {
   // If the value exists in backend, delete it
   const response = await rotateDataService('/settings/jxDeleteCustomFieldOption', { value: value.value, field_id: field_id })
-  if (!response.hasErrors) {
-    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Option deleted' } }))
-  } else {
-    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: response.errors?.[0] || 'Delete failed' } }))
+  if (response.hasErrors) {
+    showToast(response.message, 'error')
+    return;
   }
+  showToast(response.message, 'success')
   customValues.value.splice(index, 1)
 }
 
@@ -229,13 +230,13 @@ const saveConfiguration = async () => {
     }
     const response = await rotateDataService('/settings/jxCreateEditCustomFieldOptions', payload)
     if (!response.hasErrors) {
-      window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: response.message || 'Configuration saved' } }))
+      showToast(response.message || 'Configuration saved', 'success')
       emit('save', payload)
     } else {
-      window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: response.errors?.[0] || 'Save failed' } }))
+      showToast(response.message || 'Save failed', 'error')
     }
   } catch (e) {
-    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Save failed' } }))
+    showToast('Save failed', 'error')
   } finally {
     loading.value = false
   }

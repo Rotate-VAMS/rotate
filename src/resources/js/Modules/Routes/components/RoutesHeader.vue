@@ -33,12 +33,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, inject } from 'vue'
 import { ImportIcon, UploadIcon, PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 
+const showToast = inject('showToast');
 const page = usePage();
 const user = page.props.auth.user;
 
@@ -210,96 +211,94 @@ const fetchRanks = async () => {
 
 // Submit handler
 const submitForm = async (payload) => {
-  try {
-    // Basic validation
-    if (!payload.flight_number?.trim()) {
-      alert('Please enter a flight number.')
-      return
-    }
-    
-    if (!payload.origin_icao?.trim()) {
-      alert('Please enter an origin ICAO code.')
-      return
-    }
-    
-    if (!payload.origin_icao?.trim().match(/^[A-Z]{4}$/)) {
-      alert('Origin ICAO code must be exactly 4 uppercase letters.')
-      return
-    }
-    
-    if (!payload.destination_icao?.trim()) {
-      alert('Please enter a destination ICAO code.')
-      return
-    }
-    
-    if (!payload.destination_icao?.trim().match(/^[A-Z]{4}$/)) {
-      alert('Destination ICAO code must be exactly 4 uppercase letters.')
-      return
-    }
-    
-    if (!payload.fleet_ids || payload.fleet_ids.length === 0) {
-      alert('Please select at least one fleet.')
-      return
-    }
-
-    // Validate rank selection based on mode
-    if (formMode.value === 'create') {
-      // In create mode, validate that rank is selected when toggle is off
-      if (!payload.use_aircraft_rank && !payload.rank_id) {
-        alert('Please select a rank for this route when "Take aircraft rank for route rank" is disabled.')
-        return
-      }
-    } else {
-      // In edit mode, rank is always required
-      if (!payload.rank_id) {
-        alert('Please select a rank for this route.')
-        return
-      }
-      // In edit mode, always set use_aircraft_rank to false since we're directly showing rank selection
-      payload.use_aircraft_rank = false
-    }
-
-    // Convert fleet names back to IDs for backend
-    if (payload.fleet_ids && Array.isArray(payload.fleet_ids)) {
-      const fleetIds = payload.fleet_ids.map(fleetName => {
-        const fleet = fleets.value.find(f => f.name === fleetName)
-        return fleet ? fleet.id : null
-      }).filter(id => id !== null)
-      
-      payload.fleet_ids = fleetIds
-    }
-
-    // Separate custom fields from regular fields
-    const customData = {}
-    const regularData = {}
-    
-    // Get custom field keys
-    const customFieldKeys = props.customFields.map(field => field.field_key)
-    
-    // Separate the data
-    Object.keys(payload).forEach(key => {
-      if (customFieldKeys.includes(key)) {
-        customData[key] = payload[key]
-      } else {
-        regularData[key] = payload[key]
-      }
-    })
-    
-    // Add customData to the regular payload
-    const finalPayload = {
-      ...regularData,
-      customData: customData
-    }
-
-    const response = await rotateDataService('/routes/jxCreateEditRoutes', finalPayload)
-    if (!response.hasErrors) {
-      // Emit event to refresh routes list
-      window.dispatchEvent(new CustomEvent('routes-updated'))
-      showDrawer.value = false
-    }
-  } catch (e) {
-    console.error(e)
+  // Basic validation
+  if (!payload.flight_number?.trim()) {
+    showToast('Please enter a flight number.', 'error')
+    return
   }
+  
+  if (!payload.origin_icao?.trim()) {
+    showToast('Please enter an origin ICAO code.', 'error')
+    return
+  }
+  
+  if (!payload.origin_icao?.trim().match(/^[A-Z]{4}$/)) {
+    showToast('Origin ICAO code must be exactly 4 uppercase letters.', 'error')
+    return
+  }
+  
+  if (!payload.destination_icao?.trim()) {
+    showToast('Please enter a destination ICAO code.', 'error')
+    return
+  }
+  
+  if (!payload.destination_icao?.trim().match(/^[A-Z]{4}$/)) {
+    showToast('Destination ICAO code must be exactly 4 uppercase letters.', 'error')
+    return
+  }
+  
+  if (!payload.fleet_ids || payload.fleet_ids.length === 0) {
+    showToast('Please select at least one fleet.', 'error')
+    return
+  }
+
+  // Validate rank selection based on mode
+  if (formMode.value === 'create') {
+    // In create mode, validate that rank is selected when toggle is off
+    if (!payload.use_aircraft_rank && !payload.rank_id) {
+      showToast('Please select a rank for this route when "Take aircraft rank for route rank" is disabled.', 'error')
+      return
+    }
+  } else {
+    // In edit mode, rank is always required
+    if (!payload.rank_id) {
+      showToast('Please select a rank for this route.', 'error')
+      return
+    }
+    // In edit mode, always set use_aircraft_rank to false since we're directly showing rank selection
+    payload.use_aircraft_rank = false
+  }
+
+  // Convert fleet names back to IDs for backend
+  if (payload.fleet_ids && Array.isArray(payload.fleet_ids)) {
+    const fleetIds = payload.fleet_ids.map(fleetName => {
+      const fleet = fleets.value.find(f => f.name === fleetName)
+      return fleet ? fleet.id : null
+    }).filter(id => id !== null)
+    
+    payload.fleet_ids = fleetIds
+  }
+
+  // Separate custom fields from regular fields
+  const customData = {}
+  const regularData = {}
+  
+  // Get custom field keys
+  const customFieldKeys = props.customFields.map(field => field.field_key)
+  
+  // Separate the data
+  Object.keys(payload).forEach(key => {
+    if (customFieldKeys.includes(key)) {
+      customData[key] = payload[key]
+    } else {
+      regularData[key] = payload[key]
+    }
+  })
+  
+  // Add customData to the regular payload
+  const finalPayload = {
+    ...regularData,
+    customData: customData
+  }
+
+  const response = await rotateDataService('/routes/jxCreateEditRoutes', finalPayload)
+  if (response.hasErrors) {
+    showToast(response.message, 'error')
+    return;
+  }
+  showToast(response.message, 'success')
+  window.dispatchEvent(new CustomEvent('routes-updated'))
+  showDrawer.value = false
 }
 
 // Initialize data

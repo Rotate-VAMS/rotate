@@ -32,7 +32,9 @@ import { PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
+import { inject } from 'vue'
 
+const showToast = inject('showToast');
 const page = usePage();
 const user = page.props.auth.user;
 
@@ -150,7 +152,7 @@ const submitForm = async (payload) => {
     await sendRequest(processedPayload)
   } catch (e) {
     console.error(e)
-    alert('An error occurred while saving the event.')
+    showToast('An error occurred while saving the event.', 'error')
   }
 }
 
@@ -176,11 +178,11 @@ const sendRequest = async (payload) => {
     } else {
       // Handle validation errors
       console.error('Validation errors:', response.errors)
-      alert('Please check the form and try again.')
+      showToast('Please check the form and try again.', 'error')
     }
   } catch (e) {
     console.error(e)
-    alert('An error occurred while saving the event.')
+    showToast('An error occurred while saving the event.', 'error')
   }
 }
 

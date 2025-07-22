@@ -43,12 +43,16 @@ class EventsController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
         }
 
         $event = Event::createEditEvent($request->all(), $request->id ? 'edit' : 'create');
         if (isset($event['error'])) {
-            return response()->json(['error' => $event['error']], 422);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $event['error'];
+            return response()->json($this->errorBag);
         }
         return response()->json([
             'hasErrors' => false,
@@ -63,12 +67,16 @@ class EventsController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
         }
 
         $event = Event::deleteEvent($request->id);
         if (isset($event['error'])) {
-            return response()->json(['error' => $event['error']], 422);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $event['error'];
+            return response()->json($this->errorBag);
         }
         return response()->json([
             'hasErrors' => false,
@@ -103,13 +111,17 @@ class EventsController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
         }
 
         $event = Event::find($request->id);
 
         if (!$event) {
-            return response()->json(['error' => 'Event not found'], 404);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Event not found';
+            return response()->json($this->errorBag);
         }
 
         $eventAttendance = new EventAttendance();
@@ -119,7 +131,9 @@ class EventsController extends Controller
         $eventAttendance->updated_at = time();
 
         if (!$eventAttendance->save()) {
-            return response()->json(['error' => 'Failed to register for event'], 422);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Failed to register for event';
+            return response()->json($this->errorBag);
         }
 
         return response()->json([
@@ -135,22 +149,30 @@ class EventsController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
         }
 
         $event = Event::find($request->id);
 
         if (!$event) {
-            return response()->json(['error' => 'Event not found'], 404);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Event not found';
+            return response()->json($this->errorBag);
         }
 
         $eventAttendance = EventAttendance::where('event_id', $event->id)->where('user_id', Auth::user()->id)->first();
         if (!$eventAttendance) {
-            return response()->json(['error' => 'Event not found'], 404);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Event not found';
+            return response()->json($this->errorBag);
         }
 
         if (!$eventAttendance->delete()) {
-            return response()->json(['error' => 'Failed to deregister for event'], 422);
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Failed to deregister for event';
+            return response()->json($this->errorBag);
         }
 
         return response()->json([

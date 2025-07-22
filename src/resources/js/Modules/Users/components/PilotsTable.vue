@@ -293,7 +293,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ShieldCheckIcon, ShieldMinusIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-vue-next'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
+import { inject } from 'vue'
 
+const showToast = inject('showToast');
 const page = usePage();
 const user = page.props.auth.user;
 
@@ -484,6 +486,7 @@ const fetchPilots = async () => {
     pilots.value = response.data || []
   } catch (e) {
     console.error(e)
+    showToast('Error fetching pilots', 'error')
   }
 }
 
@@ -494,28 +497,23 @@ const editPilot = (pilot) => {
 }
 
 const deletePilot = async (pilot) => {
-  if (confirm(`Delete pilot "${pilot.name}"?`)) {
-    try {
-      const response = await rotateDataService('/pilots/jxDeletePilot', { id: pilot.id })
-      if (!response.hasErrors) {
-        alert(response.message || 'Pilot deleted successfully')
-        fetchPilots()
-      } else {
-        alert(response.message || 'Error occurred')
-      }
-    } catch (e) {
-      console.error(e)
-      alert('Error occurred while deleting pilot')
-    }
+  const response = await rotateDataService('/pilots/jxDeletePilot', { id: pilot.id })
+  if (response.hasErrors) {
+    showToast(response.message || 'Error occurred', 'error')
+    return;
   }
+  showToast(response.message || 'Pilot deleted successfully', 'success')
+  fetchPilots()
 }
 
 const togglePilotStatus = async (pilot) => {
   const response = await rotateDataService('/pilots/jxTogglePilotStatus', { id: pilot.id })
-  if (!response.hasErrors) {
-    alert(response.message || 'Pilot status toggled successfully')
-    fetchPilots()
+  if (response.hasErrors) {
+    showToast(response.message || 'Error occurred', 'error')
+    return;
   }
+  showToast(response.message || 'Pilot status toggled successfully', 'success')
+  fetchPilots()
 }
 
 // Event listeners

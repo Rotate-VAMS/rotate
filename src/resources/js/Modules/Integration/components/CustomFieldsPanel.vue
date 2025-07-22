@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { PlusIcon, EditIcon, TrashIcon, SettingsIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import CustomFieldDropdownConfigureComponent from './CustomFieldDropdownConfigureComponent.vue'
@@ -85,6 +85,9 @@ const formData = ref({})
 // Configure drawer state
 const showConfigureDrawer = ref(false)
 const selectedFieldForConfigure = ref(null)
+
+// Use global toast
+const showToast = inject('showToast')
 
 // Store fetched custom fields
 const customFields = ref([])
@@ -116,44 +119,39 @@ const configureField = (field) => {
   selectedFieldForConfigure.value = field
   showConfigureDrawer.value = true
 }
+
 const deleteField = async (field) => {
-  if (confirm(`Delete "${field.field_name}"?`)) {
-    const response = await rotateDataService('/settings/jxDeleteCustomField', { id: field.id })
-    if (!response.hasErrors) {
-      alert(response.message)
-      fetchCustomFields()
-    }
+  const response = await rotateDataService('/settings/jxDeleteCustomField', { id: field.id })
+  if (response.hasErrors) {
+    showToast(response.message, 'error')
+    return
   }
+  showToast(response.message, 'success')
+  fetchCustomFields()
 }
 
-// Submit handler
 const submitForm = async (payload) => {
   try {
     payload.is_required = payload.is_required === true ? 1 : 0
     const response = await rotateDataService('/settings/jxCreateEditCustomFields', payload)
-    // Optional: show success toast, refresh list
     showDrawer.value = false
+    if (response.hasErrors) {
+      showToast(response.message, 'error')
+      return
+    }
+    showToast(response.message, 'success')
     fetchCustomFields()
   } catch (e) {
     console.error(e)
   }
 }
 
-// Handle configure save
 const handleConfigureSave = async (configuration) => {
   try {
-    // Here you would call your backend API to save the configuration
-    console.log('Saving configuration:', configuration)
-    
-    // For now, just close the drawer and show a success message
     showConfigureDrawer.value = false
-    alert('Configuration saved successfully!')
-    
-    // Optionally refresh the custom fields list
-    // fetchCustomFields()
+    showToast('Configuration saved successfully!', 'success')
   } catch (e) {
-    console.error(e)
-    alert('Failed to save configuration')
+    showToast('Failed to save configuration', 'error')
   }
 }
 

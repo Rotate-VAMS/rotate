@@ -25,7 +25,9 @@
   import { ref, onMounted, onUnmounted } from 'vue';
   import { usePage } from '@inertiajs/vue3';
   import rotateDataService from '@/rotate.js';
+  import { inject } from 'vue'
 
+  const showToast = inject('showToast');
   const page = usePage();
   const breadcrumbs = page.props.breadcrumbs || []
   const pilotsHeaderRef = ref(null)
@@ -50,12 +52,15 @@
   const fetchUserCustomFields = async () => {
     try {
       const response = await rotateDataService('/pilots/jxGetUserCustomFields')
-      if (!response.hasErrors) {
-        userCustomFields.value = response.data
+      if (response.hasErrors) {
+        showToast(response.message || 'Error occurred', 'error')
+        return;
       }
-    } catch (error) {
-      console.error('Error fetching user custom fields:', error)
-    }
+      userCustomFields.value = response.data
+  } catch (e) {
+    console.error(e)
+    showToast('Error fetching user custom fields', 'error')
+  }
   }
   fetchUserCustomFields()
 

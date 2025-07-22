@@ -21,10 +21,11 @@
   import AppLayout from '@/Layouts/AppLayout.vue';
   import AppBreadcrumb from '@/Components/AppBreadcrumb.vue';
   import { Users, Activity, Clock, Star } from 'lucide-vue-next';
-  import { ref, onMounted, onUnmounted } from 'vue';
+  import { ref, onMounted, onUnmounted, inject } from 'vue';
   import { usePage } from '@inertiajs/vue3';
   import rotateDataService from '@/rotate.js';
 
+  const showToast = inject('showToast');
   const page = usePage();
   const breadcrumbs = page.props.breadcrumbs || []
   const routesHeaderRef = ref(null)
@@ -40,11 +41,13 @@
   const fetchRouteCustomFields = async () => {
     try {
       const response = await rotateDataService('/routes/jxGetRouteCustomFields')
-      if (!response.hasErrors) {
-        routeCustomFields.value = response.data
+      if (response.hasErrors) {
+        showToast(response.message, 'error')
+        return;
       }
-    } catch (error) {
-      console.error('Error fetching route custom fields:', error)
+      routeCustomFields.value = response.data
+    } catch (e) {
+      showToast('Error fetching route custom fields', 'error')
     }
   }
   fetchRouteCustomFields()

@@ -69,12 +69,13 @@
   </template>
   
   <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, inject } from 'vue'
   import { PlusIcon, EditIcon, TrashIcon, SettingsIcon } from 'lucide-vue-next'
   import RotateFormComponent from '@/Components/RotateFormComponent.vue'
   import RBACDrawerComponent from './RBACDrawerComponent.vue'
   import rotateDataService from '@/rotate.js'
-  
+
+  const showToast = inject('showToast')
   // Drawer state
   const showDrawer = ref(false)
   const showRBACDrawer = ref(false)
@@ -130,13 +131,13 @@
     showDrawer.value = true
   }
   const deleteRole = async (role) => {
-    if (confirm(`Delete "${role.name}"?`)) {
-      const response = await rotateDataService('/settings/jxDeleteRole', { id: role.id })
-      if (!response.hasErrors) {
-        alert(response.message)
-        fetchRoles()
-      }
+    const response = await rotateDataService('/settings/jxDeleteRole', { id: role.id })
+    if (response.hasErrors) {
+      showToast(response.message, 'error')
+      return;
     }
+    showToast(response.message, 'success')
+    fetchRoles()
   }
 
   // Open RBAC drawer for a role
@@ -150,7 +151,11 @@
   const submitForm = async (payload) => {
     try {
       const response = await rotateDataService('/settings/jxCreateEditRole', payload)
-      // Optional: show success toast, refresh list
+      if (response.hasErrors) {
+        showToast(response.message, 'error')
+        return;
+      }
+      showToast(response.message, 'success')
       showDrawer.value = false
       fetchRoles()
     } catch (e) {

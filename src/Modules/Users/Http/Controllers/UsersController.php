@@ -47,7 +47,7 @@ class UsersController extends Controller
 
         if ($validator->fails()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $validator->errors();
+            $this->errorBag['message'] = $validator->errors()->first();
             return response()->json($this->errorBag);
         }
 
@@ -55,7 +55,7 @@ class UsersController extends Controller
         $user = User::createEditPilot($request->all(), $mode);
         if (isset($user['error'])) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $user['error'];
+            $this->errorBag['message'] = $user['error'];
             return response()->json($this->errorBag);
         }
         return response()->json([
@@ -69,19 +69,19 @@ class UsersController extends Controller
         $pilot = User::find($request->id);
         if (!$pilot) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Pilot not found'];
+            $this->errorBag['message'] = 'Pilot not found';
             return response()->json($this->errorBag);
         }
         
         if (!$pilot->delete()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to delete pilot'];
+            $this->errorBag['message'] = 'Failed to delete pilot';
             return response()->json($this->errorBag);
         }
 
         if (!CustomFieldValues::deleteCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PILOTS, $pilot->id)) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to delete custom field values'];
+            $this->errorBag['message'] = 'Failed to delete custom field values';
             return response()->json($this->errorBag);
         }
 
@@ -105,7 +105,7 @@ class UsersController extends Controller
         $pilot = User::find($request->id);
         if (!$pilot) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Pilot not found'];
+            $this->errorBag['message'] = 'Pilot not found';
             return response()->json($this->errorBag);
         }
         if ($pilot->status == User::PILOT_STATUS_ACTIVE) {
@@ -117,7 +117,7 @@ class UsersController extends Controller
         }
         if (!$pilot->save()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to toggle pilot status'];
+            $this->errorBag['message'] = 'Failed to toggle pilot status';
             return response()->json($this->errorBag);
         }
         return response()->json([
