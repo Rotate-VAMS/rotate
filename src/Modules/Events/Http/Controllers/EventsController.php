@@ -76,14 +76,14 @@ class EventsController extends Controller
 
     public function jxFetchEvents(Request $request)
     {
-        $events = Event::all();
+        $events = Event::where('event_date_time', '>=', time())->orderBy('event_date_time', 'asc')->get();
         foreach ($events as $event) {
             $event->attendees = EventAttendance::where('event_id', $event->id)->get()->pluck('user_id')->toArray();
         }
         foreach ($events as $event) {
             $cover_image = Documents::fetchDocument(Documents::ENTITY_TYPE_EVENT, $event->id);
             if (isset($cover_image['error'])) {
-                $cover_image = null;
+                $cover_image = Documents::DEFAULT_IMAGE;
             }
             $event->cover_image = $cover_image;
         }

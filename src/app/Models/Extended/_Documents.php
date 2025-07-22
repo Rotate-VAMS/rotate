@@ -25,6 +25,8 @@ class _Documents extends Model
     
     const DOCUMENT_TYPE_DOCUMENT = 4;
 
+    const DEFAULT_IMAGE = '/asset/images/default_image.jpg';
+
     public static function createEditDocument($entityType, $entityId, $documentData)
     {
         $document = Documents::where('entity_type', $entityType)
