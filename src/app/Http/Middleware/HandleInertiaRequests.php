@@ -42,7 +42,7 @@ class HandleInertiaRequests extends Middleware
                         $request->user()->only(['id', 'name', 'email']),
                         [
                             'role' => $request->user()->getRoleNames()->first(),
-                            'rank' => $request->user()->rank->name,
+                            'rank' => $request->user()->rank?->name ?? null,
                             'permissions' => $request->user()->getPermissionsViaRoles()->pluck('name'),
                         ]
                     )

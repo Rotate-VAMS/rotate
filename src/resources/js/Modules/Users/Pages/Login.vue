@@ -10,11 +10,13 @@
           <div class="mb-4">
             <label class="block text-sm font-medium">Email</label>
             <input v-model="form.email" type="email" class="w-full px-4 py-2 mt-1 rounded bg-white/20 text-white placeholder-white focus:outline-none" placeholder="you@example.com" required />
+            <div v-if="form.errors.email" class="text-red-300 text-sm mt-1">{{ form.errors.email }}</div>
           </div>
   
           <div class="mb-4">
             <label class="block text-sm font-medium">Password</label>
             <input v-model="form.password" type="password" class="w-full px-4 py-2 mt-1 rounded bg-white/20 text-white placeholder-white focus:outline-none" placeholder="••••••••" required />
+            <div v-if="form.errors.password" class="text-red-300 text-sm mt-1">{{ form.errors.password }}</div>
           </div>
   
           <div class="text-right text-sm mb-4">
@@ -34,22 +36,20 @@
   </template>
   
   <script setup>
-  import { reactive } from 'vue'
-  import { router } from '@inertiajs/vue3'
+  import { useForm } from '@inertiajs/vue3'
   
-  const form = reactive({
+  const form = useForm({
     email: '',
     password: '',
-    processing: false,
+    remember: false,
   })
   
   function submit() {
-    form.processing = true
-    router.post('/login', form, {
-      onFinish: () => {
-        form.processing = false
-        router.visit('/dashboard')
-      },
+    form.transform(data => ({
+      ...data,
+      remember: form.remember ? 'on' : '',
+    })).post(route('login'), {
+      onFinish: () => form.reset('password'),
     })
   }
   </script>
