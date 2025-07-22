@@ -159,9 +159,13 @@ const fetchFleets = async () => {
 const fetchRoutes = async () => {
   try {
     const response = await rotateDataService('/routes/jxFetchRoutes', { scope: 'pireps' })
-    routes.value = response.data || []
+    // Convert object with numeric keys to array
+    routes.value = response.data && typeof response.data === 'object'
+      ? Object.values(response.data)
+      : []
   } catch (e) {
     console.error('Error fetching routes:', e)
+    routes.value = []
   }
 }
 
