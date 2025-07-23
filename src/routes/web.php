@@ -1,16 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\CustomLogoutController;
 
 Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('dashboard.index');
+    }
     return redirect()->route('login');
 })->name('home');
-
-Route::get('/login', function () {
-    return Inertia::render('Users/Pages/Login');
-})->middleware('guest')->name('login');
 
 Route::get('/register', function () {
     return Inertia::render('Users/Pages/Register');

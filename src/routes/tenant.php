@@ -24,7 +24,5 @@ Route::middleware([
     \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
     \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
 ])->group(function () {
-    Route::get('/login', function () {
-        return Inertia::render('Users/Pages/Login');
-    })->middleware('guest')->name('tenant.login');
+    // Login route is handled by Fortify globally
 });

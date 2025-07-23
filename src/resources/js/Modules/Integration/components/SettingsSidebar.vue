@@ -20,15 +20,17 @@
 </template>
 
 <script setup>
-import { Settings, Hash, Shield, Users, ShieldCheck } from 'lucide-vue-next'
+import { Settings, Hash, Shield, Users, ShieldCheck, PlaneIcon, PlaneTakeoff, UsersIcon, ImageIcon } from 'lucide-vue-next'
 const props = defineProps({
   active: String
 })
 const menu = [
+  { key: 'fleet', label: 'Fleet', icon: PlaneIcon },
+  { key: 'flightTypes', label: 'Flight Types', icon: PlaneTakeoff },
   { key: 'customFields', label: 'Custom Fields', icon: Hash },
   { key: 'discord', label: 'Discord Integration', icon: Settings },
-  { key: 'roles', label: 'Roles', icon: Users },
+  { key: 'roles', label: 'Roles & Permissions', icon: UsersIcon },
   { key: 'ranks', label: 'Ranks', icon: ShieldCheck },
-  { key: 'access', label: 'Access Control', icon: Shield },
+  { key: 'logo', label: 'Logo', icon: ImageIcon },
 ]
 </script>

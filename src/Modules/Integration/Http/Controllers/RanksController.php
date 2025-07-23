@@ -18,14 +18,14 @@ class RanksController extends Controller
 
         if ($validator->fails()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = $validator->errors();
+            $this->errorBag['message'] = $validator->errors()->first();
             return response()->json($this->errorBag);
         }
 
         $mode = $request->id ? 'edit' : 'create';
         if (!Rank::createEditRank($request->all(), $mode)) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to create rank'];
+            $this->errorBag['message'] = 'Failed to create rank';
             return response()->json($this->errorBag);
         }
 
@@ -49,13 +49,13 @@ class RanksController extends Controller
         $rank = Rank::find($request->id);
         if (!$rank) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Rank not found'];
+            $this->errorBag['message'] = 'Rank not found';
             return response()->json($this->errorBag);
         }
     
         if (!$rank->delete()) {
             $this->errorBag['hasErrors'] = true;
-            $this->errorBag['errors'] = ['Failed to delete rank'];
+            $this->errorBag['message'] = 'Failed to delete rank';
             return response()->json($this->errorBag);
         }
     

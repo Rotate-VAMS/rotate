@@ -2,10 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
@@ -19,15 +16,10 @@ class DatabaseSeeder extends Seeder
         Role::create(['name' => 'admin']);
         Role::create(['name' => 'pilot']);
 
-        $user = User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('12345678'),
-            'callsign' => 'Admin',
-            'status' => 1,
-            'flying_hours' => 150,
+        $this->call([
+            FlightTypeSeeder::class,
+            UserSeeder::class,
+            PermissionSeeder::class,
         ]);
-
-        $user->assignRole('admin');
     }
 }

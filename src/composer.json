@@ -31,7 +31,11 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "Modules\\": "Modules/"
+            "Modules\\": "Modules/",
+            "Helpers\\":[
+                "app/Helpers/RotateAirportHelper.php",
+                "app/Helpers/RotateConstants.php"
+            ]
         }
     },
     "autoload-dev": {

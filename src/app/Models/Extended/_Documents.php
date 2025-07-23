@@ -25,6 +25,12 @@ class _Documents extends Model
     
     const DOCUMENT_TYPE_DOCUMENT = 4;
 
+    const DOCUMENT_TYPE_LOGO = 5;
+
+    const DEFAULT_IMAGE = '/asset/images/default_image.jpg';
+
+    const DEFAULT_LOGO = '/asset/images/logo-rotate-black.png';
+
     public static function createEditDocument($entityType, $entityId, $documentData)
     {
         $document = Documents::where('entity_type', $entityType)
@@ -68,7 +74,7 @@ class _Documents extends Model
             $fileExtension = pathinfo($documentData['document_name'], PATHINFO_EXTENSION);
             
             // Remove the old document
-            $oldStoragePath = 'documents/' . $documentKey . '/' . '/' . $documentVersion . '.' . $fileExtension;
+            $oldStoragePath = 'documents/' . $documentKey . '/' . $documentVersion . '.' . $fileExtension;
             Storage::disk('public')->delete($oldStoragePath);
             
             // Save the new document with proper extension
@@ -95,7 +101,7 @@ class _Documents extends Model
             ->get();
             
         if ($document->isEmpty()) {
-            return ['error' => 'Document not found'];
+            return ['error' => 'Document does not exist'];
         }
 
         // Get file extension from the original filename
@@ -121,9 +127,9 @@ class _Documents extends Model
         }
 
         foreach ($document as $doc) {
-            $documentPath = Storage::disk('public')->url('documents/' . $doc->document_key);
-            Storage::disk('public')->delete($documentPath);
-            
+            $documentPath = 'documents/' . $doc->document_key;
+            Storage::disk('public')->deleteDirectory($documentPath);
+
             if (!$doc->delete()) {
                 return ['error' => 'Failed to delete document'];
             }

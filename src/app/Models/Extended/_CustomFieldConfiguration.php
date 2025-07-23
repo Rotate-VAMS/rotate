@@ -21,22 +21,14 @@ class _CustomFieldConfiguration extends Model
     const DATA_TYPE_DATE = 5;
 
     const DATA_TYPE_DROPDOWN = 6;
-
-    const AGGREGATION_TYPE_SUM = 1;
-    
-    const AGGREGATION_TYPE_AVERAGE = 2;
-    
-    const AGGREGATION_TYPE_COUNT = 3;
-    
-    const AGGREGATION_TYPE_MIN = 4;
-    
-    const AGGREGATION_TYPE_MAX = 5;
     
     const SOURCE_TYPE_PILOTS = 1;
     
     const SOURCE_TYPE_PIREPS = 2;
     
     const SOURCE_TYPE_EVENTS = 3;
+
+    const SOURCE_TYPE_ROUTES = 4;
 
     public static function createCustomFieldConfiguration($data, $mode)
     {
@@ -51,7 +43,6 @@ class _CustomFieldConfiguration extends Model
         $customFieldConfiguration->field_name = $data['field_name'];
         $customFieldConfiguration->field_description = $data['field_description'];
         $customFieldConfiguration->data_type = $data['data_type'];
-        $customFieldConfiguration->aggregation_type = $data['aggregation_type'];
         $customFieldConfiguration->source_type = $data['source_type'];
         $customFieldConfiguration->is_required = $data['is_required'];
         $customFieldConfiguration->is_active = true;
@@ -62,14 +53,14 @@ class _CustomFieldConfiguration extends Model
         return $customFieldConfiguration;
     }
 
-    public static function getUserCustomFields()
+    public static function getCustomFields($sourceType)
     {
-        $customFields = CustomFieldConfiguration::where('source_type', self::SOURCE_TYPE_PILOTS)->get();
+        $customFields = CustomFieldConfiguration::where('source_type', $sourceType)->get();
 
         // If custom field is a dropdown, get the options
         foreach ($customFields as $customField) {
             if ($customField->data_type === self::DATA_TYPE_DROPDOWN) {
-                $customField->options = CustomFieldOptions::where('field_id', $customField->id)->get();
+                $customField->options = CustomFieldOptions::fetchCustomFieldOptions($customField->id);
             }
         }
 

@@ -4,7 +4,9 @@ namespace App\Models\Extended;
 
 use App\Models\CustomFieldValues;
 use App\Models\CustomFieldConfiguration;
+use App\Helpers\RotateConstants;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class _CustomFieldValues extends Model
 {
@@ -14,9 +16,43 @@ class _CustomFieldValues extends Model
     
     const SOURCE_TYPE_EVENTS = 3;
 
+    const SOURCE_TYPE_ROUTES = 4;
+
     public static function getAllCustomFieldValues($source_type, $source_id)
     {
-        $customFieldValues = CustomFieldValues::where('source_type', $source_type)->where('source_id', $source_id)->get();
+        $customFieldValues = DB::table('custom_field_values')
+            ->join('custom_field_configuration', 'custom_field_values.field_id', '=', 'custom_field_configuration.id')
+            ->select('custom_field_values.*', 'custom_field_configuration.data_type', 'custom_field_configuration.field_name', 'custom_field_configuration.field_description', 'custom_field_configuration.field_key')
+            ->where('custom_field_values.source_type', $source_type)
+            ->where('custom_field_values.source_id', $source_id)
+            ->get();
+
+        foreach ($customFieldValues as $customFieldValue) {
+            switch ($customFieldValue->data_type) {
+                case CustomFieldConfiguration::DATA_TYPE_TEXT:
+                    $customFieldValue->value_display = $customFieldValue->value;
+                    break;
+                case CustomFieldConfiguration::DATA_TYPE_INTEGER:
+                    $customFieldValue->value_display = $customFieldValue->value;
+                    break;
+                case CustomFieldConfiguration::DATA_TYPE_FLOAT:
+                    $customFieldValue->value_display = $customFieldValue->value;
+                    break;
+                case CustomFieldConfiguration::DATA_TYPE_BOOLEAN:
+                    $customFieldValue->value = $customFieldValue->value == RotateConstants::CONSTANT_FOR_ONE ? true : false;
+                    $customFieldValue->value_display = $customFieldValue->value == RotateConstants::CONSTANT_FOR_ONE ? 'Yes' : 'No';
+                    break;
+                case CustomFieldConfiguration::DATA_TYPE_DROPDOWN:
+                    $customFieldValue->value_display = $customFieldValue->value;
+                    break;
+                case CustomFieldConfiguration::DATA_TYPE_DATE:
+                    $customFieldValue->value_display = $customFieldValue->value;
+                    break;
+                default:
+                    break;
+            }
+        }
+
         return $customFieldValues;
     }
 
@@ -51,6 +87,20 @@ class _CustomFieldValues extends Model
             ]);
         }
 
+        return true;
+    }
+
+    public static function deleteCustomFieldValues($source_type, $source_id)
+    {
+        $customFieldValues = CustomFieldValues::where('source_type', $source_type)->where('source_id', $source_id)->get();
+        if ($customFieldValues->isEmpty()) {
+            return true;
+        }
+        foreach ($customFieldValues as $customFieldValue) {
+            if (!$customFieldValue->delete()) {
+                return false;
+            }
+        }
         return true;
     }
 }

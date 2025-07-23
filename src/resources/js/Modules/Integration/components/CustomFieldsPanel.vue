@@ -52,19 +52,42 @@
       @close="showDrawer = false"
       @submit="submitForm"
     />
+
+    <!-- Configure Drawer -->
+    <div v-if="showConfigureDrawer" class="fixed inset-0 z-50 overflow-hidden">
+      <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+      <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+        <div class="w-screen max-w-md">
+          <CustomFieldDropdownConfigureComponent
+            :field="selectedFieldForConfigure"
+            :visible="showConfigureDrawer"
+            @close="showConfigureDrawer = false"
+            @save="handleConfigureSave"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { PlusIcon, EditIcon, TrashIcon, SettingsIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
+import CustomFieldDropdownConfigureComponent from './CustomFieldDropdownConfigureComponent.vue'
 import rotateDataService from '@/rotate.js'
 
 // Drawer state
 const showDrawer = ref(false)
 const formMode = ref('create')
 const formData = ref({})
+
+// Configure drawer state
+const showConfigureDrawer = ref(false)
+const selectedFieldForConfigure = ref(null)
+
+// Use global toast
+const showToast = inject('showToast')
 
 // Store fetched custom fields
 const customFields = ref([])
@@ -74,8 +97,7 @@ const formFields = [
   { name: 'field_name', label: 'Field Name', type: 'text', required: true },
   { name: 'field_description', label: 'Field Description', type: 'text', required: true },
   { name: 'data_type', label: 'Data Type', type: 'select', required: true, options: [{id:1, name:'Text'}, {id:2, name:'Integer (Eg.1, 2, 3)'}, {id:3, name:'Float (Eg. 1.1, 2.2, 3.3)'}, {id:4, name:'Boolean (Eg. true, false)'}, {id:5, name:'Date (Eg. 2021-01-01)'}, {id:6, name:'Dropdown'}] },
-  { name: 'aggregation_type', label: 'Aggregation Type', type: 'select', required: true, options: [{id:1, name:'Sum'}, {id:2, name:'Average'}, {id:3, name:'Count'}, {id:4, name:'Min'}, {id:5, name:'Max'}] },
-  { name: 'source_type', label: 'Source', type: 'select', required: true, options: [{id:1, name:'Pilots'}, {id:2, name:'PIREPs'}, {id:3, name:'Events'}] },
+  { name: 'source_type', label: 'Source', type: 'select', required: true, options: [{id:1, name:'Pilots'}, {id:2, name:'PIREPs'}, {id:3, name:'Events'}, {id:4, name:'Routes'}] },
   { name: 'is_required', label: 'Is Required', type: 'checkbox', required: true },
 ]
 
@@ -90,31 +112,46 @@ const openDrawerForCreate = () => {
 const editField = (field) => {
   formMode.value = 'edit'
   formData.value = { ...field }
+  formData.value.is_required = formData.value.is_required === 1 ? true : false
   showDrawer.value = true
 }
 const configureField = (field) => {
-  // Implement configuration logic or open a modal/drawer
-  alert('Configure: ' + field.name)
-}
-const deleteField = async (field) => {
-  if (confirm(`Delete "${field.field_name}"?`)) {
-    const response = await rotateDataService('/settings/jxDeleteCustomField', { id: field.id })
-    if (!response.hasErrors) {
-      alert(response.message)
-      fetchCustomFields()
-    }
-  }
+  selectedFieldForConfigure.value = field
+  showConfigureDrawer.value = true
 }
 
-// Submit handler
+const deleteField = async (field) => {
+  const response = await rotateDataService('/settings/jxDeleteCustomField', { id: field.id })
+  if (response.hasErrors) {
+    showToast(response.message, 'error')
+    return
+  }
+  showToast(response.message, 'success')
+  fetchCustomFields()
+}
+
 const submitForm = async (payload) => {
   try {
+    payload.is_required = payload.is_required === true ? 1 : 0
     const response = await rotateDataService('/settings/jxCreateEditCustomFields', payload)
-    // Optional: show success toast, refresh list
     showDrawer.value = false
+    if (response.hasErrors) {
+      showToast(response.message, 'error')
+      return
+    }
+    showToast(response.message, 'success')
     fetchCustomFields()
   } catch (e) {
     console.error(e)
+  }
+}
+
+const handleConfigureSave = async (configuration) => {
+  try {
+    showConfigureDrawer.value = false
+    showToast('Configuration saved successfully!', 'success')
+  } catch (e) {
+    showToast('Failed to save configuration', 'error')
   }
 }
 

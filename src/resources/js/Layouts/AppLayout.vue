@@ -1,6 +1,8 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, provide } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import RotateToast from '@/Components/RotateToast.vue';
+import rotateDataService from '@/rotate.js'
 
 const props = defineProps({
     title: String,
@@ -10,6 +12,8 @@ const title = ref(props.title);
 const page = usePage();
 const user = page.props.auth?.user || {};
 const showDropdown = ref(false);
+const logo = ref('');
+const logoDefault = ref(false);
 
 const logout = () => {
     router.post(route('logout'), {
@@ -17,6 +21,47 @@ const logout = () => {
         onSuccess: () => router.visit('/login'),
     });
 };
+
+const fetchLogo = async () => {
+    const response = await rotateDataService('/settings/jxFetchLogo');
+    if (response.hasErrors) {
+        showToast(response.message, 'error');
+        return;
+    }
+    logo.value = response.data;
+    logoDefault.value = response.default;
+}
+
+fetchLogo();
+
+provide('logo', logo);
+provide('logoDefault', logoDefault);
+// --- Toast logic ---
+const toastActive = ref(false)
+const toastMessage = ref('')
+const toastType = ref('success')
+let toastTimeout = null
+
+function showToast(message, type = 'success') {
+  toastMessage.value = message
+  toastType.value = type
+  toastActive.value = true
+  if (toastTimeout) clearTimeout(toastTimeout)
+  toastTimeout = setTimeout(() => {
+    toastActive.value = false
+  }, 5000)
+}
+function closeToast() {
+  toastActive.value = false
+  if (toastTimeout) clearTimeout(toastTimeout)
+}
+// Provide showToast globally
+provide('showToast', showToast)
+// --- End Toast logic ---
+
+// Usage: In any child component, use:
+//   const showToast = inject('showToast')
+//   showToast('Message', 'success'|'alert'|'error')
 </script>
 
 <template>
@@ -25,19 +70,29 @@ const logout = () => {
       <meta name="csrf-token" :content="$page.props.csrf_token" />
     </Head>
 
+    <!-- Toast Overlay -->
+    <RotateToast
+      v-if="toastActive"
+      :message="toastMessage"
+      :type="toastType"
+      :active="toastActive"
+      :overlay="true"
+      @close="closeToast"
+    />
+
     <!-- Header -->
     <header class="bg-white shadow-md sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-3 sm:py-4 gap-2 sm:gap-0">
         <!-- Logo Section -->
-        <div class="flex items-center space-x-3">
-          <img src="/asset/images/logo-rotate-black.png" alt="Logo" class="h-10 w-auto" />
-          <span class="text-lg font-semibold hidden sm:inline">Rotate</span>
+        <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto justify-center sm:justify-start">
+          <img :src="logo" alt="Logo" class="h-8 w-auto sm:h-10" />
+          <span class="text-base sm:text-lg font-semibold hidden sm:inline">Rotate</span>
         </div>
 
         <!-- Right Icons -->
-        <div class="flex items-center space-x-6 relative">
+        <div class="flex items-center space-x-4 sm:space-x-6 relative w-full sm:w-auto justify-center sm:justify-end mt-2 sm:mt-0">
           <!-- Bell Icon -->
-          <button>
+          <button class="p-2 rounded-full hover:bg-gray-100 focus:outline-none">
             <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 17h5l-1.405-1.405M19 13V6a2 2 0 00-2-2H7a2 2 0 00-2 2v7m14 0l-1.405 1.405M4 6h16" />
@@ -50,8 +105,8 @@ const logout = () => {
               <svg class="w-8 h-8 rounded-full bg-gray-300 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" />
               </svg>
-              <span class="text-sm font-medium text-gray-700 hidden sm:inline">
-                {{ user?.name || 'User' }}
+              <span class="text-xs sm:text-sm font-medium text-gray-700 hidden xs:inline sm:inline">
+                {{ user?.name || 'User' }} | {{ user?.rank || 'User' }}
               </span>
               <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -73,12 +128,12 @@ const logout = () => {
     </header>
 
     <!-- Page Content -->
-    <main class="py-6 px-6 max-w-7xl mx-auto">
+    <main class="py-4 px-2 sm:py-6 sm:px-6 max-w-7xl mx-auto w-full">
       <slot />
     </main>
 
     <!-- Footer -->
-    <footer class="text-center text-sm text-gray-500 py-4 border-t mt-8 bg-white">
+    <footer class="text-center text-xs sm:text-sm text-gray-500 py-3 sm:py-4 border-t mt-8 bg-white px-2">
       © {{ new Date().getFullYear() }} Rotate. All rights reserved.
     </footer>
   </div>

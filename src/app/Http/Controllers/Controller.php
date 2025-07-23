@@ -8,6 +8,6 @@ abstract class Controller
 
     public function __construct()
     {
-        $this->errorBag = ['hasErrors' => false, 'errors' => []];
+        $this->errorBag = ['hasErrors' => false, 'message' => ''];
     }
 }

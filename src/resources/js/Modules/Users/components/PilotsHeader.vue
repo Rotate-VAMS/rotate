@@ -1,21 +1,21 @@
 <template>
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800">View Pilots</h1>
-        <p class="text-sm text-gray-500">View and manage all pilots in your airline. Monitor performance, track progress, and oversee pilot operations.</p>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
+      <div class="w-full sm:w-auto">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">View Pilots</h1>
+        <p class="text-xs sm:text-sm text-gray-500 mt-1">View and manage all pilots in your airline. Monitor performance, track progress, and oversee pilot operations.</p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0" v-if="user.permissions.includes('create-user')">
         <button 
           @click="openDrawerForCreate"
-          class="btn-primary bg-indigo-500 text-white text-bold rounded-md px-4 py-2 flex items-center gap-2"
+          class="btn-primary bg-indigo-500 text-white font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto"
         >
-          <PlusIcon class="w-4 h-4" /> Add Pilot
+          <PlusIcon class="w-4 h-4" /> <span>Add Pilot</span>
         </button>
-        <button class="btn-white bg-white text-gray-800 text-bold rounded-md px-4 py-2 flex items-center gap-2">
-          <ImportIcon class="w-4 h-4" /> Import
+        <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
+          <ImportIcon class="w-4 h-4" /> <span>Import</span>
         </button>
-        <button class="btn-white bg-white text-gray-800 text-bold rounded-md px-4 py-2 flex items-center gap-2">
-          <UploadIcon class="w-4 h-4" /> Export
+        <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
+          <UploadIcon class="w-4 h-4" /> <span>Export</span>
         </button> 
       </div>
 
@@ -37,6 +37,12 @@ import { ref, watch } from 'vue'
 import { ImportIcon, UploadIcon, PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
+import { usePage } from '@inertiajs/vue3';
+import { inject } from 'vue'
+
+const showToast = inject('showToast');
+const page = usePage();
+const user = page.props.auth.user;
 
 // Props
 const props = defineProps({
@@ -56,7 +62,8 @@ const formFields = ref([
   { name: 'name', label: 'Full Name', type: 'text', required: true },
   { name: 'callsign', label: 'Callsign', type: 'text', required: true },
   { name: 'email', label: 'Email', type: 'text', required: true },
-  { name: 'rank_id', label: 'Rank', type: 'select', required: true, options: []}
+  { name: 'rank_id', label: 'Rank', type: 'select', required: true, options: []},
+  { name: 'role_id', label: 'Roles', type: 'select', required: true, options: []}
 ])
 
 // Function to convert custom fields to form fields
@@ -98,7 +105,8 @@ watch(() => props.customFields, (newCustomFields) => {
     { name: 'name', label: 'Full Name', type: 'text', required: true },
     { name: 'callsign', label: 'Callsign', type: 'text', required: true },
     { name: 'email', label: 'Email', type: 'text', required: true },
-    { name: 'rank_id', label: 'Rank', type: 'select', required: true, options: []}
+    { name: 'rank_id', label: 'Rank', type: 'select', required: true, options: []},
+    { name: 'role_id', label: 'Role', type: 'select', required: true, options: []}
   ]
   
   const customFormFields = convertCustomFieldsToFormFields(newCustomFields)
@@ -127,15 +135,30 @@ const fetchRanks = async () => {
       rankField.options = rankOptions
     }
   } catch (e) {
-    console.error('Error fetching ranks:', e)
+    console.error(e)
+    showToast('Error fetching ranks', 'error')
+  }
+}
+
+const fetchRoles = async () => {
+  try {
+    const response = await rotateDataService('/settings/jxFetchRoles')
+    const roleOptions = response.data.map(role => ({
+      id: role.id,
+      name: role.name
+    }))
+    formFields.value.find(field => field.name === 'role_id').options = roleOptions
+  } catch (e) {
+    console.error(e)
+    showToast('Error fetching roles', 'error')
   }
 }
 
 fetchRanks()
+fetchRoles()
 
 // Submit handler
 const submitForm = async (payload) => {
-  try {
     // Separate custom fields from regular fields
     const customData = {}
     const regularData = {}
@@ -159,14 +182,13 @@ const submitForm = async (payload) => {
     }
     
     const response = await rotateDataService('/pilots/jxCreateEditPilot', finalPayload)
-    if (!response.hasErrors) {
-      // Emit event to refresh pilots list
-      window.dispatchEvent(new CustomEvent('pilots-updated'))
-      showDrawer.value = false
+    if (response.hasErrors) {
+      showToast(response.message || 'Error occurred', 'error')
+      return;
     }
-  } catch (e) {
-    console.error(e)
-  }
+    showToast(response.message || 'Pilot created successfully', 'success')
+    window.dispatchEvent(new CustomEvent('pilots-updated'))
+    showDrawer.value = false
 }
 
 // Expose methods for parent components
