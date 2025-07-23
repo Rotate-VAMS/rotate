@@ -74,7 +74,7 @@ class _Documents extends Model
             $fileExtension = pathinfo($documentData['document_name'], PATHINFO_EXTENSION);
             
             // Remove the old document
-            $oldStoragePath = 'documents/' . $documentKey . '/' . '/' . $documentVersion . '.' . $fileExtension;
+            $oldStoragePath = 'documents/' . $documentKey . '/' . $documentVersion . '.' . $fileExtension;
             Storage::disk('public')->delete($oldStoragePath);
             
             // Save the new document with proper extension
@@ -127,9 +127,9 @@ class _Documents extends Model
         }
 
         foreach ($document as $doc) {
-            $documentPath = Storage::disk('public')->url('documents/' . $doc->document_key);
-            Storage::disk('public')->delete($documentPath);
-            
+            $documentPath = 'documents/' . $doc->document_key;
+            Storage::disk('public')->deleteDirectory($documentPath);
+
             if (!$doc->delete()) {
                 return ['error' => 'Failed to delete document'];
             }

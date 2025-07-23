@@ -42,7 +42,7 @@
   
   <script setup>
   import { ref, computed, inject } from 'vue'
-  import { PlusIcon, EditIcon, TrashIcon, SettingsIcon } from 'lucide-vue-next'
+  import { EditIcon, TrashIcon } from 'lucide-vue-next'
   import RotateFormComponent from '@/Components/RotateFormComponent.vue'
   import rotateDataService from '@/rotate.js'
 
@@ -55,7 +55,6 @@
   const logo = inject('logo')
   const logoDefault = inject('logoDefault')
   const showToast = inject('showToast')
-  const emit = defineEmits(['logo-updated'])
   // Drawer state
   const showDrawer = ref(false)
   const formMode = ref('create')
@@ -111,6 +110,7 @@
         return;
       }
       showToast(response.message, 'success')
+      window.location.reload();
   }
   
   // Submit handler
@@ -149,7 +149,7 @@
     }
     showToast(response.message, 'success');
     showDrawer.value = false;
-    emit('logo-updated'); // Notify parent to refresh logo
+    window.location.reload();
   }
 
   </script>
