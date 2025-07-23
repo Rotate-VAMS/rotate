@@ -145,7 +145,7 @@ class User extends Authenticatable
                 'callsign' => $pilot->callsign,
                 'email' => $pilot->email,
                 'rank_id' => $pilot->rank_id,
-                'rank' => Rank::find($pilot->rank_id)->name,
+                'rank' => Rank::find($pilot->rank_id)->name ?? 'Rank not assigned',
                 'role' => $pilot->roles->pluck('name'),
                 'role_id' => $pilot->roles->pluck('id')->first(),
                 'flying_hours' => round($pilot->flying_hours/60, 2),
