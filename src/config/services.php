@@ -35,4 +35,7 @@ return [
         ],
     ],
 
+    'discord' => [
+        'token' => env('ROTATE_DISCORD_BOT_TOKEN'),
+    ],
 ];

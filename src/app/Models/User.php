@@ -39,6 +39,7 @@ class User extends Authenticatable
         'status',
         'rank_id',
         'flying_hours',
+        'discord_id',
     ];
 
     /**
