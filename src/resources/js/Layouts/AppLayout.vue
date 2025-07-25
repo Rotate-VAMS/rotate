@@ -94,16 +94,19 @@ provide('showToast', showToast)
         <div class="flex items-center space-x-4 sm:space-x-6 relative w-full sm:w-auto justify-center sm:justify-end mt-2 sm:mt-0">
           <!-- Profile Dropdown -->
           <div class="relative">
-            <button @click="showDropdown = !showDropdown" class="flex items-center space-x-2 focus:outline-none">
-              <!-- Double gradient rounded -->
-              <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md rounded-lg h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center text-base sm:text-lg">
-                {{ user?.name.charAt(0) }}
+            <button @click="showDropdown = !showDropdown" class="flex items-center space-x-3 focus:outline-none bg-white rounded-2xl px-4 py-2 shadow-sm border border-gray-200">
+              <!-- Avatar with status indicator -->
+              <div class="relative">
+                <div class="bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-500 text-white shadow-md rounded-xl h-10 w-10 flex items-center justify-center text-lg font-bold">
+                  {{ user?.name.charAt(0) }}
+                </div>
+                <!-- Green status indicator -->
+                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
-              <span class="text-xs sm:text-sm font-bold text-gray-700 hidden xs:inline sm:inline text-start">
-                {{ user?.name || 'User' }}
-                <br />
-                <span class="text-xs sm:text-sm text-gray-500">{{ user?.rank || 'User' }} Rank</span>
-              </span>
+              <div class="flex flex-col text-left">
+                <span class="text-sm font-bold text-gray-900">{{ user?.name || 'User' }}</span>
+                <span class="text-xs text-gray-500">{{ user?.rank || 'User' }} Rank</span>
+              </div>
               <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M19 9l-7 7-7-7" />

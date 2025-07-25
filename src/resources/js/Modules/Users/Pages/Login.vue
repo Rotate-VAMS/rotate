@@ -34,7 +34,7 @@
       <!-- Logo and header -->
       <div class="text-center mb-8">
         <div class="relative inline-block mb-4">
-          <div class="shadow-2xl w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 border border-purple-600 rounded-xl flex items-center justify-center relative">
+          <div class="shadow-2xl w-16 h-16 bg-gradient-to-br from-indigo-400 via-purple-600 to-indigo-400 border border-indigo-600 rounded-xl flex items-center justify-center relative">
             <span class="text-white text-2xl font-bold">R</span>
             <div class="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
               <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -99,16 +99,11 @@
           <!-- <div v-if="form.errors.password" class="text-red-500 text-sm mt-1">{{ form.errors.password }}</div> -->
         </div>
 
-        <!-- Forgot password link -->
-        <div class="text-right">
-          <a href="#" class="text-sm text-blue-600 hover:text-blue-800 hover:underline">Forgot password?</a>
-        </div>
-
         <!-- Sign in button -->
         <button 
           type="submit" 
           :disabled="form.processing" 
-          class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
+          class="w-full bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
         >
           <span>Sign In to Flight Deck</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

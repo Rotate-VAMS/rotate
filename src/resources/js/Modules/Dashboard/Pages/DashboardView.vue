@@ -28,9 +28,9 @@ const getGreeting = () => {
 <template>
   <AppLayout title="Dashboard">
     <!-- Add welcome back message -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900"> {{ getGreeting() }}, {{ user.name }}</h1>
-      <p class="text-lg text-gray-600 mt-1">
+    <div class="mb-8 mt-4">
+      <h1 class="text-4xl font-bold bg-gradient-to-r from-slate-900 via-indigo-600 to-slate-900 bg-clip-text text-transparent mb-2 relative"> {{ getGreeting() }}, {{ user.name }}</h1>
+      <p class="text-xl text-slate-600 relative">
         Welcome back to your dashboard!
       </p>
     </div>
