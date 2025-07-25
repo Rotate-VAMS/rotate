@@ -44,6 +44,10 @@ class HandleInertiaRequests extends Middleware
                             'role' => $request->user()->getRoleNames()->first(),
                             'rank' => $request->user()->rank?->name ?? null,
                             'permissions' => $request->user()->getPermissionsViaRoles()->pluck('name'),
+                            'status' => $request->user()->status,
+                            'flying_hours' => $request->user()->flying_hours,
+                            'created_at' => $request->user()->created_at->format('M Y'),
+                            'discord_id' => $request->user()->discord_id,
                         ]
                     )
                     : null,

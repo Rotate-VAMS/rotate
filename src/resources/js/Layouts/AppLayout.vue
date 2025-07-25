@@ -127,7 +127,7 @@ provide('showToast', showToast)
               </div>
               <div class="border-t border-gray-200 my-1"></div>
               <button class="flex items-center gap-2 px-3 sm:px-5 py-2 text-gray-900 hover:bg-gray-50 text-sm sm:text-base font-medium transition-colors w-full text-left"
-                @click="() => router.visit('/profile')">
+                @click="() => router.visit('/pilots/manage-profile')">
                 <UserIcon class="w-5 h-5" />
                 <span class="truncate">Profile Settings</span>
               </button>
