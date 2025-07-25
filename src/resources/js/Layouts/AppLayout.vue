@@ -131,14 +131,6 @@ provide('showToast', showToast)
                 <UserIcon class="w-5 h-5" />
                 <span class="truncate">Profile Settings</span>
               </button>
-              <button class="flex items-center gap-2 px-3 sm:px-5 py-2 text-gray-900 hover:bg-gray-50 text-sm sm:text-base font-medium transition-colors w-full text-left">
-                <SettingsIcon class="w-5 h-5" />
-                <span class="truncate">Account Settings</span>
-              </button>
-              <button class="flex items-center gap-2 px-3 sm:px-5 py-2 text-gray-900 hover:bg-gray-50 text-sm sm:text-base font-medium transition-colors w-full text-left">
-                <PaletteIcon class="w-5 h-5" />
-                <span class="truncate">Appearance</span>
-              </button>
               <div class="border-t border-gray-200 my-1"></div>
               <form @submit.prevent="logout">
                 <button type="submit" class="flex items-center gap-2 px-3 sm:px-5 py-2 text-red-600 hover:bg-red-50 text-sm sm:text-base font-semibold w-full transition-colors text-left">

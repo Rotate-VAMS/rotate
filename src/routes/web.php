@@ -12,8 +12,4 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-Route::get('/register', function () {
-    return Inertia::render('Users/Pages/Register');
-})->middleware('guest')->name('register');
-
 Route::post('/logout', [CustomLogoutController::class, 'destroy'])->name('logout');
