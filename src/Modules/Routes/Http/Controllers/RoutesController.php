@@ -57,9 +57,9 @@ class RoutesController extends Controller
             $route->destination_icao = $route->destination;
             $route->route = $route->origin . '-' . $route->destination;
             $route->name_route = RotateAirportHelper::icaoToCity($route->origin) . ' - ' . RotateAirportHelper::icaoToCity($route->destination);
-            $route->fleet_ids = json_decode($route->fleet_ids);
-            $route->fleet_names = Fleet::whereIn('id', $route->fleet_ids)->pluck('livery', 'aircraft')->toArray();
-            $route->flight_time = $route->flight_time . ' hours';
+            $route->fleet_ids = json_decode($route->fleet_ids, true);
+            $route->fleet_names = Fleet::whereIn('id', array_values($route->fleet_ids))->get()->toArray();
+            $route->flight_time = $route->flight_time;
             $route->rank_id = $route->min_rank_id;
             $route->minimum_rank = Rank::find($route->min_rank_id)->name;
             $route->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_ROUTES, $route->id);

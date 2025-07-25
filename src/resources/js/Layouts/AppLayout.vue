@@ -3,6 +3,7 @@ import { ref, provide } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import RotateToast from '@/Components/RotateToast.vue';
 import rotateDataService from '@/rotate.js'
+import { UserIcon, SettingsIcon, PaletteIcon, LogOutIcon } from 'lucide-vue-next';
 
 const props = defineProps({
     title: String,
@@ -91,22 +92,17 @@ provide('showToast', showToast)
 
         <!-- Right Icons -->
         <div class="flex items-center space-x-4 sm:space-x-6 relative w-full sm:w-auto justify-center sm:justify-end mt-2 sm:mt-0">
-          <!-- Bell Icon -->
-          <button class="p-2 rounded-full hover:bg-gray-100 focus:outline-none">
-            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 17h5l-1.405-1.405M19 13V6a2 2 0 00-2-2H7a2 2 0 00-2 2v7m14 0l-1.405 1.405M4 6h16" />
-            </svg>
-          </button>
-
           <!-- Profile Dropdown -->
           <div class="relative">
             <button @click="showDropdown = !showDropdown" class="flex items-center space-x-2 focus:outline-none">
-              <svg class="w-8 h-8 rounded-full bg-gray-300 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" />
-              </svg>
-              <span class="text-xs sm:text-sm font-medium text-gray-700 hidden xs:inline sm:inline">
-                {{ user?.name || 'User' }} | {{ user?.rank || 'User' }}
+              <!-- Double gradient rounded -->
+              <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md rounded-lg h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center text-base sm:text-lg">
+                {{ user?.name.charAt(0) }}
+              </div>
+              <span class="text-xs sm:text-sm font-bold text-gray-700 hidden xs:inline sm:inline text-start">
+                {{ user?.name || 'User' }}
+                <br />
+                <span class="text-xs sm:text-sm text-gray-500">{{ user?.rank || 'User' }} Rank</span>
               </span>
               <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -115,10 +111,39 @@ provide('showToast', showToast)
             </button>
 
             <div v-if="showDropdown"
-                 class="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-50 py-2 ring-1 ring-black ring-opacity-5">
+                 class="absolute z-50 mt-2 py-3 ring-1 ring-black ring-opacity-5 flex flex-col gap-1 min-w-[14rem] sm:min-w-[16rem] bg-white rounded-2xl shadow-xl
+                   w-[98vw] max-w-xs overflow-x-hidden
+                   left-1/2 -translate-x-1/2 right-auto
+                   sm:left-auto sm:translate-x-0 sm:right-0 sm:w-72 sm:max-w-sm">
+              <div class="flex items-center gap-3 px-3 sm:px-5 pb-3">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center text-lg sm:text-xl font-bold">
+                  {{ user?.name.charAt(0) }}
+                </div>
+                <div class="flex flex-col gap-0.5 min-w-0">
+                  <span class="text-sm sm:text-base font-semibold text-gray-900 truncate">{{ user?.name || 'User' }}</span>
+                  <span class="text-xs sm:text-sm text-indigo-700 font-medium truncate">{{ user?.email || 'user@email.com' }}</span>
+                  <span class="inline-flex items-center bg-gray-100 text-gray-700 text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 rounded-full mt-0.5 w-fit">{{ user?.rank || 'Cadet' }}</span>
+                </div>
+              </div>
+              <div class="border-t border-gray-200 my-1"></div>
+              <button class="flex items-center gap-2 px-3 sm:px-5 py-2 text-gray-900 hover:bg-gray-50 text-sm sm:text-base font-medium transition-colors w-full text-left"
+                @click="() => router.visit('/profile')">
+                <UserIcon class="w-5 h-5" />
+                <span class="truncate">Profile Settings</span>
+              </button>
+              <button class="flex items-center gap-2 px-3 sm:px-5 py-2 text-gray-900 hover:bg-gray-50 text-sm sm:text-base font-medium transition-colors w-full text-left">
+                <SettingsIcon class="w-5 h-5" />
+                <span class="truncate">Account Settings</span>
+              </button>
+              <button class="flex items-center gap-2 px-3 sm:px-5 py-2 text-gray-900 hover:bg-gray-50 text-sm sm:text-base font-medium transition-colors w-full text-left">
+                <PaletteIcon class="w-5 h-5" />
+                <span class="truncate">Appearance</span>
+              </button>
+              <div class="border-t border-gray-200 my-1"></div>
               <form @submit.prevent="logout">
-                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Logout
+                <button type="submit" class="flex items-center gap-2 px-3 sm:px-5 py-2 text-red-600 hover:bg-red-50 text-sm sm:text-base font-semibold w-full transition-colors text-left">
+                  <LogOutIcon class="w-5 h-5" />
+                  <span class="truncate">Sign Out</span>
                 </button>
               </form>
             </div>

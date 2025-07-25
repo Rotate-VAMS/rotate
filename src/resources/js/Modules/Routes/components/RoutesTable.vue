@@ -89,13 +89,34 @@
           <table class="w-full text-sm text-left text-gray-700 min-w-full">
             <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
               <tr>
-                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Flight Number</th>
-                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Route</th>
-                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Aircraft</th>
-                <th class="px-4 sm:px-6 py-3 whitespace-nowrap text-center">Distance</th>
-                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Flight Time</th>
-                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Minimum Rank</th>
-                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Status</th>
+                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+                  <PlaneIcon class="w-4 h-4 inline-block mr-2" />
+                  Flight Number
+                </th>
+                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+                  <RouteIcon class="w-4 h-4 inline-block mr-2" />
+                  Route
+                </th>
+                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+                  <PlaneIcon class="w-4 h-4 inline-block mr-2" />
+                  Aircraft
+                </th>
+                <th class="px-4 sm:px-6 py-3 whitespace-nowrap text-center">
+                  <MapPinIcon class="w-4 h-4 inline-block mr-2" />
+                  Distance
+                </th>
+                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+                  <ClockIcon class="w-4 h-4 inline-block mr-2" />
+                  Flight Time
+                </th>
+                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+                  <UserIcon class="w-4 h-4 inline-block mr-2" />
+                  Minimum Rank
+                </th>
+                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+                  <BadgeIcon class="w-4 h-4 inline-block mr-2" />
+                  Status
+                </th>
                 <th 
                   v-for="customField in customFields" 
                   :key="customField.id" 
@@ -121,25 +142,34 @@
                 </td>
                 <td class="px-4 sm:px-6 py-4">
                   <div class="flex flex-wrap gap-1 overflow-x-auto max-w-xs whitespace-nowrap">
-                    <div v-for="(aircraft, key) in route.fleet_names" :key="key" class="bg-gray-200 text-xs rounded-full px-3 py-1 font-medium">{{ aircraft }} - {{ key }}</div>
+                    <div v-for="aircraft in route.fleet_names" :key="aircraft.id" :class="getAircraftPillClass(aircraft.livery)" class="text-xs rounded-full px-3 py-1 font-medium text-white">{{ aircraft.livery }} - {{ aircraft.aircraft }}</div>
                   </div>
                 </td>
-                <td class="px-4 sm:px-6 py-4 text-center font-medium">{{ route.distance }} NM</td>
                 <td class="px-4 sm:px-6 py-4">
-                  <div class="text-xs text-gray-400">{{ route.flight_time }}</div>
+                  <div class="font-semibold">{{ route.distance }} NM</div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="font-semibold">{{ formatFlightTime(route.flight_time) }}</div>
                 </td>
                 <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                  <div class="text-xs text-gray-400">{{ route.minimum_rank }}</div>
+                  <span :class="getRankPillClass(route.minimum_rank)" class="inline-flex items-center text-sm font-medium px-2 py-1 rounded-full text-white">
+                    {{ route.minimum_rank }}
+                  </span>
                 </td>
                 <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                  <div class="text-xs text-gray-400">{{ route.status ? 'Active' : 'Inactive' }}</div>
+                  <span
+                    :class="route.status == 1 ? 'bg-gradient-to-r from-green-100 to-green-300 text-green-800' : 'bg-gradient-to-r from-red-100 to-red-300 text-red-800'"
+                    class="text-xs font-semibold px-3 py-1 rounded-full"
+                  >
+                    {{ statusText[route.status] }}
+                  </span>
                 </td>
                 <td 
                   v-for="customField in customFields" 
                   :key="customField.id" 
                   class="px-4 sm:px-6 py-4 whitespace-nowrap"
                 >
-                  <div class="text-sm">
+                  <div class="font-semibold text-gray-400">
                     {{ getCustomFieldValue(route, customField.field_key) }}
                   </div>
                 </td>
@@ -175,13 +205,34 @@
       <table class="w-full text-sm text-left text-gray-700 min-w-full">
         <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
           <tr>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-200 transition-colors">Flight Number</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Route</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Aircraft</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap text-center">Distance</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Flight Time</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Minimum Rank</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Status</th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+              <PlaneIcon class="w-4 h-4 inline-block mr-2" />
+              Flight Number
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+              <RouteIcon class="w-4 h-4 inline-block mr-2" />
+              Route
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+              <PlaneIcon class="w-4 h-4 inline-block mr-2" />
+              Aircraft
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap text-center">
+              <MapPinIcon class="w-4 h-4 inline-block mr-2" />
+              Distance
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+              <ClockIcon class="w-4 h-4 inline-block mr-2" />
+              Flight Time
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+              <UserIcon class="w-4 h-4 inline-block mr-2" />
+              Minimum Rank
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+              <BadgeIcon class="w-4 h-4 inline-block mr-2" />
+              Status
+            </th>
             <th 
               v-for="customField in customFields" 
               :key="customField.id" 
@@ -207,25 +258,34 @@
             </td>
             <td class="px-4 sm:px-6 py-4">
               <div class="flex flex-wrap gap-1 overflow-x-auto max-w-xs whitespace-nowrap">
-                <div v-for="(aircraft, key) in route.fleet_names" :key="key" class="bg-gray-200 text-xs rounded-full px-3 py-1 font-medium">{{ aircraft }} - {{ key }}</div>
+                <div v-for="aircraft in route.fleet_names" :key="aircraft.id" :class="getAircraftPillClass(aircraft.livery)" class="text-xs rounded-full px-3 py-1 font-medium text-white">{{ aircraft.livery }} - {{ aircraft.aircraft }}</div>
               </div>
             </td>
-            <td class="px-4 sm:px-6 py-4 text-center font-medium">{{ route.distance }} NM</td>
             <td class="px-4 sm:px-6 py-4">
-              <div class="text-xs text-gray-400">{{ route.flight_time }}</div>
+              <div class="font-semibold">{{ route.distance }} NM</div>
+            </td>
+            <td class="px-4 sm:px-6 py-4">
+              <div class="font-semibold">{{ formatFlightTime(route.flight_time) }}</div>
             </td>
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-              <div class="text-xs text-gray-400">{{ route.minimum_rank }}</div>
+              <span :class="getRankPillClass(route.minimum_rank)" class="inline-flex items-center text-sm font-medium px-2 py-1 rounded-full text-white">
+                {{ route.minimum_rank }}
+              </span>
             </td>
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-              <div class="text-xs text-gray-400">{{ route.status ? 'Active' : 'Inactive' }}</div>
+              <span
+                :class="route.status == 1 ? 'bg-gradient-to-r from-green-100 to-green-300 text-green-800' : 'bg-gradient-to-r from-red-100 to-red-300 text-red-800'"
+                class="text-xs font-semibold px-3 py-1 rounded-full"
+              >
+                {{ statusText[route.status] }}
+              </span>
             </td>
             <td 
               v-for="customField in customFields" 
               :key="customField.id" 
               class="px-4 sm:px-6 py-4 whitespace-nowrap"
             >
-              <div class="text-sm">
+              <div class="font-semibold">
                 {{ getCustomFieldValue(route, customField.field_key) }}
               </div>
             </td>
@@ -267,7 +327,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
-import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronRightIcon, BadgeCheckIcon, BadgeXIcon } from 'lucide-vue-next'
+import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronRightIcon, BadgeCheckIcon, BadgeXIcon, PlaneIcon, RouteIcon, MapPinIcon, ClockIcon, UserIcon } from 'lucide-vue-next'
 import RotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 
@@ -327,6 +387,64 @@ const filteredRoutes = computed(() => {
   })
 })
 
+const getRankPillClass = (rank) => {
+  const gradients = [
+    'bg-gradient-to-r from-indigo-500 to-purple-500',
+    'bg-gradient-to-r from-blue-500 to-cyan-500',
+    'bg-gradient-to-r from-green-500 to-emerald-500',
+    'bg-gradient-to-r from-orange-500 to-red-500',
+    'bg-gradient-to-r from-pink-500 to-rose-500',
+    'bg-gradient-to-r from-yellow-500 to-orange-500',
+    'bg-gradient-to-r from-teal-500 to-blue-500',
+    'bg-gradient-to-r from-purple-500 to-pink-500',
+    'bg-gradient-to-r from-red-500 to-pink-500',
+    'bg-gradient-to-r from-cyan-500 to-blue-500',
+    'bg-gradient-to-r from-emerald-500 to-teal-500',
+    'bg-gradient-to-r from-violet-500 to-purple-500'
+  ];
+  
+  // Assign classes randomly
+  const hash = rank.split('').reduce((acc, char) => {
+    return acc + char.charCodeAt(0);
+  }, 0);
+  
+  return gradients[Math.abs(hash) % gradients.length];
+};
+
+const getAircraftPillClass = (aircraft) => {
+  const gradients = [
+    'bg-gradient-to-r from-indigo-500 to-purple-500',
+    'bg-gradient-to-r from-blue-500 to-cyan-500',
+    'bg-gradient-to-r from-green-500 to-emerald-500',
+    'bg-gradient-to-r from-orange-500 to-red-500',
+    'bg-gradient-to-r from-pink-500 to-rose-500',
+    'bg-gradient-to-r from-yellow-500 to-orange-500',
+    'bg-gradient-to-r from-teal-500 to-blue-500',
+    'bg-gradient-to-r from-purple-500 to-pink-500',
+    'bg-gradient-to-r from-red-500 to-pink-500',
+    'bg-gradient-to-r from-cyan-500 to-blue-500',
+    'bg-gradient-to-r from-emerald-500 to-teal-500',
+    'bg-gradient-to-r from-violet-500 to-purple-500'
+  ];
+  
+  // Assign classes randomly
+  const hash = aircraft.split('').reduce((acc, char) => {
+    return acc + char.charCodeAt(0);
+  }, 0);
+  
+  return gradients[Math.abs(hash) % gradients.length];
+};
+
+// Function to format flight time
+const formatFlightTime = (totalMinutes) => {
+  if (totalMinutes === null || totalMinutes === undefined) {
+    return '-';
+  }
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}h ${minutes}m`;
+};
+
 // Computed property for grouped routes
 const groupedRoutes = computed(() => {
   if (!groupBy.value || !filteredRoutes.value.length) return []
@@ -350,9 +468,7 @@ const groupedRoutes = computed(() => {
       else groupValue = '5000+ NM'
     } else if (groupBy.value === 'flight_time') {
       // Group by flight time ranges
-      const timeStr = route.flight_time || '0:00'
-      const [hours, minutes] = timeStr.split(':').map(Number)
-      const totalMinutes = (hours * 60) + (minutes || 0)
+      const totalMinutes = route.flight_time || 0
       
       if (totalMinutes < 60) groupValue = '0-1 Hour'
       else if (totalMinutes < 180) groupValue = '1-3 Hours'
@@ -378,9 +494,7 @@ const groupedRoutes = computed(() => {
     groups[groupValue].totalDistance += parseInt(route.distance) || 0
     
     // Calculate total flight time
-    const timeStr = route.flight_time || '0:00'
-    const [hours, minutes] = timeStr.split(':').map(Number)
-    const totalMinutes = (hours * 60) + (minutes || 0)
+    const totalMinutes = route.flight_time || 0
     groups[groupValue].totalFlightTime += totalMinutes
   })
   
@@ -467,13 +581,6 @@ const getGroupHeaderClass = (groupKey) => {
   }, 0)
   
   return colors[Math.abs(hash) % colors.length]
-}
-
-// Function to format flight time
-const formatFlightTime = (totalMinutes) => {
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-  return `${hours}:${minutes.toString().padStart(2, '0')}`
 }
 
 // Function to toggle group collapse

@@ -11,10 +11,12 @@ class PermissionSeeder extends Seeder
     public function run()
     {
         $pirepPermissions = [
-            'view-pirep',
+            'view-all-pirep',
             'create-pirep',
-            'edit-pirep',
-            'delete-pirep',
+            'edit-all-pirep',
+            'delete-all-pirep',
+            'edit-own-pirep',
+            'delete-own-pirep',
         ];
 
         $routesPermissions = [
@@ -67,7 +69,9 @@ class PermissionSeeder extends Seeder
 
         $pilotRole = Role::where('name', 'pilot')->first();
         $pilotRole->givePermissionTo([
-            'view-pirep',
+            'view-all-pirep',
+            'edit-all-pirep',
+            'delete-all-pirep',
             'view-route',
             'view-event',
             'view-user',

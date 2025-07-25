@@ -38,7 +38,7 @@ class PirepController extends Controller
             ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
             ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')
             ->leftJoin('users', 'pireps.user_id', '=', 'users.id')
-            ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name')
+            ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name', 'users.callsign')
             ->where('pireps.deleted_at', null)
             ->orderBy('pireps.created_at', 'desc');
 
@@ -52,15 +52,15 @@ class PirepController extends Controller
             $pirep->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PIREPS, $pirep->id);
             $pirep->origin_city = RotateAirportHelper::icaoToCity($pirep->origin);
             $pirep->destination_city = RotateAirportHelper::icaoToCity($pirep->destination);
-            $pirep->flight_time = $pirep->flight_time;
+            $pirep->flight_time_hours = $pirep->flight_time;
             $pirep->computed_flight_time = $pirep->computed_flight_time;
             $pirep->multiplier = FlightType::find($pirep->flight_type_id)->multiplier ?? 1;
             $pirep->airline = RotateAirportHelper::airlineToICAO(substr($pirep->flight_number, 0, 2)) ?? '-';
         }
 
         $analyticsData = [
-            'myPireps' => $pireps->where('user_id', Auth::user()->id)->count(),
-            'totalPireps' => $pireps->count()
+            'myPireps' => Pirep::where('user_id', Auth::user()->id)->where('deleted_at', null)->count(),
+            'totalPireps' => Pirep::where('deleted_at', null)->count()
         ];
 
         return response()->json(['message' => 'Pireps fetched successfully', 'data' => $pireps, 'analytics' => $analyticsData]);

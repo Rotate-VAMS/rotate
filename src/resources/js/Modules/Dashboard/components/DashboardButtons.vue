@@ -22,12 +22,12 @@
   const user = page.props.auth.user;
   
   const buttons = [
-    { label: 'PIREPs', icon: PlaneIcon, route: '/pireps', visible: user.permissions.includes('view-pirep'), isPrimary: true },
+    { label: 'PIREPs', icon: PlaneIcon, route: '/pireps', visible: true, isPrimary: true },
     { label: 'Pilots', icon: Users, route: '/pilots', visible: user.permissions.includes('view-user'), isPrimary: false },
     { label: 'Events', icon: List, route: '/events', visible: user.permissions.includes('view-event'), isPrimary: false },
     { label: 'Routes', icon: BookOpen, route: '/routes', visible: user.permissions.includes('view-route'), isPrimary: false },
-    { label: 'Route Generator', icon: Route, route: '/routes/generator', visible: true, isPrimary: false },
-    { label: 'Airport Charts', icon: MapPin, route: '/charts', visible: true, isPrimary: false },
+    // { label: 'Route Generator', icon: Route, route: '/routes/generator', visible: true, isPrimary: false },
+    // { label: 'Airport Charts', icon: MapPin, route: '/charts', visible: true, isPrimary: false },
   ];
   
   const navigate = (route) => {

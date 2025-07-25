@@ -9,9 +9,12 @@ use App\Models\Event;
 use App\Models\EventAttendance;
 use App\Models\Pirep;
 use App\Models\Route;
+use App\Models\Rank;
 use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use SebastianBergmann\Diff\Diff;
 
 class DashboardController extends Controller
 {
@@ -20,6 +23,8 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
+        
         $pireps = DB::table('pireps')
             ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
             ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')
@@ -37,7 +42,6 @@ class DashboardController extends Controller
         // Fetch latest 5 events
         $events = Event::orderBy('event_date_time', 'desc')->take(5)->get();
         foreach ($events as $event) {
-            $event->event_date_time = Carbon::parse($event->event_date_time)->format('M d, Y h:i A');
             $event->participants = EventAttendance::where('event_id', $event->id)->count() ?? 0;
         }
 
@@ -48,11 +52,13 @@ class DashboardController extends Controller
             ['label' => 'Settings', 'url' => '/settings', 'icon' => 'SettingsIcon'],
         ];
 
+        $upcomingRank = Rank::whereNot('id', $user->rank_id)->orderBy('id', 'asc')->first();
+        $upcomingRank->caption = 'Coming up in ' . ($upcomingRank->min_hours - (User::find($user->id)->flying_hours % 60)) . ' hours';
         $analytics = [
-            ['title' => 'Total Pilots', 'value' => User::count(), 'type' => 'pilots', 'type' => 'pilots'],
-            ['title' => 'Active Routes', 'value' => Route::where('status', Route::ROUTE_STATUS_ACTIVE)->count(), 'type' => 'routes', 'type' => 'routes'],
-            ['title' => 'Monthly Flights', 'value' => Pirep::where('created_at', '>=', now()->subMonth())->count(), 'type' => 'flights', 'type' => 'flights'],
-            ['title' => 'Upcoming Events', 'value' => Event::where('event_date_time', '>', now())->count(), 'type' => 'events', 'type' => 'events'],
+            ['title' => 'Your Total Flights', 'value' => Pirep::where('user_id', $user->id)->count(), 'type' => 'flights'],
+            ['title' => 'Your Total Routes', 'value' => Route::count(), 'type' => 'routes'],
+            ['title' => 'Upcoming Rank', 'value' => $upcomingRank->name, 'caption' => $upcomingRank->caption, 'type' => 'ranks'],
+            ['title' => 'Upcoming Events', 'value' => Event::where('event_date_time', '>', now())->count(), 'type' => 'events'],
         ];
 
         return Inertia::render('Dashboard/Pages/DashboardView', [

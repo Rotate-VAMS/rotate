@@ -19,7 +19,8 @@
   const props = defineProps({
     title: String,
     value: [Number, String],
-    type: String
+    type: String,
+    caption: String
   });
   
   const iconMap = {

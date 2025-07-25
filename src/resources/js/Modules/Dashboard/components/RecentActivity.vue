@@ -12,17 +12,17 @@
           {{ activity.pilot_name.charAt(0) }}
         </div>
         <div>
-          <p class="font-medium text-xs sm:text-sm">{{ activity.pilot_name }}</p>
-          <p class="text-xs text-gray-500">{{ activity.origin }} → {{ activity.destination }} · {{ activity.flight_number }}</p>
+          <p class="font-bold text-xs sm:text-sm">{{ activity.pilot_name }}</p>
+          <p class="text-sm text-gray-500">{{ activity.origin }} → {{ activity.destination }} · {{ activity.flight_number }}</p>
         </div>
       </div>
       <div class="text-xs text-right">
-        <span class="px-2 py-1 rounded-full text-white bg-gradient-to-r from-green-500 to-green-700">{{ activity.distance }}NM</span>
+        <span class="px-2 py-1 rounded-full font-bold text-green-700 bg-gradient-to-r from-green-100 to-green-200">{{ activity.distance }} NM</span>
         <p class="text-gray-400 text-xs mt-2 sm:mt-3">{{ activity.time_ago }}</p>
       </div>
     </div>
 
-    <button class="w-full sm:w-auto text-xs sm:text-sm text-indigo-600 font-semibold py-2 mt-2 sm:mt-0">View All PIREPs</button>
+    <button class="w-full sm:w-auto text-xs sm:text-sm text-indigo-600 font-semibold py-2 mt-2 sm:mt-0" @click="goToPireps">View All PIREPs</button>
   </div>
 </template>
   
@@ -35,4 +35,8 @@
   const statusColor = (status) => {
     return status === 'completed' ? 'bg-green-500' : 'bg-yellow-500';
   };
+
+  const goToPireps = () => {
+    window.location.href = '/pireps';
+  }
 </script>

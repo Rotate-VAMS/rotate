@@ -15,15 +15,23 @@ const props = defineProps({
 });
 
 const user = usePage().props.auth.user;
+
+// Fetch greetings based on time of day
+const getGreeting = () => {
+    const hours = new Date().getHours();
+    if (0 <= hours && hours < 12) return 'Good Morning';
+    if (12 <= hours && hours < 17) return 'Good Afternoon';
+    return 'Good Evening';
+}
 </script>
 
 <template>
   <AppLayout title="Dashboard">
     <!-- Add welcome back message -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Welcome back, {{ user.name }}</h1>
+      <h1 class="text-3xl font-bold text-gray-900"> {{ getGreeting() }}, {{ user.name }}</h1>
       <p class="text-lg text-gray-600 mt-1">
-        Manage your virtual airline operations and monitor pilot activities.
+        Welcome back to your dashboard!
       </p>
     </div>
     <DashboardButtons />
@@ -34,6 +42,7 @@ const user = usePage().props.auth.user;
         :title="card.title"
         :value="card.value"
         :type="card.type"
+        :caption="card.caption"
       />
     </div>
 
@@ -50,6 +59,3 @@ const user = usePage().props.auth.user;
     </div>
   </AppLayout>
 </template>
-
-<style scoped>
-</style>

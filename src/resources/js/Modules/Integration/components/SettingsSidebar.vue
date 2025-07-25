@@ -1,5 +1,5 @@
 <template>
-  <div class="md:w-1/5 lg:w-1/6 bg-white rounded-xl shadow-sm p-4">
+  <div class="md:w-1/5 lg:w-1/6 bg-white rounded-xl shadow-sm p-4 h-fit">
     <ul class="space-y-2 text-sm font-medium">
       <li v-for="item in menu" :key="item.key">
         <button
@@ -25,12 +25,12 @@ const props = defineProps({
   active: String
 })
 const menu = [
+  { key: 'roles', label: 'Roles & Permissions', icon: UsersIcon },
+  { key: 'ranks', label: 'Ranks', icon: ShieldCheck },
   { key: 'fleet', label: 'Fleet', icon: PlaneIcon },
   { key: 'flightTypes', label: 'Flight Types', icon: PlaneTakeoff },
   { key: 'customFields', label: 'Custom Fields', icon: Hash },
-  { key: 'discord', label: 'Discord Integration', icon: Settings },
-  { key: 'roles', label: 'Roles & Permissions', icon: UsersIcon },
-  { key: 'ranks', label: 'Ranks', icon: ShieldCheck },
   { key: 'logo', label: 'Logo', icon: ImageIcon },
+  { key: 'discord', label: 'Discord Integration', icon: Settings },
 ]
 </script>

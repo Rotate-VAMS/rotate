@@ -29,14 +29,14 @@
       </div>
       <div class="flex items-center gap-2 ml-4">
         <button
-          :class="viewMode === 'card' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
+          :class="viewMode === 'card' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white' : 'bg-gray-200 text-gray-700'"
           class="px-3 py-1 rounded focus:outline-none"
           @click="setViewMode('card')"
         >
           Card View
         </button>
         <button
-          :class="viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
+          :class="viewMode === 'grid' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white' : 'bg-gray-200 text-gray-700'"
           class="px-3 py-1 rounded focus:outline-none"
           @click="setViewMode('grid')"
         >
@@ -71,15 +71,19 @@
             <div class="text-sm text-gray-600 mb-1 truncate">{{ event.event_description }}</div>
             <div class="flex items-center gap-2 text-sm">
               <span class="font-medium">Departure:</span>
-              <span>{{ event.origin }}</span>
+              <span>{{ event.origin_city }}</span>
+              <span class="text-sm text-gray-700">({{ event.origin }})</span>
             </div>
             <div class="flex items-center gap-2 text-sm">
               <span class="font-medium">Arrival:</span>
-              <span>{{ event.destination }}</span>
+              <span>{{ event.destination_city }}</span>
+              <span class="text-sm text-gray-700">({{ event.destination }})</span>
             </div>
             <div class="flex items-center gap-2 text-sm">
               <span class="font-medium">Aircraft:</span>
-              <span v-for="aircraft in parseAircraft(event.aircraft)" :key="aircraft" class="bg-gray-200 text-xs rounded-full px-3 py-1 font-medium">{{ aircraft }}</span>
+              <div class="flex flex-wrap gap-2 max-w-xs overflow-x-auto">
+                <span v-for="aircraft in parseAircraft(event.aircraft)" :key="aircraft" :class="getEventAircraftPillClass(aircraft)" class="inline-flex items-center text-xs font-medium px-3 py-1.5 rounded-full text-white">{{ aircraft }}</span>
+              </div>
             </div>
             <div v-for="customField in customFields" :key="customField.id" class="flex items-center gap-2 text-sm">
               <span class="font-medium">{{ customField.field_name }}:</span>
@@ -89,11 +93,13 @@
           <div v-if="true" class="flex items-center gap-2 p-4 border-t bg-gray-50">
             <button
               @click="event.attendees.includes(user.id) ? deregisterForEvent(event) : registerForEvent(event)"
+              class="flex items-center gap-2 text-sm"
               :class="event.attendees.includes(user.id) ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'"
-              :title="event.attendees.includes(user.id) ? 'Deregister for Event' : 'Register for Event'"
             >
               <TicketCheckIcon v-if="!event.attendees.includes(user.id)" class="w-4 h-4" />
+              <span v-if="!event.attendees.includes(user.id)">Register</span>
               <TicketXIcon v-else class="w-4 h-4" />
+              <span v-if="event.attendees.includes(user.id)">Deregister</span>
             </button>
           </div>
         </div>
@@ -160,6 +166,30 @@ const parseAircraft = (aircraft) => {
   } catch {
     return aircraft ? [aircraft] : []
   }
+}
+
+const getEventAircraftPillClass = (aircraft) => {
+  const gradients = [
+    'bg-gradient-to-r from-indigo-500 to-purple-500',
+    'bg-gradient-to-r from-blue-500 to-cyan-500',
+    'bg-gradient-to-r from-green-500 to-emerald-500',
+    'bg-gradient-to-r from-orange-500 to-red-500',
+    'bg-gradient-to-r from-pink-500 to-rose-500',
+    'bg-gradient-to-r from-yellow-500 to-orange-500',
+    'bg-gradient-to-r from-teal-500 to-blue-500',
+    'bg-gradient-to-r from-purple-500 to-pink-500',
+    'bg-gradient-to-r from-red-500 to-pink-500',
+    'bg-gradient-to-r from-cyan-500 to-blue-500',
+    'bg-gradient-to-r from-emerald-500 to-teal-500',
+    'bg-gradient-to-r from-violet-500 to-purple-500'
+  ];
+  
+  // Assign classes randomly
+  const hash = aircraft.split('').reduce((acc, char) => {
+    return acc + char.charCodeAt(0);
+  }, 0);
+  
+  return gradients[Math.abs(hash) % gradients.length];
 }
 
 const getCustomFieldValue = (event, fieldKey) => {
