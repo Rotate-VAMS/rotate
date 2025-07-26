@@ -11,7 +11,6 @@ const props = defineProps({
     analytics: Array,
     recentActivities: Array,
     upcomingEvents: Array,
-    quickLinks: Array,
 });
 
 const user = usePage().props.auth.user;
@@ -54,7 +53,7 @@ const getGreeting = () => {
 
       <div class="space-y-6">
         <UpcomingEvents :events="props.upcomingEvents" />
-        <QuickLinks :links="props.quickLinks" />
+        <QuickLinks />
       </div>
     </div>
   </AppLayout>

@@ -22,8 +22,8 @@
 
   const links = [
     { label: 'Browse Routes', url: '/routes', icon: RouteIcon, visible: user.permissions.includes('view-route') },
-    { label: 'Airport Charts', url: '/charts', icon: MapPinIcon, visible: true },
-    { label: 'Pilot Management', url: '/pilots', icon: UsersIcon, visible: user.permissions.includes('view-user') },
+    // { label: 'Airport Charts', url: '/charts', icon: MapPinIcon, visible: true },
+    { label: 'Pilot Management', url: '/users', icon: UsersIcon, visible: user.permissions.includes('view-user') },
     { label: 'Settings', url: '/settings', icon: SettingsIcon, visible: user.permissions.includes('access-settings') },
   ];
 </script>

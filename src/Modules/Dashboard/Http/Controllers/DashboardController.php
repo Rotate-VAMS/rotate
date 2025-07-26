@@ -40,17 +40,10 @@ class DashboardController extends Controller
         }
 
         // Fetch latest 5 events
-        $events = Event::orderBy('event_date_time', 'desc')->take(5)->get();
+        $events = Event::where('deleted_at', null)->where('event_date_time', '>', time())->orderBy('event_date_time', 'asc')->take(5)->get();
         foreach ($events as $event) {
             $event->participants = EventAttendance::where('event_id', $event->id)->count() ?? 0;
         }
-
-        $quickLinks = [
-            ['label' => 'Browse Routes', 'url' => '/routes', 'icon' => 'RouteIcon'],
-            ['label' => 'Airport Charts', 'url' => '/charts', 'icon' => 'MapPinIcon'],
-            ['label' => 'Pilot Management', 'url' => '/users', 'icon' => 'UsersIcon'],
-            ['label' => 'Settings', 'url' => '/settings', 'icon' => 'SettingsIcon'],
-        ];
 
         $upcomingRank = Rank::whereNot('id', $user->rank_id)->orderBy('id', 'asc')->first();
         $upcomingRank->caption = 'Coming up in ' . ($upcomingRank->min_hours - (User::find($user->id)->flying_hours % 60)) . ' hours';
@@ -65,7 +58,6 @@ class DashboardController extends Controller
             'analytics' => $analytics,
             'recentActivities' => $pireps,
             'upcomingEvents' => $events,
-            'quickLinks' => $quickLinks,
         ]);
     }
 }
