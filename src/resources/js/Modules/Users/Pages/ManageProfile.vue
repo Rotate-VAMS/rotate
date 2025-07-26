@@ -225,8 +225,7 @@
                                 </div>
                                 <ul class="benefits-list">
                                     <li>• File PIREPs instantly from your Discord server</li>
-                                    <li>• Access flight commands through Discord bot (Coming Soon)</li>
-                                    <li>• Get real-time events update (Coming Soon)</li>
+                                    <li>• Get real-time events update</li>
                                 </ul>
                             </div>
 
@@ -236,7 +235,7 @@
                                     <h3 class="font-bold text-lg text-yellow-800">How to get Discord ID?</h3>
                                 </div>
                                 <ul class="benefits-list">
-                                    <li>• Tap on the cogwheel [] in the bottom left corner of the desktop app to open up your <b>User Settings</b>.</li>
+                                    <li>• Tap on the cogwheel <Settings size="14" class="text-yellow-600 inline-block" /> in the bottom left corner of the desktop app to open up your <b>User Settings</b>.</li>
                                     <li>• Then head to <b>Advanced</b>.</li>
                                     <li>• Now, tap on the main toggle next to <b>Developer Mode</b> to enable. A “checkmark” means it’s enabled, while an “x” means it’s disabled.</li>
                                     <li>• Now, navigate back to your server and right click on your name, select <b>Copy UserID</b>.</li>
@@ -295,7 +294,8 @@ import {
     Save, 
     MessageCircle,
     CheckCircle,
-    AlertCircle
+    AlertCircle,
+    Settings
 } from 'lucide-vue-next';
 
 const page = usePage();
