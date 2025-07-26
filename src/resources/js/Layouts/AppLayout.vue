@@ -2,6 +2,7 @@
 import { ref, provide } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import RotateToast from '@/Components/RotateToast.vue';
+import RotateLoader from '@/Components/RotateLoader.vue';
 import rotateDataService from '@/rotate.js'
 import { UserIcon, SettingsIcon, PaletteIcon, LogOutIcon } from 'lucide-vue-next';
 
@@ -155,6 +156,7 @@ provide('showToast', showToast)
 
     <!-- Page Content -->
     <main class="py-4 px-2 sm:py-6 sm:px-6 max-w-7xl mx-auto w-full">
+      <RotateLoader :loading="page.props.loading" />
       <slot />
     </main>
 

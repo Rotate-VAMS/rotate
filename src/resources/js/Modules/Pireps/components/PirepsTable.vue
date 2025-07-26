@@ -245,12 +245,15 @@ const editPirep = (pirep) => {
 }
 
 const deletePirep = async (pirep) => {
+  page.props.loading = true
   const response = await RotateDataService('/pireps/jxDeletePireps', { id: pirep.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred', 'error')
     return;
   }
   showToast(response.message || 'Pirep deleted successfully', 'success')
+  page.props.loading = false
   window.dispatchEvent(new CustomEvent('pireps-updated'))
 }
 

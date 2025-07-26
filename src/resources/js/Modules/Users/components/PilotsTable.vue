@@ -543,14 +543,17 @@ const toggleGroup = (groupKey) => {
 
 const fetchPilots = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/pilots/jxFetchPilots', {})
     pilots.value = response.data || []
     analytics.value = response.analytics || {}
     
     // Emit analytics data to parent component
     emit('analytics-updated', analytics.value)
+    page.props.loading = false
   } catch (e) {
     console.error(e)
+    page.props.loading = false
     showToast('Error fetching pilots', 'error')
   }
 }
@@ -562,23 +565,29 @@ const editPilot = (pilot) => {
 }
 
 const deletePilot = async (pilot) => {
+  page.props.loading = true
   const response = await rotateDataService('/pilots/jxDeletePilot', { id: pilot.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred', 'error')
     return;
   }
   showToast(response.message || 'Pilot deleted successfully', 'success')
   fetchPilots()
+  page.props.loading = false
 }
 
 const togglePilotStatus = async (pilot) => {
+  page.props.loading = true
   const response = await rotateDataService('/pilots/jxTogglePilotStatus', { id: pilot.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred', 'error')
     return;
   }
   showToast(response.message || 'Pilot status toggled successfully', 'success')
   fetchPilots()
+  page.props.loading = false
 }
 
 // Event listeners

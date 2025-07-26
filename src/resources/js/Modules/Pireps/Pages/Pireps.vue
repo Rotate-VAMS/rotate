@@ -106,27 +106,33 @@ const analytics = ref({});
 // Fetch pirep custom fields
 const fetchPirepCustomFields = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/pireps/jxGetPirepCustomFields');
     if (response.hasErrors) {
       showToast(response.message, 'error');
       return;
     }
     pirepCustomFields.value = response.data;
+    page.props.loading = false
   } catch (e) {
     console.error(e)
     showToast('Error fetching pirep custom fields', 'error');
+    page.props.loading = false
   }
 };
 
 const fetchPireps = async (filter = 'my') => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/pireps/jxFetchPireps', {
       filter: filter
     })
     pireps.value = response.data || []
     analytics.value = response.analytics || {}
+    page.props.loading = false
   } catch (e) {
     console.error(e)
+    page.props.loading = false
     showToast('Error fetching pireps', 'error')
   }
 }

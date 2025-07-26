@@ -111,7 +111,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FilterIcon, EditIcon, TrashIcon, TicketCheckIcon, TicketXIcon } from 'lucide-vue-next'
+import { FilterIcon, TicketCheckIcon, TicketXIcon } from 'lucide-vue-next'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 import EventsTable from './EventsTable.vue'
@@ -219,11 +219,14 @@ const fetchCustomFields = async () => {
 
 const fetchEvents = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/events/jxFetchEvents')
     events.value = response.data || []
     emit('update:analytics', response.analytics || {})
+    page.props.loading = false
   } catch (e) {
     console.error(e)
+    page.props.loading = false
   }
 }
 
@@ -234,46 +237,29 @@ const fetchAll = async () => {
 }
 
 const registerForEvent = async (event) => {
+  page.props.loading = true
   const response = await rotateDataService('/events/jxRegisterForEvent', { id: event.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred while registering for event', 'error')
     return;
   }
   showToast(response.message || 'Event registered successfully', 'success')
   fetchEvents()
+  page.props.loading = false
 }
 
 const deregisterForEvent = async (event) => {
+  page.props.loading = true
   const response = await rotateDataService('/events/jxDeRegisterForEvent', { id: event.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred while deregistering for event', 'error')
     return;
   }
   showToast(response.message || 'Event deregistered successfully', 'success')
   fetchEvents()
-}
-
-const editEvent = (event) => {
-  window.dispatchEvent(new CustomEvent('edit-event', { detail: event }))
-}
-
-const deleteEvent = async (event) => {
-  try {
-      const response = await rotateDataService('/events/jxDeleteEvent', { id: event.id })
-      if (response.hasErrors) {
-        showToast(response.message || 'Error occurred while deleting event', 'error')
-        return;
-      }
-      showToast(response.message || 'Event deleted successfully', 'success')
-      fetchEvents()
-    } catch (e) {
-      console.error(e)
-    showToast('Error occurred while deleting event', 'error')
-  }
-}
-
-const handleEventsUpdated = () => {
-  fetchEvents()
+  page.props.loading = false
 }
 
 const handleEditEvent = (event) => {

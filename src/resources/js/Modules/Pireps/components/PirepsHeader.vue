@@ -148,23 +148,29 @@ const openDrawerForCreate = () => {
 // Fetch fleets
 const fetchFleets = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/settings/jxFetchFleets')
     fleets.value = response.data || []
+    page.props.loading = false
   } catch (e) {
     console.error('Error fetching fleets:', e)
+    page.props.loading = false
   }
 }
 
 // Fetch routes
 const fetchRoutes = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/routes/jxFetchRoutes', { scope: 'pireps' })
     // Convert object with numeric keys to array
     routes.value = response.data && typeof response.data === 'object'
       ? Object.values(response.data)
       : []
+    page.props.loading = false
   } catch (e) {
     console.error('Error fetching routes:', e)
+    page.props.loading = false
     routes.value = []
   }
 }
@@ -172,35 +178,43 @@ const fetchRoutes = async () => {
 // Fetch flight types
 const fetchFlightTypes = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/settings/jxFetchFlightTypes')
     flightTypes.value = response.data || []
+    page.props.loading = false
   } catch (e) {
     console.error('Error fetching flight types:', e)
+    page.props.loading = false
   }
 }
 
 // Submit handler
 const submitForm = async (payload) => {
   try {
+    page.props.loading = true
     // Basic validation
     if (!payload.route_id) {
       showToast('Please select a route.', 'error')
+      page.props.loading = false
       return
     }
     
     // Validate flight time fields
     if (!payload.flight_time_hours || payload.flight_time_hours < 0 || payload.flight_time_hours > 23) {
       showToast('Please enter a valid flight time hours (0-23).', 'error')
+      page.props.loading = false
       return
     }
     
     if (!payload.flight_time_minutes || payload.flight_time_minutes < 0 || payload.flight_time_minutes > 59) {
       showToast('Please enter a valid flight time minutes (0-59).', 'error')
+      page.props.loading = false
       return
     }
     
     if (!payload.flight_type_id) {
       showToast('Please select a flight type.', 'error')
+      page.props.loading = false
       return
     }
 
@@ -236,13 +250,16 @@ const submitForm = async (payload) => {
     const response = await rotateDataService('/pireps/jxCreateEditPirep', finalSubmitPayload)
     if (response.hasErrors) {
       showToast(response.message, 'error')
+      page.props.loading = false
       return;
     }
     showToast(response.message, 'success')
     window.dispatchEvent(new CustomEvent('pireps-updated'))
     showDrawer.value = false
+    page.props.loading = false
   } catch (e) {
     console.error(e)
+    page.props.loading = false
     showToast('Error occurred while saving pirep', 'error')
   }
 }
@@ -254,6 +271,7 @@ fetchFlightTypes()
 
 // Handle edit pirep event from table
 const handleOpenEditDrawer = async (event) => {
+  page.props.loading = true
   const pirep = event.detail
   
   // Ensure data is loaded before mapping
@@ -290,12 +308,14 @@ const handleOpenEditDrawer = async (event) => {
   }
   
   openDrawerForEdit(mappedPirep)
+  page.props.loading = false
 }
 
 // Expose methods for parent components
 defineExpose({
   openDrawerForCreate,
   openDrawerForEdit: async (pirep) => {
+    page.props.loading = true
     // Ensure data is loaded before mapping
     if (fleets.value.length === 0) {
       await fetchFleets()
@@ -332,6 +352,7 @@ defineExpose({
     formMode.value = 'edit'
     formData.value = mappedPirep
     showDrawer.value = true
+    page.props.loading = false
   }
 })
 

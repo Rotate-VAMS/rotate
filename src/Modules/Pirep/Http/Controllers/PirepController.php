@@ -70,8 +70,8 @@ class PirepController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'route_id' => 'required|exists:routes,id',
-            'flight_time_hours' => 'required|string|min:0',
-            'flight_time_minutes' => 'required|string|min:0',
+            'flight_time_hours' => 'required|min:0',
+            'flight_time_minutes' => 'required|min:0',
             'flight_type_id' => 'required|exists:flight_types,id',
         ]);
         if ($validator->fails()) {

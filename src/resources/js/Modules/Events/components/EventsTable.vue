@@ -260,32 +260,41 @@ const getEventAircraftPillClass = (eventAircraft) => {
 
 const fetchEvents = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/events/jxFetchEvents') // Send a default id if required by backend
     events.value = response.data || []
     emit('update:analytics', response.analytics || {})
+    page.props.loading = false
   } catch (e) {
     console.error(e)
+    page.props.loading = false
   }
 }
 
 const registerForEvent = async (event) => {
+  page.props.loading = true
   const response = await rotateDataService('/events/jxRegisterForEvent', { id: event.id })
   if (response.hasErrors) {
     showToast(response.message || 'Error occurred while registering for event', 'error')
+    page.props.loading = false
     return;
   }
   showToast(response.message || 'Event registered successfully', 'success')
   fetchEvents()
+  page.props.loading = false
 }
 
 const deregisterForEvent = async (event) => {
+  page.props.loading = true
   const response = await rotateDataService('/events/jxDeRegisterForEvent', { id: event.id })
   if (response.hasErrors) {
     showToast(response.message || 'Error occurred while deregistering for event', 'error')
+    page.props.loading = false
     return;
   }
   showToast(response.message || 'Event deregistered successfully', 'success')
   fetchEvents()
+  page.props.loading = false
 }
 
 // Action handlers
@@ -296,16 +305,20 @@ const editEvent = (event) => {
 
 const deleteEvent = async (event) => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/events/jxDeleteEvent', { id: event.id })
     if (response.hasErrors) {
       showToast(response.message || 'Error occurred while deleting event', 'error')
+      page.props.loading = false
       return;
     }
     showToast(response.message || 'Event deleted successfully', 'success')
     fetchEvents()
+    page.props.loading = false
     } catch (e) {
       console.error(e)
       showToast('Error occurred while deleting event', 'error')
+      page.props.loading = false
     }
 }
 

@@ -595,12 +595,15 @@ const toggleGroup = (groupKey) => {
 
 const fetchRoutes = async () => {
   try {
+    page.props.loading = true
     const response = await RotateDataService('/routes/jxFetchRoutes', { scope: 'all' })
     routes.value = response.data || []
     emit('update:analytics', response.analytics || {})
+    page.props.loading = false
   } catch (e) {
     console.error(e)
     showToast('Error fetching routes', 'error')
+    page.props.loading = false
   }
 }
 
@@ -611,23 +614,29 @@ const editRoute = (route) => {
 }
 
 const deleteRoute = async (route) => {
+  page.props.loading = true
   const response = await RotateDataService('/routes/jxDeleteRoutes', { id: route.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred', 'error')
     return;
   }
   showToast(response.message || 'Route deleted successfully', 'success')
   fetchRoutes()
+  page.props.loading = false
 }
 
 const toggleRouteStatus = async (route) => {
+  page.props.loading = true
   const response = await RotateDataService('/routes/jxToggleRouteStatus', { id: route.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred while updating route status', 'error')
     return;
   }
   showToast(response.message || 'Route status updated successfully', 'success')
   fetchRoutes()
+  page.props.loading = false
 }
 
 // Event listeners

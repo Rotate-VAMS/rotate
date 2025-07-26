@@ -166,7 +166,9 @@ const ranks = ref([])
 
 // Export routes
 const exportRoutes = () => {
+  page.props.loading = true
   window.location.href = '/routes/jxExportRoutes'
+  page.props.loading = false
 }
 
 // Function to convert custom fields to form fields
@@ -380,31 +382,38 @@ const importRoutes = async () => {
 // Fetch fleets
 const fetchFleets = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/settings/jxFetchFleets')
     fleets.value = response.data.map(fleet => ({
       id: fleet.id,
       name: fleet.livery + ' - ' + fleet.aircraft
     })) || []
+    page.props.loading = false
   } catch (e) {
     console.error('Error fetching fleets:', e)
+    page.props.loading = false
   }
 }
 
 // Fetch ranks
 const fetchRanks = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/settings/jxFetchRanks')
     ranks.value = response.data.map(rank => ({
       id: rank.id,
       name: rank.name
     })) || []
+    page.props.loading = false
   } catch (e) {
     console.error('Error fetching ranks:', e)
+    page.props.loading = false
   }
 }
 
 // Submit handler
 const submitForm = async (payload) => {
+  page.props.loading = true
   // Basic validation
   if (!payload.flight_number?.trim()) {
     showToast('Please enter a flight number.', 'error')
@@ -493,6 +502,7 @@ const submitForm = async (payload) => {
   showToast(response.message, 'success')
   window.dispatchEvent(new CustomEvent('routes-updated'))
   showDrawer.value = false
+  page.props.loading = false
 }
 
 // Initialize data
@@ -501,6 +511,7 @@ fetchRanks()
 
 // Handle edit route event from table
 const handleOpenEditDrawer = async (event) => {
+  page.props.loading = true
   const route = event.detail
   
   // Ensure fleets are loaded before mapping
@@ -534,12 +545,14 @@ const handleOpenEditDrawer = async (event) => {
   }
   
   openDrawerForEdit(mappedRoute)
+  page.props.loading = false
 }
 
 // Expose methods for parent components
 defineExpose({
   openDrawerForCreate,
   openDrawerForEdit: async (route) => {
+    page.props.loading = true
     // Ensure fleets are loaded before mapping
     if (fleets.value.length === 0) {
       await fetchFleets()
@@ -575,6 +588,7 @@ defineExpose({
     formMode.value = 'edit'
     formData.value = mappedRoute
     showDrawer.value = true
+    page.props.loading = false
   }
 })
 

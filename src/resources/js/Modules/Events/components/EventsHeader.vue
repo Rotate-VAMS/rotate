@@ -170,12 +170,15 @@ const extractCustomFieldData = (payload) => {
 // Helper function to send the actual request
 const sendRequest = async (payload) => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/events/jxCreateEditEvent', payload)
     if (!response.hasErrors) {
+      page.props.loading = false
       // Emit event to refresh events list
       window.dispatchEvent(new CustomEvent('events-updated'))
       showDrawer.value = false
     } else {
+      page.props.loading = false
       // Handle validation errors
       console.error('Validation errors:', response.errors)
       showToast('Please check the form and try again.', 'error')
@@ -183,12 +186,15 @@ const sendRequest = async (payload) => {
   } catch (e) {
     console.error(e)
     showToast('An error occurred while saving the event.', 'error')
+    page.props.loading = false
   }
 }
 
 const fetchAllFleets = async () => {
+  page.props.loading = true
   const response = await rotateDataService('/settings/jxFetchAllFleets')
   formFields.value[5].options = response.data.map(fleet => fleet)
+  page.props.loading = false
 }
 
 defineExpose({
