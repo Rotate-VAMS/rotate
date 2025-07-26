@@ -12,7 +12,7 @@ class RolesController extends Controller
 {
     public function jxFetchRoles(Request $request)
     {
-        $roles = Role::all();
+        $roles = Role::where('tenant_id', app('currentTenant')->id)->get();
         foreach ($roles as $role) {
             $role->permissions = $role->permissions;
         }
@@ -74,7 +74,7 @@ class RolesController extends Controller
 
     public function jxFetchPermissions(Request $request)
     {
-        $permissions = Permission::all();
+        $permissions = Permission::where('tenant_id', app('currentTenant')->id)->get();
         return response()->json([
             'hasErrors' => false,
             'data' => $permissions

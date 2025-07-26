@@ -42,7 +42,9 @@ class FortifyServiceProvider extends ServiceProvider
 
         // Configure Fortify to use Inertia for login view
         Fortify::loginView(function () {
-            return Inertia::render('Users/Pages/Login');
+            return Inertia::render('Users/Pages/Login', [
+                'tenant' => app('currentTenant')->name,
+            ]);
         });
 
         // Custom login logic to check user status

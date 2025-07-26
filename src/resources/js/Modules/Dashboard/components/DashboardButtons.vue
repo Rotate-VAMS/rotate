@@ -20,7 +20,7 @@
   
   const page = usePage();
   const user = page.props.auth.user;
-  
+  console.log(user.permissions);
   const buttons = [
     { label: 'PIREPs', icon: PlaneIcon, route: '/pireps', visible: true, isPrimary: true },
     { label: 'Pilots', icon: Users, route: '/pilots', visible: user.permissions.includes('view-user'), isPrimary: false },

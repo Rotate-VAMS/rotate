@@ -13,8 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Cache;
+use function App\Helpers\tenant_cache_remember;
+use function App\Helpers\tenant_cache_forget;
 
 class EventsController extends Controller
 {
@@ -56,7 +56,7 @@ class EventsController extends Controller
             $this->errorBag['message'] = $event['error'];
             return response()->json($this->errorBag);
         }
-        Cache::store('redis')->forget('events:list:upcoming');
+        tenant_cache_forget('events:list:upcoming');
         return response()->json([
             'hasErrors' => false,
             'message' => $request->id ? 'Event updated successfully' : 'Event created successfully'
@@ -81,7 +81,7 @@ class EventsController extends Controller
             $this->errorBag['message'] = $event['error'];
             return response()->json($this->errorBag);
         }
-        Cache::store('redis')->forget('events:list:upcoming');
+        tenant_cache_forget('events:list:upcoming');
         return response()->json([
             'hasErrors' => false,
             'message' => $event['success']
@@ -91,7 +91,7 @@ class EventsController extends Controller
     public function jxFetchEvents(Request $request)
     {
         $cacheKey = 'events:list:upcoming';
-        $events = Cache::store('redis')->remember($cacheKey, 1800, function () {
+        $events = tenant_cache_remember($cacheKey, 1800, function () {
             $events = Event::where('event_date_time', '>=', time())->orderBy('event_date_time', 'asc')->get();
             foreach ($events as $event) {
                 $event->attendees = EventAttendance::where('event_id', $event->id)->get()->pluck('user_id')->toArray();

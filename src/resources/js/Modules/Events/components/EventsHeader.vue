@@ -100,7 +100,7 @@ const getFieldType = (dataType) => {
     case 2: return 'number'
     case 3: return 'float'
     case 4: return 'checkbox'
-    case 5: return 'date'
+    case 5: return 'datetime-local'
     case 6: return 'select'
     default: return 'text'
   }

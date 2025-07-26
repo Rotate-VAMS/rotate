@@ -17,6 +17,7 @@ class UserSeeder extends Seeder
         $user->callsign = 'Admin';
         $user->status = 1;
         $user->flying_hours = 150;
+        $user->tenant_id = 1;
         $user->save();
 
         $user->assignRole('admin');

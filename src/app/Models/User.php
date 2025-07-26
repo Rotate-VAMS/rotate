@@ -14,10 +14,11 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Rank;
 use App\Models\Pirep;
 use Illuminate\Support\Facades\DB;
+use App\Models\Traits\BelongsToTenant;
 
 class User extends Authenticatable
 {
-    use HasApiTokens;
+    use HasApiTokens, BelongsToTenant;
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
@@ -91,13 +92,13 @@ class User extends Authenticatable
             $pilot = new User();
 
             // Validate email
-            $validateEmail = User::where('email', $data['email'])->first();
+            $validateEmail = User::where('email', $data['email'])->where('tenant_id', app('currentTenant')->id)->first();
             if ($validateEmail) {
                 return ['error' => 'Email already exists'];
             }
 
             // Validate callsign
-            $validateCallsign = User::where('callsign', $data['callsign'])->first();
+            $validateCallsign = User::where('callsign', $data['callsign'])->where('tenant_id', app('currentTenant')->id)->first();
             if ($validateCallsign) {
                 return ['error' => 'Callsign already exists'];
             }
@@ -114,6 +115,7 @@ class User extends Authenticatable
         $pilot->flying_hours = 0;
         $pilot->status = 1;
         $pilot->password = Hash::make(env('DEFAULT_PASSWORD'));
+        $pilot->tenant_id = app('currentTenant')->id;
         $pilot->created_at = now();
         $pilot->updated_at = now();
         if (!$pilot->save()) {
@@ -137,7 +139,7 @@ class User extends Authenticatable
 
     public static function fetchAllPilots()
     {
-        $pilots = User::all();
+        $pilots = User::where('tenant_id', app('currentTenant')->id)->get();
         $gridData = [];
         foreach ($pilots as $pilot) {
             $gridData[] = [

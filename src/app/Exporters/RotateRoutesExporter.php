@@ -34,7 +34,7 @@ class RotateRoutesExporter
             $file = fopen('php://output', 'w');
             fputcsv($file, array_merge($columns, $customFieldsColumns ?? []));
 
-            $routes = Route::all();
+            $routes = Route::where('tenant_id', app('currentTenant')->id)->get();
 
             foreach ($routes as $route) {
                 // Decode fleet_ids from JSON

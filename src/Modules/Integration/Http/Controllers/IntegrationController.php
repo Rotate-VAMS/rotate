@@ -8,7 +8,8 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use App\Models\CustomFieldConfiguration;
 use App\Models\CustomFieldOptions;
-use Illuminate\Support\Facades\Cache;
+use function App\Helpers\tenant_cache_remember;
+use function App\Helpers\tenant_cache_forget;
 
 class IntegrationController extends Controller
 {
@@ -46,7 +47,7 @@ class IntegrationController extends Controller
             $this->errorBag['message'] = 'Failed to create custom field configuration';
             return response()->json($this->errorBag);
         }
-        Cache::store('redis')->forget('integration:custom_fields:all');
+        tenant_cache_forget('integration:custom_fields:all');
 
         return response()->json([
             'hasErrors' => false,
@@ -56,7 +57,7 @@ class IntegrationController extends Controller
 
     public function jxFetchCustomFields(Request $request)
     {
-        $customFieldConfigurations = Cache::store('redis')->remember('integration:custom_fields:all', 1800, function () {
+        $customFieldConfigurations = tenant_cache_remember('integration:custom_fields:all', 1800, function () {
             return CustomFieldConfiguration::all();
         });
         return response()->json([
@@ -79,7 +80,7 @@ class IntegrationController extends Controller
             $this->errorBag['message'] = 'Failed to delete custom field configuration';
             return response()->json($this->errorBag);
         }
-        Cache::store('redis')->forget('integration:custom_fields:all');
+        tenant_cache_forget('integration:custom_fields:all');
 
         return response()->json([
             'hasErrors' => false,
@@ -121,7 +122,7 @@ class IntegrationController extends Controller
             }
         }
         $cacheKey = 'integration:custom_field_options:' . $request->field_id;
-        Cache::store('redis')->forget($cacheKey);
+        tenant_cache_forget($cacheKey);
 
         return response()->json([
             'hasErrors' => false,
@@ -142,7 +143,7 @@ class IntegrationController extends Controller
         }
 
         $cacheKey = 'integration:custom_field_options:' . $request->field_id;
-        $customFieldOptions = Cache::store('redis')->remember($cacheKey, 1800, function () use ($request) {
+        $customFieldOptions = tenant_cache_remember($cacheKey, 1800, function () use ($request) {
             return CustomFieldOptions::fetchCustomFieldOptions($request->field_id);
         });
         return response()->json([
@@ -166,7 +167,7 @@ class IntegrationController extends Controller
             return response()->json($this->errorBag);
         }
         $cacheKey = 'integration:custom_field_options:' . $request->field_id;
-        Cache::store('redis')->forget($cacheKey);
+        tenant_cache_forget($cacheKey);
 
         return response()->json([
             'hasErrors' => false,

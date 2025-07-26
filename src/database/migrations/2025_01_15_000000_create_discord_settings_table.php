@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('setting_key')->unique();
             $table->text('setting_value');
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

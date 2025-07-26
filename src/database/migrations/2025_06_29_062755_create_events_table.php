@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('origin');
             $table->string('destination');
             $table->string('aircraft');
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
         });

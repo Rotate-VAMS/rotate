@@ -36,7 +36,12 @@
             "Importers\\": "app/Importers/",
             "Services\\": "app/Services/",
             "Exporters\\": "app/Exporters/"
-        }
+            
+        },
+        "files": [
+            "app/Helpers/TenantStorageHelper.php",
+            "app/Helpers/TenantCacheHelper.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

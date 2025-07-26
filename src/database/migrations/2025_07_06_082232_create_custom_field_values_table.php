@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('source_type');
             $table->unsignedBigInteger('source_id');
             $table->text('value')->nullable();
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->timestamps();
 
             $table->index(['source_type', 'source_id']);

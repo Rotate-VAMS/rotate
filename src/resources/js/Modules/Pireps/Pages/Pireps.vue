@@ -70,7 +70,7 @@
         <div v-if="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <BoardingPass
             v-for="pirep in pireps"
-            :key="pirep.id"
+            :key="`${pirep.id}-${pirep.updated_at || pirep.created_at}`"
             :pirep="pirep"
             :custom-fields="pirepCustomFields"
           />
@@ -122,11 +122,13 @@ const fetchPirepCustomFields = async () => {
 };
 
 const fetchPireps = async (filter = 'my') => {
+  console.log('Fetching pireps with filter:', filter);
   try {
     page.props.loading = true
     const response = await rotateDataService('/pireps/jxFetchPireps', {
       filter: filter
     })
+    console.log('Pireps fetched:', response.data?.length || 0, 'items');
     pireps.value = response.data || []
     analytics.value = response.analytics || {}
     page.props.loading = false
@@ -144,6 +146,12 @@ const handleOpenEditDrawer = (event) => {
   if (pirepsHeaderRef.value) {
     pirepsHeaderRef.value.openDrawerForEdit(event.detail);
   }
+};
+
+// Handle pireps updated event
+const handlePirepsUpdated = () => {
+  console.log('Pireps updated event received, refreshing data...');
+  fetchPireps(pirepFilter.value);
 };
 
 const getViewFromQuery = () => {
@@ -196,9 +204,11 @@ onMounted(() => {
     pirepFilter.value = getFilterFromQuery();
   });
   window.addEventListener('open-edit-drawer', handleOpenEditDrawer);
+  window.addEventListener('pireps-updated', handlePirepsUpdated);
 });
 
 onUnmounted(() => {
   window.removeEventListener('open-edit-drawer', handleOpenEditDrawer);
+  window.removeEventListener('pireps-updated', handlePirepsUpdated);
 });
 </script>

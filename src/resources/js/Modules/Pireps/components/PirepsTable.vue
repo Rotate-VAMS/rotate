@@ -258,22 +258,16 @@ const deletePirep = async (pirep) => {
 }
 
 // Event listeners
-const handlePirepsUpdated = () => {
-  window.dispatchEvent(new CustomEvent('pireps-updated'))
-}
-
 const handleEditPirep = (event) => {
   // This will be handled by the parent component
   window.dispatchEvent(new CustomEvent('open-edit-drawer', { detail: event.detail }))
 }
 
 onMounted(() => {
-  window.addEventListener('pireps-updated', handlePirepsUpdated)
   window.addEventListener('edit-pirep', handleEditPirep)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('pireps-updated', handlePirepsUpdated)
   window.removeEventListener('edit-pirep', handleEditPirep)
 })
 </script>

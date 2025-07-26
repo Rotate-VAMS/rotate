@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('entity_type');
             $table->integer('entity_id');
             $table->boolean('is_active')->default(true);
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

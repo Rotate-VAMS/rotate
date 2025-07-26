@@ -23,16 +23,21 @@
     <div class="relative z-10 bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
       <!-- Logo and header -->
       <div class="text-center mb-8">
-        <div class="relative inline-block mb-4">
+        <div class="relative inline-block mb-4" v-if="logoDefault">
           <div class="shadow-2xl w-16 h-16 bg-gradient-to-br from-indigo-400 via-purple-600 to-indigo-400 border border-indigo-600 rounded-xl flex items-center justify-center relative">
-            <span class="text-white text-2xl font-bold">R</span>
+            <span class="text-white text-2xl font-bold">{{ tenant.charAt(0).toUpperCase() }}</span>
             <div class="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
               <PlaneIcon class="w-3 h-3 text-white" />
             </div>
           </div>
         </div>
+        <div class="relative inline-block mb-4" v-else>
+          <div class="w-20 h-20 bg-transparent border-none rounded-xl flex items-center justify-center relative">
+            <img :src="logo" alt="Logo" class="w-full h-full object-contain">
+          </div>
+        </div>
         
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome to Rotate</h1>
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-slate-900 to-indigo-600 bg-clip-text text-transparent mb-2 relative">Welcome to {{ tenant }}</h1>
         <p class="text-gray-600 text-lg mb-1">VA Management System</p>
         <p class="text-gray-500 text-sm">Sign in to access your flight operations</p>
       </div>
@@ -123,14 +128,34 @@ import { useForm } from '@inertiajs/vue3'
 import { ref, onMounted } from 'vue'
 import RotateToast from '@/Components/RotateToast.vue'
 import { PlaneIcon } from 'lucide-vue-next'
+import rotateDataService from '@/rotate.js'
 
 // Get flash messages from Inertia props
 const props = defineProps({
   flash: {
     type: Object,
     default: () => ({})
+  },
+  tenant: {
+    type: String,
+    default: 'Rotate'
   }
 })
+
+// Fetch logo
+const logo = ref(null)
+const logoDefault = ref(false);
+
+onMounted(async () => {
+    const response = await rotateDataService('/settings/jxFetchLogo');
+    if (response.hasErrors) {
+        showToast(response.message, 'error');
+        return;
+    }
+    logo.value = response.data;
+    logoDefault.value = response.default;
+})
+
 
 const form = useForm({
   email: '',

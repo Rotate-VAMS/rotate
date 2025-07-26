@@ -61,7 +61,6 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
     // Logo
     Route::group(['prefix' => 'settings', 'controller' => LogoController::class], function () {
         Route::post('jxCreateEditLogo', 'jxCreateEditLogo')->name('integrations.settings.jxCreateEditLogo');
-        Route::get('jxFetchLogo', 'jxFetchLogo')->name('integrations.settings.jxFetchLogo');
         Route::post('jxDeleteLogo', 'jxDeleteLogo')->name('integrations.settings.jxDeleteLogo');
     });
 
@@ -72,4 +71,7 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::post('jxTestDiscordConnection', 'jxTestDiscordConnection')->name('integrations.settings.jxTestDiscordConnection');
         Route::get('jxToggleDiscordBotEventActivity', 'jxToggleDiscordBotEventActivity')->name('integrations.settings.jxToggleDiscordBotEventActivity');
     });
-});        
+});
+
+// Fetch logo outisde auth middleware
+Route::get('settings/jxFetchLogo', [LogoController::class, 'jxFetchLogo'])->name('integrations.settings.jxFetchLogo');

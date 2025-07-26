@@ -46,7 +46,15 @@ class DashboardController extends Controller
         }
 
         $upcomingRank = Rank::whereNot('id', $user->rank_id)->orderBy('id', 'asc')->first();
-        $upcomingRank->caption = 'Coming up in ' . ($upcomingRank->min_hours - (User::find($user->id)->flying_hours % 60)) . ' hours';
+        if (isset($upcomingRank)) {
+            $upcomingRank->caption = 'Coming up in ' . ($upcomingRank->min_hours - (User::find($user->id)->flying_hours % 60)) . ' hours';
+        } else {
+            $upcomingRank = (object) [
+                'name' => 'None',
+                'caption' => 'None',
+            ];
+        }
+
         $analytics = [
             ['title' => 'Your Total Flights', 'value' => Pirep::where('user_id', $user->id)->count(), 'type' => 'flights'],
             ['title' => 'Your Total Routes', 'value' => Route::count(), 'type' => 'routes'],

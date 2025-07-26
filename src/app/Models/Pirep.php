@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Models\Extended\_Pirep;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Traits\BelongsToTenant;
 
 class Pirep extends _Pirep
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToTenant;
 
     protected $table = 'pireps';
     protected $fillable = ['user_id', 'route_id', 'flight_time', 'flight_type_id', 'computed_flight_time'];

@@ -23,7 +23,7 @@ class RotatePilotsExporter
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
             
-            $pilots = User::all();
+            $pilots = User::where('tenant_id', app('currentTenant')->id)->get();
 
             foreach ($pilots as $pilot) {
                 fputcsv($file, [$pilot->name, $pilot->email, $pilot->rank->name, $pilot->status == User::PILOT_STATUS_ACTIVE ? 'Active' : 'Inactive', $this->getFlyingHours($pilot->flying_hours), $pilot->total_flights, $pilot->created_at->format('Y-m-d')]);

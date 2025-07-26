@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\RotateAirportHelper;
-use Illuminate\Support\Facades\Cache;
+use function App\Helpers\tenant_cache_remember;
+use function App\Helpers\tenant_cache_forget;
 
 class PirepController extends Controller
 {
@@ -46,7 +47,7 @@ class PirepController extends Controller
                 ->orderBy('pireps.created_at', 'desc')
                 ->get();
         } else {
-            $pireps = Cache::store('redis')->remember('pireps:list:all', 1800, function () {
+            $pireps = tenant_cache_remember('pireps:list:all', 1800, function () {
                 $pireps = DB::table('pireps')
                     ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
                     ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')
@@ -121,7 +122,7 @@ class PirepController extends Controller
             $this->errorBag['message'] = $response['error'];
             return response()->json($this->errorBag);
         }
-        Cache::store('redis')->forget('pireps:list:all');
+        tenant_cache_forget('pireps:list:all');
         return response()->json(['hasErrors' => false, 'message' => $response['success']]);
     }
 
@@ -158,7 +159,7 @@ class PirepController extends Controller
             $this->errorBag['message'] = 'Failed to delete pirep';
             return response()->json($this->errorBag);
         }
-        Cache::store('redis')->forget('pireps:list:all');
+        tenant_cache_forget('pireps:list:all');
         return response()->json(['hasErrors' => false, 'message' => 'Pirep deleted successfully']);
     }
 }

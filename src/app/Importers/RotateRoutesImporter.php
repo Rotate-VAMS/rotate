@@ -5,11 +5,17 @@ namespace App\Importers;
 use App\Models\Route;
 use App\Models\Rank;
 use App\Models\Fleet;
+use function App\Helpers\tenant_cache_forget;
 
 class RotateRoutesImporter
 {
     public function import($file)
     {
+        tenant_cache_forget('routes:list:all');
+        tenant_cache_forget('routes:list:active');
+        tenant_cache_forget('routes:list:inactive');
+        tenant_cache_forget('routes:list:pireps');
+
         $file = fopen($file, 'r');
         $headers = fgetcsv($file); // Skip header
         $availableRanks = Rank::all()->pluck('id')->toArray();

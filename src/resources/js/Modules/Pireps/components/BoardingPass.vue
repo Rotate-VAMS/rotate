@@ -54,7 +54,7 @@
       <div v-if="customFields.length" class="grid grid-cols-2 gap-4 text-sm text-gray-700 mt-2">
         <div v-for="customField in customFields" :key="customField.id" class="flex items-center gap-2">
           <span class="text-xs text-gray-400">{{ customField.field_name }}:</span>
-          <span class="font-medium">{{ getCustomFieldValue(props.pirep, customField.field_key) }}</span>
+          <span class="font-medium">{{ getCustomFieldValue(pirep.value, customField.field_key) }}</span>
         </div>
       </div>
 
@@ -109,7 +109,7 @@
 
 <script setup>
 import { User as UserIcon, Plane as PlaneIcon, Clock as ClockIcon, Calendar as CalendarIcon, Fuel as FuelIcon } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted, toRefs } from 'vue';
 
 const props = defineProps({
   pirep: {
@@ -122,6 +122,9 @@ const props = defineProps({
   }
 });
 
+// Use toRefs to ensure proper reactivity
+const { pirep } = toRefs(props);
+
 // Helper to format flight time (e.g., 125 -> 2h 5m)
 const formatFlightTime = (totalMinutes) => {
   if (totalMinutes === null || totalMinutes === undefined) {
@@ -133,9 +136,9 @@ const formatFlightTime = (totalMinutes) => {
 };
 
 // Helper to get custom field value
-const getCustomFieldValue = (pirep, fieldKey) => {
-  if (pirep.custom_fields && Array.isArray(pirep.custom_fields)) {
-    const customField = pirep.custom_fields.find(field => {
+const getCustomFieldValue = (pirepData, fieldKey) => {
+  if (pirepData.custom_fields && Array.isArray(pirepData.custom_fields)) {
+    const customField = pirepData.custom_fields.find(field => {
       const fieldDefinition = props.customFields.find(cf => cf.id === field.field_id)
       return fieldDefinition && fieldDefinition.field_key === fieldKey
     })
@@ -143,26 +146,26 @@ const getCustomFieldValue = (pirep, fieldKey) => {
       return customField.value_display
     }
   }
-  if (pirep[fieldKey]) {
-    return pirep[fieldKey]
+  if (pirepData[fieldKey]) {
+    return pirepData[fieldKey]
   }
   return '-'
 }
 
-const flightNo = computed(() => props.pirep.flight_number || '-');
-const from = computed(() => props.pirep.origin || props.pirep.from || '-');
-const destination = computed(() => props.pirep.destination || props.pirep.to || '-');
-const origin_city = computed(() => props.pirep.origin_city || props.pirep.origin || '-');
-const destination_city = computed(() => props.pirep.destination_city || props.pirep.destination || '-');
-const departureTime = computed(() => props.pirep.departure_time || '-');
-const arrivalTime = computed(() => props.pirep.arrival_time || '-');
-const distance = computed(() => (props.pirep.distance ? `${props.pirep.distance} NM` : '-'));
-const pilot = computed(() => props.pirep.pilot_name || '-');
-const flightTime = computed(() => formatFlightTime(props.pirep.flight_time));
-const multiplier = computed(() => props.pirep.multiplier ?? '-');
-const computedTime = computed(() => formatFlightTime(props.pirep.computed_flight_time) ?? '-');
-const barcode = computed(() => props.pirep.barcode || props.pirep.id || '-');
-const createdAt = computed(() => props.pirep.created_at || '-');
-const flightType = computed(() => props.pirep.flight_type_name || '-');
-const airline = computed(() => props.pirep.airline || '-');
+const flightNo = computed(() => pirep.value.flight_number || '-');
+const from = computed(() => pirep.value.origin || pirep.value.from || '-');
+const destination = computed(() => pirep.value.destination || pirep.value.to || '-');
+const origin_city = computed(() => pirep.value.origin_city || pirep.value.origin || '-');
+const destination_city = computed(() => pirep.value.destination_city || pirep.value.destination || '-');
+const departureTime = computed(() => pirep.value.departure_time || '-');
+const arrivalTime = computed(() => pirep.value.arrival_time || '-');
+const distance = computed(() => (pirep.value.distance ? `${pirep.value.distance} NM` : '-'));
+const pilot = computed(() => pirep.value.pilot_name || '-');
+const flightTime = computed(() => formatFlightTime(pirep.value.flight_time));
+const multiplier = computed(() => pirep.value.multiplier ?? '-');
+const computedTime = computed(() => formatFlightTime(pirep.value.computed_flight_time) ?? '-');
+const barcode = computed(() => pirep.value.barcode || pirep.value.id || '-');
+const createdAt = computed(() => pirep.value.created_at || '-');
+const flightType = computed(() => pirep.value.flight_type_name || '-');
+const airline = computed(() => pirep.value.airline || '-');
 </script>

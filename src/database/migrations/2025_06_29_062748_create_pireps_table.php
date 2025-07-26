@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('flight_time');
             $table->unsignedBigInteger('flight_type_id');
             $table->float('computed_flight_time');
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
 

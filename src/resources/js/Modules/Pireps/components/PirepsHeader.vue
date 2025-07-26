@@ -94,7 +94,7 @@ const getFieldType = (dataType) => {
     case 2: return 'number' // Integer
     case 3: return 'number' // Float
     case 4: return 'checkbox' // Boolean
-    case 5: return 'date' // Date
+    case 5: return 'datetime-local' // Date
     case 6: return 'select' // Dropdown
     default: return 'text'
   }
@@ -254,6 +254,7 @@ const submitForm = async (payload) => {
       return;
     }
     showToast(response.message, 'success')
+    console.log('Dispatching pireps-updated event...');
     window.dispatchEvent(new CustomEvent('pireps-updated'))
     showDrawer.value = false
     page.props.loading = false

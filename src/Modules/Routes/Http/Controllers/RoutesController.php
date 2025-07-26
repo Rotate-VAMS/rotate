@@ -15,7 +15,8 @@ use App\Models\CustomFieldValues;
 use Illuminate\Support\Facades\Auth;
 use App\Importers\RotateRoutesImporter;
 use App\Exporters\RotateRoutesExporter;
-use Illuminate\Support\Facades\Cache;
+use function App\Helpers\tenant_cache_remember;
+use function App\Helpers\tenant_cache_forget;
 
 class RoutesController extends Controller
 {
@@ -44,7 +45,7 @@ class RoutesController extends Controller
     {
         $scope = $request->scope ?? 'all';
         $cacheKey = 'routes:list:' . $scope;
-        $routesData = Cache::store('redis')->remember($cacheKey, 1800, function () use ($scope) {
+        $routesData = tenant_cache_remember($cacheKey, 1800, function () use ($scope) {
             $routes = Route::all();
             if ($scope === 'active') {
                 $routes = $routes->where('status', Route::ROUTE_STATUS_ACTIVE);
@@ -109,9 +110,10 @@ class RoutesController extends Controller
             $this->errorBag['message'] = $route['error'];
             return response()->json($this->errorBag);
         }
-        Cache::store('redis')->forget('routes:list:all');
-        Cache::store('redis')->forget('routes:list:active');
-        Cache::store('redis')->forget('routes:list:inactive');
+        tenant_cache_forget('routes:list:all');
+        tenant_cache_forget('routes:list:active');
+        tenant_cache_forget('routes:list:inactive');
+        tenant_cache_forget('routes:list:pireps');
         return response()->json([
             'message' => 'Route saved successfully',
             'route' => $route
@@ -136,9 +138,10 @@ class RoutesController extends Controller
             return response()->json($this->errorBag);
         }
         $route->delete();
-        Cache::store('redis')->forget('routes:list:all');
-        Cache::store('redis')->forget('routes:list:active');
-        Cache::store('redis')->forget('routes:list:inactive');
+        tenant_cache_forget('routes:list:all');
+        tenant_cache_forget('routes:list:active');
+        tenant_cache_forget('routes:list:inactive');
+        tenant_cache_forget('routes:list:pireps');
         return response()->json([
             'hasErrors' => false,
             'message' => 'Route deleted successfully'
