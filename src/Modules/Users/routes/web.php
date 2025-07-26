@@ -17,5 +17,8 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::post('/jxUpdatePersonalInfo', 'jxUpdatePersonalInfo')->name('pilots.jxUpdatePersonalInfo');
         Route::post('/jxUpdatePassword', 'jxUpdatePassword')->name('pilots.jxUpdatePassword');
         Route::post('/jxUpdateDiscordInfo', 'jxUpdateDiscordInfo')->name('pilots.jxUpdateDiscordInfo');
+
+        // Export pilots
+        Route::get('/jxExportPilots', 'jxExportPilots')->name('pilots.jxExportPilots');
     });
 });

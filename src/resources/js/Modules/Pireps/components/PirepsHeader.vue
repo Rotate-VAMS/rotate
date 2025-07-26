@@ -11,12 +11,12 @@
         >
           <PlusIcon class="w-4 h-4" /> <span>Add Pirep</span>
         </button>
-        <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
+        <!-- <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
           <ImportIcon class="w-4 h-4" /> <span>Import</span>
         </button>
         <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
           <UploadIcon class="w-4 h-4" /> <span>Export</span>
-        </button> 
+        </button>  -->
       </div>
 
       <!-- Inject RotateFormComponent drawer -->

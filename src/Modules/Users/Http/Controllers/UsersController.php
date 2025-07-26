@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Exporters\RotatePilotsExporter;
 
 class UsersController extends Controller
 {
@@ -238,5 +239,11 @@ class UsersController extends Controller
             'hasErrors' => false,
             'message' => 'Discord information updated successfully'
         ]);
+    }
+
+    public function jxExportPilots()
+    {
+        $exporter = new RotatePilotsExporter();
+        return $exporter->export();
     }
 }

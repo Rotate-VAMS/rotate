@@ -11,10 +11,9 @@
         >
           <PlusIcon class="w-4 h-4" /> <span>Add Pilot</span>
         </button>
-        <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
-          <ImportIcon class="w-4 h-4" /> <span>Import</span>
-        </button>
-        <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
+        <button 
+          @click="exportPilots"
+          class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
           <UploadIcon class="w-4 h-4" /> <span>Export</span>
         </button> 
       </div>
@@ -34,7 +33,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { ImportIcon, UploadIcon, PlusIcon } from 'lucide-vue-next'
+import { UploadIcon, PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
@@ -189,6 +188,11 @@ const submitForm = async (payload) => {
     showToast(response.message || 'Pilot created successfully', 'success')
     window.dispatchEvent(new CustomEvent('pilots-updated'))
     showDrawer.value = false
+}
+
+// Export pilots
+const exportPilots = () => {
+  window.location.href = '/pilots/jxExportPilots'
 }
 
 // Expose methods for parent components
