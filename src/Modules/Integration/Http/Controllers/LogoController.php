@@ -42,7 +42,7 @@ class LogoController extends Controller
         $default = false;
         $logo = Documents::fetchDocument(Documents::DOCUMENT_TYPE_LOGO, RotateConstants::CONSTANT_FOR_ONE);
         if (isset($logo['error'])) {
-            $logo = Documents::DEFAULT_LOGO;
+            $logo = null;
             $default = true;
         }
         return response()->json(['hasErrors' => false, 'default' => $default, 'data' => $logo]);

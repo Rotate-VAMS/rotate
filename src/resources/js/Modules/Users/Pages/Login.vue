@@ -9,16 +9,6 @@
       <div class="absolute left-10 top-20 w-16 h-8 border-2 border-white/20 rounded-full transform rotate-12"></div>
       <div class="absolute left-8 top-32 w-12 h-6 border-2 border-white/20 rounded-full transform -rotate-6"></div>
       
-      <!-- Cloud outlines -->
-      <div class="absolute right-20 top-16 w-20 h-12 border border-white/10 rounded-full"></div>
-      <div class="absolute right-32 top-40 w-16 h-10 border border-white/10 rounded-full"></div>
-      <div class="absolute left-1/4 bottom-20 w-24 h-16 border border-white/10 rounded-full"></div>
-      
-      <!-- Grid pattern -->
-      <div class="absolute inset-0 opacity-5">
-        <div class="w-full h-full" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 50px 50px;"></div>
-      </div>
-      
       <!-- Scattered dots -->
       <div class="absolute inset-0">
         <div class="absolute top-1/4 left-1/3 w-1 h-1 bg-white/30 rounded-full"></div>
@@ -37,9 +27,7 @@
           <div class="shadow-2xl w-16 h-16 bg-gradient-to-br from-indigo-400 via-purple-600 to-indigo-400 border border-indigo-600 rounded-xl flex items-center justify-center relative">
             <span class="text-white text-2xl font-bold">R</span>
             <div class="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-              <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
-              </svg>
+              <PlaneIcon class="w-3 h-3 text-white" />
             </div>
           </div>
         </div>
@@ -134,6 +122,7 @@
 import { useForm } from '@inertiajs/vue3'
 import { ref, onMounted } from 'vue'
 import RotateToast from '@/Components/RotateToast.vue'
+import { PlaneIcon } from 'lucide-vue-next'
 
 // Get flash messages from Inertia props
 const props = defineProps({

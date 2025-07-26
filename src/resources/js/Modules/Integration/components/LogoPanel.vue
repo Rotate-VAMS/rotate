@@ -13,26 +13,26 @@
       </div>
     </div>
     <div class="p-6 bg-white rounded-xl shadow-sm relative">
-      <div v-if="logo" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         <div
-          :key="logo.id"
+          :key="logo?.id"
           class="bg-gray-50 border border-gray-200 rounded-lg p-5 flex flex-col items-center justify-between shadow-sm"
         >
-          <img :src="logo" alt="Logo" class="w-full h-auto object-contain mb-4 rounded" />
+          <img v-if="logo" :src="logo" alt="Logo" class="w-full h-auto object-contain mb-4 rounded" />
+          <div v-else class="bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-500 text-white shadow-md rounded-xl h-20 w-20 flex items-center justify-center text-lg font-bold mb-4">
+            <span class="text-white text-3xl font-bold">R</span>
+          </div>
           <div class="flex flex-row gap-2">
             <button class="btn btn-sm flex items-center gap-2" @click="editLogo(logo)">
               <EditIcon class="w-4 h-4" />
               <span class="text-sm">Edit</span>
             </button>
-            <button v-if="!logoDefault" class="btn btn-sm flex items-center gap-2" @click="deleteLogo(logo)">
+            <button v-if="!logoDefault && logo" class="btn btn-sm flex items-center gap-2" @click="deleteLogo(logo)">
               <TrashIcon class="w-4 h-4" />
               <span class="text-sm">Delete</span>
             </button>
           </div>
         </div>
-      </div>
-      <div v-else class="text-gray-400 text-center mt-8">
-        No logos found.
       </div>
   
       <!-- Inject RotateFormComponent drawer -->

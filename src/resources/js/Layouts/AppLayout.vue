@@ -85,11 +85,17 @@ provide('showToast', showToast)
     <header class="bg-white shadow-md sticky top-0 z-50">
       <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-3 sm:py-4 gap-2 sm:gap-0">
         <!-- Logo Section -->
-        <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto justify-center sm:justify-start">
-          <img :src="logo" alt="Logo" class="h-8 w-auto sm:h-10" />
-          <span class="text-base sm:text-lg font-semibold hidden sm:inline">Rotate</span>
+        <div v-if="logo" class="flex items-center w-full sm:w-auto justify-center sm:justify-start">
+          <img :src="logo" alt="Logo" class="h-8 w-auto sm:h-10 sm:w-auto" />
+          <span class="text-base text-indigo-900 sm:text-lg font-bold ml-2 hidden sm:inline">Rotate</span>
         </div>
 
+        <div v-else class="flex items-center sm:space-x-3 w-full sm:w-auto justify-center sm:justify-start">
+          <div class="bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-500 text-white shadow-md rounded-xl h-10 w-10 flex items-center justify-center text-lg font-bold">
+            R
+          </div>
+          <span class="text-base sm:text-lg text-indigo-900 font-bold hidden sm:inline">Rotate <p class="text-xs sm:text-sm text-indigo-700 font-bold truncate">VA Management System</p></span>
+        </div>
         <!-- Right Icons -->
         <div class="flex items-center space-x-4 sm:space-x-6 relative w-full sm:w-auto justify-center sm:justify-end mt-2 sm:mt-0">
           <!-- Profile Dropdown -->
