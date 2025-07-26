@@ -15,6 +15,7 @@ use App\Models\CustomFieldValues;
 use Illuminate\Support\Facades\Auth;
 use App\Importers\RotateRoutesImporter;
 use App\Exporters\RotateRoutesExporter;
+use Illuminate\Support\Facades\Cache;
 
 class RoutesController extends Controller
 {
@@ -42,41 +43,43 @@ class RoutesController extends Controller
     public function jxFetchRoutes(Request $request)
     {
         $scope = $request->scope ?? 'all';
-        $routes = Route::all();
-        if ($scope === 'active') {
-            $routes = $routes->where('status', Route::ROUTE_STATUS_ACTIVE);
-        }
-        if ($scope === 'inactive') {
-            $routes = $routes->where('status', Route::ROUTE_STATUS_INACTIVE);
-        }
-        if ($scope === 'pireps') {
-            $userRank = Auth::user()->rank_id;
-            $routes = $routes->where('min_rank_id', '<=', $userRank)->where('status', Route::ROUTE_STATUS_ACTIVE);
-        }
-
-        $routes = $routes->map(function ($route) {
-            $route->origin_icao = $route->origin;
-            $route->destination_icao = $route->destination;
-            $route->route = $route->origin . '-' . $route->destination;
-            $route->name_route = RotateAirportHelper::icaoToCity($route->origin) . ' - ' . RotateAirportHelper::icaoToCity($route->destination);
-            $route->fleet_ids = json_decode($route->fleet_ids, true);
-            $route->fleet_names = Fleet::whereIn('id', array_values($route->fleet_ids))->get()->toArray();
-            $route->flight_time = $route->flight_time;
-            $route->rank_id = $route->min_rank_id;
-            $route->minimum_rank = Rank::find($route->min_rank_id)->name;
-            $route->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_ROUTES, $route->id);
-            return $route;
+        $cacheKey = 'routes:list:' . $scope;
+        $routesData = Cache::store('redis')->remember($cacheKey, 1800, function () use ($scope) {
+            $routes = Route::all();
+            if ($scope === 'active') {
+                $routes = $routes->where('status', Route::ROUTE_STATUS_ACTIVE);
+            }
+            if ($scope === 'inactive') {
+                $routes = $routes->where('status', Route::ROUTE_STATUS_INACTIVE);
+            }
+            if ($scope === 'pireps') {
+                // This is per-user, do not cache globally
+                $userRank = Auth::user()->rank_id;
+                $routes = $routes->where('min_rank_id', '<=', $userRank)->where('status', Route::ROUTE_STATUS_ACTIVE);
+            }
+            $routes = $routes->map(function ($route) {
+                $route->origin_icao = $route->origin;
+                $route->destination_icao = $route->destination;
+                $route->route = $route->origin . '-' . $route->destination;
+                $route->name_route = RotateAirportHelper::icaoToCity($route->origin) . ' - ' . RotateAirportHelper::icaoToCity($route->destination);
+                $route->fleet_ids = json_decode($route->fleet_ids, true);
+                $route->fleet_names = Fleet::whereIn('id', array_values($route->fleet_ids))->get()->toArray();
+                $route->flight_time = $route->flight_time;
+                $route->rank_id = $route->min_rank_id;
+                $route->minimum_rank = Rank::find($route->min_rank_id)->name;
+                $route->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_ROUTES, $route->id);
+                return $route;
+            });
+            $analyticsData = [
+                'totalRoutes' => Route::count(),
+                'activeRoutes' => Route::where('status', Route::ROUTE_STATUS_ACTIVE)->count(),
+            ];
+            return ['routes' => $routes, 'analytics' => $analyticsData];
         });
-
-        $analyticsData = [
-            'totalRoutes' => Route::count(),
-            'activeRoutes' => Route::where('status', Route::ROUTE_STATUS_ACTIVE)->count(),
-        ];
-
         return response()->json([
             'message' => 'Routes fetched successfully',
-            'data' => $routes,
-            'analytics' => $analyticsData
+            'data' => $routesData['routes'],
+            'analytics' => $routesData['analytics']
         ]);
     }
 
@@ -106,6 +109,9 @@ class RoutesController extends Controller
             $this->errorBag['message'] = $route['error'];
             return response()->json($this->errorBag);
         }
+        Cache::store('redis')->forget('routes:list:all');
+        Cache::store('redis')->forget('routes:list:active');
+        Cache::store('redis')->forget('routes:list:inactive');
         return response()->json([
             'message' => 'Route saved successfully',
             'route' => $route
@@ -130,6 +136,9 @@ class RoutesController extends Controller
             return response()->json($this->errorBag);
         }
         $route->delete();
+        Cache::store('redis')->forget('routes:list:all');
+        Cache::store('redis')->forget('routes:list:active');
+        Cache::store('redis')->forget('routes:list:inactive');
         return response()->json([
             'hasErrors' => false,
             'message' => 'Route deleted successfully'

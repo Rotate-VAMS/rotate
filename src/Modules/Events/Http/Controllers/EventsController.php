@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class EventsController extends Controller
 {
@@ -55,6 +56,7 @@ class EventsController extends Controller
             $this->errorBag['message'] = $event['error'];
             return response()->json($this->errorBag);
         }
+        Cache::store('redis')->forget('events:list:upcoming');
         return response()->json([
             'hasErrors' => false,
             'message' => $request->id ? 'Event updated successfully' : 'Event created successfully'
@@ -79,6 +81,7 @@ class EventsController extends Controller
             $this->errorBag['message'] = $event['error'];
             return response()->json($this->errorBag);
         }
+        Cache::store('redis')->forget('events:list:upcoming');
         return response()->json([
             'hasErrors' => false,
             'message' => $event['success']
@@ -87,29 +90,30 @@ class EventsController extends Controller
 
     public function jxFetchEvents(Request $request)
     {
-        $events = Event::where('event_date_time', '>=', time())->orderBy('event_date_time', 'asc')->get();
-        $analyticsData = [
-            'totalEvents' => Event::count(),
-            'activeEvents' => $events->where('event_date_time', '>=', time())->count(),
-        ];
-        
-        foreach ($events as $event) {
-            $event->attendees = EventAttendance::where('event_id', $event->id)->get()->pluck('user_id')->toArray();
-            $event->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_EVENTS, $event->id);
-            $event->origin_city = RotateAirportHelper::icaoToCity($event->origin);
-            $event->destination_city = RotateAirportHelper::icaoToCity($event->destination);
-        }
-        foreach ($events as $event) {
-            $cover_image = Documents::fetchDocument(Documents::ENTITY_TYPE_EVENT, $event->id);
-            if (isset($cover_image['error'])) {
-                $cover_image = Documents::DEFAULT_IMAGE;
+        $cacheKey = 'events:list:upcoming';
+        $events = Cache::store('redis')->remember($cacheKey, 1800, function () {
+            $events = Event::where('event_date_time', '>=', time())->orderBy('event_date_time', 'asc')->get();
+            foreach ($events as $event) {
+                $event->attendees = EventAttendance::where('event_id', $event->id)->get()->pluck('user_id')->toArray();
+                $event->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_EVENTS, $event->id);
+                $event->origin_city = RotateAirportHelper::icaoToCity($event->origin);
+                $event->destination_city = RotateAirportHelper::icaoToCity($event->destination);
+                $cover_image = Documents::fetchDocument(Documents::ENTITY_TYPE_EVENT, $event->id);
+                if (isset($cover_image['error'])) {
+                    $cover_image = Documents::DEFAULT_IMAGE;
+                }
+                $event->cover_image = $cover_image;
             }
-            $event->cover_image = $cover_image;
-        }
+            $analyticsData = [
+                'totalEvents' => Event::count(),
+                'activeEvents' => $events->where('event_date_time', '>=', time())->count(),
+            ];
+            return ['events' => $events, 'analytics' => $analyticsData];
+        });
         return response()->json([
             'hasErrors' => false,
-            'data' => $events,
-            'analytics' => $analyticsData
+            'data' => $events['events'],
+            'analytics' => $events['analytics']
         ]);
     }
 

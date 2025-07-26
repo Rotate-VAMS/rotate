@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Rank;
+use Illuminate\Support\Facades\Cache;
 
 class RanksController extends Controller
 {
@@ -28,6 +29,7 @@ class RanksController extends Controller
             $this->errorBag['message'] = 'Failed to create rank';
             return response()->json($this->errorBag);
         }
+        Cache::store('redis')->forget('integration:ranks:all');
 
         return response()->json([
             'hasErrors' => false,
@@ -37,7 +39,9 @@ class RanksController extends Controller
 
     public function jxFetchRanks(Request $request)
     {
-        $ranks = Rank::all();
+        $ranks = Cache::store('redis')->remember('integration:ranks:all', 1800, function () {
+            return Rank::all();
+        });
         return response()->json([
             'hasErrors' => false,
             'data' => $ranks
@@ -58,6 +62,7 @@ class RanksController extends Controller
             $this->errorBag['message'] = 'Failed to delete rank';
             return response()->json($this->errorBag);
         }
+        Cache::store('redis')->forget('integration:ranks:all');
     
         return response()->json([
             'hasErrors' => false,

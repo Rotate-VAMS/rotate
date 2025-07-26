@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use App\Models\CustomFieldConfiguration;
 use App\Models\CustomFieldOptions;
+use Illuminate\Support\Facades\Cache;
 
 class IntegrationController extends Controller
 {
@@ -45,6 +46,7 @@ class IntegrationController extends Controller
             $this->errorBag['message'] = 'Failed to create custom field configuration';
             return response()->json($this->errorBag);
         }
+        Cache::store('redis')->forget('integration:custom_fields:all');
 
         return response()->json([
             'hasErrors' => false,
@@ -54,7 +56,9 @@ class IntegrationController extends Controller
 
     public function jxFetchCustomFields(Request $request)
     {
-        $customFieldConfigurations = CustomFieldConfiguration::all();
+        $customFieldConfigurations = Cache::store('redis')->remember('integration:custom_fields:all', 1800, function () {
+            return CustomFieldConfiguration::all();
+        });
         return response()->json([
             'hasErrors' => false,
             'data' => $customFieldConfigurations
@@ -75,6 +79,7 @@ class IntegrationController extends Controller
             $this->errorBag['message'] = 'Failed to delete custom field configuration';
             return response()->json($this->errorBag);
         }
+        Cache::store('redis')->forget('integration:custom_fields:all');
 
         return response()->json([
             'hasErrors' => false,
@@ -115,6 +120,8 @@ class IntegrationController extends Controller
                 return response()->json($this->errorBag);
             }
         }
+        $cacheKey = 'integration:custom_field_options:' . $request->field_id;
+        Cache::store('redis')->forget($cacheKey);
 
         return response()->json([
             'hasErrors' => false,
@@ -134,7 +141,10 @@ class IntegrationController extends Controller
             return response()->json($this->errorBag);
         }
 
-        $customFieldOptions = CustomFieldOptions::fetchCustomFieldOptions($request->field_id);
+        $cacheKey = 'integration:custom_field_options:' . $request->field_id;
+        $customFieldOptions = Cache::store('redis')->remember($cacheKey, 1800, function () use ($request) {
+            return CustomFieldOptions::fetchCustomFieldOptions($request->field_id);
+        });
         return response()->json([
             'hasErrors' => false,
             'data' => $customFieldOptions
@@ -155,6 +165,8 @@ class IntegrationController extends Controller
             $this->errorBag['message'] = 'Failed to delete custom field option';
             return response()->json($this->errorBag);
         }
+        $cacheKey = 'integration:custom_field_options:' . $request->field_id;
+        Cache::store('redis')->forget($cacheKey);
 
         return response()->json([
             'hasErrors' => false,

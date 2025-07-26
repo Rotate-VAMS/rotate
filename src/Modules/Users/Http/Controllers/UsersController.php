@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Exporters\RotatePilotsExporter;
+use Illuminate\Support\Facades\Cache;
 
 class UsersController extends Controller
 {
@@ -33,18 +34,22 @@ class UsersController extends Controller
 
     public function jxFetchPilots()
     {
-        $pilots = User::fetchAllPilots();
-        $analyticsUsers = User::all();
-        $analyticsData = [
-            'totalPilots' => $analyticsUsers->count(),
-            'activePilots' => $analyticsUsers->where('status', User::PILOT_STATUS_ACTIVE)->count(),
-            'totalFlyingHours' => $analyticsUsers->sum('flying_hours'),
-            'totalFlyingDistance' => DB::table('pireps')->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')->sum('routes.distance'),
-        ];
+        $pilots = Cache::store('redis')->remember('users:pilots:all', 1800, function () {
+            return User::fetchAllPilots();
+        });
+        $analyticsUsers = Cache::store('redis')->remember('users:pilots:analytics', 1800, function () {
+            $analyticsUsers = User::all();
+            return [
+                'totalPilots' => $analyticsUsers->count(),
+                'activePilots' => $analyticsUsers->where('status', User::PILOT_STATUS_ACTIVE)->count(),
+                'totalFlyingHours' => $analyticsUsers->sum('flying_hours'),
+                'totalFlyingDistance' => DB::table('pireps')->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')->sum('routes.distance'),
+            ];
+        });
         return response()->json([
             'hasErrors' => false,
             'data' => $pilots,
-            'analytics' => $analyticsData
+            'analytics' => $analyticsUsers
         ]);
     }
 
@@ -71,6 +76,8 @@ class UsersController extends Controller
             $this->errorBag['message'] = $user['error'];
             return response()->json($this->errorBag);
         }
+        Cache::store('redis')->forget('users:pilots:all');
+        Cache::store('redis')->forget('users:pilots:analytics');
         return response()->json([
             'hasErrors' => false,
             'message' => $mode === 'create' ? 'Pilot created successfully' : 'Pilot updated successfully'
@@ -97,7 +104,8 @@ class UsersController extends Controller
             $this->errorBag['message'] = 'Failed to delete custom field values';
             return response()->json($this->errorBag);
         }
-
+        Cache::store('redis')->forget('users:pilots:all');
+        Cache::store('redis')->forget('users:pilots:analytics');
         return response()->json([
             'hasErrors' => false,
             'message' => 'Pilot deleted successfully'
