@@ -179,6 +179,10 @@ class RoutesController extends Controller
             $this->errorBag['message'] = 'Failed to update route status';
             return response()->json($this->errorBag);
         }
+        tenant_cache_forget('routes:list:all');
+        tenant_cache_forget('routes:list:active');
+        tenant_cache_forget('routes:list:inactive');
+        tenant_cache_forget('routes:list:pireps');
         return response()->json([
             'hasErrors' => false,
             'message' => 'Route status updated successfully'

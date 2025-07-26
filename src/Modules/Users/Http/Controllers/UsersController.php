@@ -38,7 +38,7 @@ class UsersController extends Controller
             return User::fetchAllPilots();
         });
         $analyticsUsers = tenant_cache_remember('users:pilots:analytics', 1800, function () {
-            $analyticsUsers = User::all();
+            $analyticsUsers = User::where('tenant_id', app('currentTenant')->id)->get();
             return [
                 'totalPilots' => $analyticsUsers->count(),
                 'activePilots' => $analyticsUsers->where('status', User::PILOT_STATUS_ACTIVE)->count(),
@@ -141,6 +141,8 @@ class UsersController extends Controller
             $this->errorBag['message'] = 'Failed to toggle pilot status';
             return response()->json($this->errorBag);
         }
+        tenant_cache_forget('users:pilots:all');
+        tenant_cache_forget('users:pilots:analytics');
         return response()->json([
             'hasErrors' => false,
             'message' => $message

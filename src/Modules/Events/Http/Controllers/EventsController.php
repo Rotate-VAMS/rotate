@@ -119,6 +119,7 @@ class EventsController extends Controller
 
     public function jxRegisterForEvent(Request $request)
     {
+        tenant_cache_forget('events:list:upcoming');
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer',
         ]);
@@ -157,6 +158,7 @@ class EventsController extends Controller
 
     public function jxDeRegisterForEvent(Request $request)
     {
+        tenant_cache_forget('events:list:upcoming');
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer',
         ]);
