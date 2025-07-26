@@ -11,5 +11,7 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::post('/jxDeleteRoutes', 'jxDeleteRoutes')->name('routes.jxDeleteRoutes');
         Route::post('/jxToggleRouteStatus', 'jxToggleRouteStatus')->name('routes.jxToggleRouteStatus');
         Route::get('/jxGetRouteCustomFields', 'jxGetRouteCustomFields')->name('routes.jxGetRouteCustomFields');
+        Route::post('/jxImportRoutes', 'jxImportRoutes')->name('routes.jxImportRoutes');
+        Route::get('/jxExportRoutes', 'jxExportRoutes')->name('routes.jxExportRoutes');
     });
 });

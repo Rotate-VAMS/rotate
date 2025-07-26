@@ -13,6 +13,8 @@ use App\Helpers\RotateAirportHelper;
 use App\Models\CustomFieldConfiguration;
 use App\Models\CustomFieldValues;
 use Illuminate\Support\Facades\Auth;
+use App\Importers\RotateRoutesImporter;
+use App\Exporters\RotateRoutesExporter;
 
 class RoutesController extends Controller
 {
@@ -169,5 +171,31 @@ class RoutesController extends Controller
             'hasErrors' => false,
             'message' => 'Route status updated successfully'
         ]);
+    }
+
+    public function jxImportRoutes(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|file|mimes:txt,csv',
+        ]);
+
+        if ($validator->fails()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
+        }
+        $file = $request->file('file');
+        $importer = new RotateRoutesImporter();
+        $result = $importer->import($file);
+        return response()->json([
+            'hasErrors' => $result['hasErrors'],
+            'message' => $result['message'],
+        ]);
+    }
+
+    public function jxExportRoutes()
+    {
+        $exporter = new RotateRoutesExporter();
+        return $exporter->export();
     }
 }

@@ -31,6 +31,7 @@
           <div>
             <h3 class="font-semibold text-base mb-1">{{ rank.name }}</h3>
             <p class="text-gray-600 text-sm mb-4">{{ rank.min_hours }} hours</p>
+            <p class="text-gray-600 text-sm mb-4"><b>Rank ID:</b> {{ rank.id }}</p>
           </div>
           <div class="flex gap-2">
             <button class="btn btn-sm flex items-center gap-2" @click="editRank(rank)">

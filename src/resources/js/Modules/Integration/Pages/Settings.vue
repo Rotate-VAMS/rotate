@@ -32,7 +32,7 @@
 
   const getTabFromQuery = () => {
     const params = new URLSearchParams(window.location.search)
-    return params.get('tab') || 'fleet'
+    return params.get('tab') || 'roles'
   }
 
   const setTabInQuery = (key) => {

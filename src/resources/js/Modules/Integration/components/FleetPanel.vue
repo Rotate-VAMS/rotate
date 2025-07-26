@@ -32,6 +32,7 @@
           <div>
             <h3 class="font-semibold text-base mb-1">{{ fleet.livery }} - {{ fleet.aircraft }}</h3>
             <p class="text-gray-600 text-sm mb-4">{{ fleet.minimum_rank }}</p>
+            <p class="text-gray-600 text-sm mb-4"><b>Fleet ID:</b> {{ fleet.id }}</p>
           </div>
           <div class="flex gap-2">
             <button class="btn btn-sm flex items-center gap-2" @click="editFleet(fleet)">
