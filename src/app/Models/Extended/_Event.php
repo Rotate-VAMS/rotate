@@ -6,7 +6,10 @@ use App\Models\Documents;
 use App\Models\Event;
 use App\Models\EventAttendance;
 use App\Models\CustomFieldValues;
+use App\Models\DiscordSettings;
+use App\Events\EventCreated;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class _Event extends Model
 {
@@ -46,6 +49,12 @@ class _Event extends Model
             foreach ($data['customData'] as $field_key => $value) {
                 CustomFieldValues::createCustomFieldValue(CustomFieldValues::SOURCE_TYPE_EVENTS, $event->id, $field_key, $value);
             }
+        }
+
+        // Dispatch event for Discord notification (only for new events)
+        if ($mode === 'create' && DiscordSettings::getSetting(DiscordSettings::DISCORD_BOT_EVENT_ACTIVITY) == DiscordSettings::DISCORD_EVENT_ACTIVITY_ENABLED) {
+            Log::info('Dispatching EventCreated event for event ID: ' . $event->id);
+            EventCreated::dispatch($event);
         }
 
         return $event;

@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             FlightTypeSeeder::class,
             UserSeeder::class,
             PermissionSeeder::class,
+            DiscordSettingsSeeder::class,
         ]);
     }
 }

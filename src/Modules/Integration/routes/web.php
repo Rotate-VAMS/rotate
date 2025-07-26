@@ -7,6 +7,7 @@ use Modules\Integration\Http\Controllers\FleetsController;
 use Modules\Integration\Http\Controllers\FlightTypesController;
 use Modules\Integration\Http\Controllers\LogoController;
 use Modules\Integration\Http\Controllers\RolesController;
+use Modules\Integration\Http\Controllers\DiscordController;
 
 Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
     // Custom Fields
@@ -62,5 +63,13 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::post('jxCreateEditLogo', 'jxCreateEditLogo')->name('integrations.settings.jxCreateEditLogo');
         Route::get('jxFetchLogo', 'jxFetchLogo')->name('integrations.settings.jxFetchLogo');
         Route::post('jxDeleteLogo', 'jxDeleteLogo')->name('integrations.settings.jxDeleteLogo');
+    });
+
+    // Discord
+    Route::group(['prefix' => 'discord', 'controller' => DiscordController::class], function () {
+        Route::get('jxGetDiscordSettings', 'jxGetDiscordSettings')->name('integrations.settings.jxGetDiscordSettings');
+        Route::post('jxUpdateDiscordSettings', 'jxUpdateDiscordSettings')->name('integrations.settings.jxUpdateDiscordSettings');
+        Route::post('jxTestDiscordConnection', 'jxTestDiscordConnection')->name('integrations.settings.jxTestDiscordConnection');
+        Route::get('jxToggleDiscordBotEventActivity', 'jxToggleDiscordBotEventActivity')->name('integrations.settings.jxToggleDiscordBotEventActivity');
     });
 });        
