@@ -15,6 +15,7 @@ class RotateDiscordBotService
     public function handle(Message $message): void
     {
         $userId = $message->author->id;
+        $user = User::where('discord_id', $userId)->first();
         $content = trim($message->content);
 
         // Only respond to !pirep in public
@@ -49,6 +50,13 @@ class RotateDiscordBotService
             RotateDiscordBotSessionManager::cancel($userId);
             return;
         }
+        
+        // Set the tenant context for the user
+        $tenant = $user->tenant;
+        if ($tenant) {
+            app()->instance('currentTenant', $tenant);
+        }
+        
         Auth::login($user);
         $step = RotateDiscordBotSessionManager::getStep($userId);
         $data = RotateDiscordBotSessionManager::getData($userId);
@@ -63,10 +71,11 @@ class RotateDiscordBotService
                 RotateDiscordBotSessionManager::update($userId, 'destination', strtoupper($content), 'route');
                 $origin = $data['origin'] ?? strtoupper($content);
                 $destination = strtoupper($content);
-                $eligibleRoutes = Route::where('origin', $origin)
+                $eligibleRoutes = Route::withoutGlobalScope('tenant')->where('origin', $origin)
                     ->where('destination', $destination)
                     ->where('status', 1)
                     ->where('min_rank_id', '<=', $user->rank_id)
+                    ->where('tenant_id', $user->tenant_id)
                     ->get();
                 if ($eligibleRoutes->isEmpty() || $eligibleRoutes->count() == 0) {
                     $message->channel->sendMessage("❌ No eligible routes found for this origin/destination and your rank. Session cancelled.");
@@ -110,7 +119,10 @@ class RotateDiscordBotService
                     return;
                 }
                 RotateDiscordBotSessionManager::update($userId, 'minutes', $content, 'flight_type');
-                $flightTypes = FlightType::all();
+                
+                // Use withoutGlobalScope to bypass the BelongsToTenant trait temporarily
+                $flightTypes = FlightType::withoutGlobalScope('tenant')->where('tenant_id', $user->tenant_id)->get();
+                
                 $ftList = "Please select a flight type by number:\n";
                 $ftIds = [];
                 foreach ($flightTypes as $i => $ft) {
@@ -219,7 +231,15 @@ class RotateDiscordBotService
             RotateDiscordBotSessionManager::cancel($userId);
             return;
         }
+        
+        // Set the tenant context for the user
+        $tenant = $user->tenant;
+        if ($tenant) {
+            app()->instance('currentTenant', $tenant);
+        }
+        
         Auth::login($user);
+        
         $pirepData = [
             'route_id' => $data['route_id'],
             'flight_time_hours' => $data['hours'],
@@ -227,6 +247,7 @@ class RotateDiscordBotService
             'flight_type_id' => $data['flight_type_id'],
             'customData' => json_decode($data['custom_fields_data'] ?? '{}', true),
         ];
+        
         $result = \App\Models\Pirep::createEditPirep($pirepData, 'create');
         if (isset($result['error'])) {
             $message->channel->sendMessage("❌ Failed to save PIREP: " . $result['error']);

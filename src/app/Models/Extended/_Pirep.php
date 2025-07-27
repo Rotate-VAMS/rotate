@@ -24,6 +24,7 @@ class _Pirep extends Model
         $pirep->route_id = $data['route_id'];
         $pirep->flight_time = $flightTime;
         $pirep->flight_type_id = $data['flight_type_id'];
+        $pirep->tenant_id = Auth::user()->tenant_id;
 
         // Compute the computed fligth time
         $pirep->computed_flight_time = $flightTime * FlightType::find($pirep->flight_type_id)->multiplier;

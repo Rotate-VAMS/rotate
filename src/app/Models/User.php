@@ -15,6 +15,7 @@ use App\Models\Rank;
 use App\Models\Pirep;
 use Illuminate\Support\Facades\DB;
 use App\Models\Traits\BelongsToTenant;
+use App\Models\Tenant;
 
 class User extends Authenticatable
 {
@@ -84,6 +85,11 @@ class User extends Authenticatable
     public function rank()
     {
         return $this->belongsTo(Rank::class);
+    }
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 
     public static function createEditPilot($data, $mode)

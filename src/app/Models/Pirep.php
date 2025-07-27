@@ -12,7 +12,7 @@ class Pirep extends _Pirep
     use SoftDeletes, BelongsToTenant;
 
     protected $table = 'pireps';
-    protected $fillable = ['user_id', 'route_id', 'flight_time', 'flight_type_id', 'computed_flight_time'];
+    protected $fillable = ['user_id', 'route_id', 'flight_time', 'flight_type_id', 'computed_flight_time', 'tenant_id'];
 
     public function user()
     {
