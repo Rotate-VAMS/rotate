@@ -3,7 +3,9 @@
 namespace App\Models\Extended;
 
 use App\Models\Leaderboard;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class _Leaderboard extends Model
 {   
@@ -70,5 +72,38 @@ class _Leaderboard extends Model
         }
 
         return ['leaderboard_event' => $leaderboardEvent, 'success' => true];
+    }
+
+    public static function logLeaderboardEvent($user_id, $leaderboard_event)
+    {
+        $leaderboardEvent = Leaderboard::where('leaderboard_event_name', $leaderboard_event)->first();
+        if (!$leaderboardEvent) {
+            return ['error' => 'Leaderboard event not found'];
+        }
+
+        // Log leaderboard event
+        DB::table('leaderboard_points_log')->insert([
+            'user_id' => $user_id,
+            'leaderboard_event_id' => $leaderboardEvent->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Fetch total user points
+        $totalUserPoints = DB::table('leaderboard_points_log')
+            ->leftJoin('leaderboard_points_configuration as lpc', 'leaderboard_points_log.leaderboard_event_id', '=', 'lpc.id')
+            ->select(DB::raw('SUM(lpc.points) as points'))
+            ->where('user_id', $user_id)
+            ->first();
+
+        // Update user points
+        $user = User::find($user_id);
+        $user->points = $totalUserPoints->points ?? 0;
+
+        if (! $user->save()) {
+            return ['error' => 'Failed to update user points'];
+        }
+
+        return ['success' => true];
     }
 }

@@ -87,7 +87,7 @@
               <div class="text-xs text-gray-600">Flights</div>
             </div>
             <div class="text-center bg-gray-50 rounded-lg p-2">
-              <div class="text-sm font-bold text-gray-900">{{ pilot.flying_hours }}h</div>
+              <div class="text-sm font-bold text-gray-900">{{ formatFlightTime(pilot.flying_hours) }}</div>
               <div class="text-xs text-gray-600">Hours</div>
             </div>
             <div class="text-center bg-gray-50 rounded-lg p-2">
@@ -152,7 +152,7 @@
               <div class="text-xs text-gray-600">Flights</div>
             </div>
             <div class="text-center">
-              <div class="text-lg font-bold text-gray-900">{{ pilot.flying_hours }}h</div>
+              <div class="text-lg font-bold text-gray-900">{{ formatFlightTime(pilot.flying_hours) }}</div>
               <div class="text-xs text-gray-600">Hours</div>
             </div>
             <div class="text-center">
@@ -252,6 +252,12 @@ const getTierName = (index) => {
   } else {
     return ''
   }
+}
+
+const formatFlightTime = (totalMinutes) => {
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  return `${hours}h ${minutes}m`
 }
 
 // Fetch data on component mount
