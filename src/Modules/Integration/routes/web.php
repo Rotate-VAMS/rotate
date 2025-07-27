@@ -8,6 +8,7 @@ use Modules\Integration\Http\Controllers\FlightTypesController;
 use Modules\Integration\Http\Controllers\LogoController;
 use Modules\Integration\Http\Controllers\RolesController;
 use Modules\Integration\Http\Controllers\DiscordController;
+use Modules\Integration\Http\Controllers\LeaderboardController;
 
 Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
     // Custom Fields
@@ -70,6 +71,14 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::post('jxUpdateDiscordSettings', 'jxUpdateDiscordSettings')->name('integrations.settings.jxUpdateDiscordSettings');
         Route::post('jxTestDiscordConnection', 'jxTestDiscordConnection')->name('integrations.settings.jxTestDiscordConnection');
         Route::get('jxToggleDiscordBotEventActivity', 'jxToggleDiscordBotEventActivity')->name('integrations.settings.jxToggleDiscordBotEventActivity');
+    });
+
+    // Leaderboard
+    Route::group(['prefix' => 'settings', 'controller' => LeaderboardController::class], function () {
+        Route::get('jxGetLeaderboardSettings', 'jxGetLeaderboardSettings')->name('integrations.settings.jxGetLeaderboardSettings');
+        Route::post('jxUpdateLeaderboardSettings', 'jxUpdateLeaderboardSettings')->name('integrations.settings.jxUpdateLeaderboardSettings');
+        Route::get('jxGetLeaderboardEvents', 'jxGetLeaderboardEvents')->name('integrations.settings.jxGetLeaderboardEvents');
+        Route::post('jxUpdateLeaderboardEvent', 'jxUpdateLeaderboardEvent')->name('integrations.settings.jxUpdateLeaderboardEvent');
     });
 });
 

@@ -23,6 +23,7 @@
   import RolesPanel from '../components/RolesPanel.vue'
   import RanksPanel from '../components/RanksPanel.vue'
   import LogoPanel from '../components/LogoPanel.vue'
+  import LeaderboardPanel from '../components/LeaderboardPanel.vue'
   import { usePage } from '@inertiajs/vue3'
   import AppLayout from '@/Layouts/AppLayout.vue'
   import AppBreadcrumb from '@/Components/AppBreadcrumb.vue'
@@ -63,6 +64,7 @@
       discord: DiscordIntegrationPanel,
       ranks: RanksPanel,
       roles: RolesPanel,
+      leaderboard: LeaderboardPanel,
       logo: LogoPanel,
     }[activeTab.value]
   })

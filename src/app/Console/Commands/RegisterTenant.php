@@ -2,11 +2,14 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\RotateConstants;
 use Illuminate\Console\Command;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\FlightType;
 use App\Models\DiscordSettings;
+use App\Models\SystemSettings;
+use App\Models\Leaderboard;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Hash;
@@ -142,6 +145,12 @@ class RegisterTenant extends Command
 
         // 6. Create Discord settings
         $this->createDiscordSettings($tenant);
+
+        // 7. Create system settings
+        $this->createSystemSettings($tenant);
+
+        // 8. Create leaderboard settings
+        $this->createLeaderboardSettings($tenant);
 
         $this->info("✅ Tenant data seeded successfully");
     }
@@ -310,6 +319,45 @@ class RegisterTenant extends Command
     }
 
     /**
+     * Create system settings for the tenant
+     */
+    private function createSystemSettings(Tenant $tenant): void
+    {
+        $this->line("Creating system settings...");
+
+        SystemSettings::create([
+            'key' => SystemSettings::LEADERBOARD_POINTS_CONFIGURATION,
+            'value' => SystemSettings::SETTING_ENABLED,
+            'tenant_id' => $tenant->id,
+        ]);
+
+        $this->line("  - Created system settings");
+    }
+
+    /**
+     * Create leaderboard settings for the tenant
+     */
+    private function createLeaderboardSettings(Tenant $tenant): void
+    {
+        $this->line("Creating leaderboard settings...");
+
+        $leaderboardEvents = Leaderboard::getLeaderboardEvents();
+
+        foreach ($leaderboardEvents as $leaderboardEvent) {
+
+            Leaderboard::create([
+                'tenant_id' => $tenant->id,
+                'leaderboard_event_name' => $leaderboardEvent,
+                'points' => RotateConstants::CONSTANT_FOR_ONE,
+            ]);
+
+            $this->line("  - Created leaderboard setting: {$leaderboardEvent}");
+        }
+
+        $this->line("  - Created leaderboard settings");
+    }
+
+    /**
      * Delete all data for a tenant
      */
     private function deleteTenantData(Tenant $tenant): void
@@ -324,7 +372,8 @@ class RegisterTenant extends Command
         User::where('tenant_id', $tenant->id)->delete();
         FlightType::where('tenant_id', $tenant->id)->delete();
         DiscordSettings::where('tenant_id', $tenant->id)->delete();
-        
+        SystemSettings::where('tenant_id', $tenant->id)->delete();
+        Leaderboard::where('tenant_id', $tenant->id)->delete();
         // Delete roles and permissions (this will cascade to role_has_permissions)
         Role::where('tenant_id', $tenant->id)->delete();
         Permission::where('tenant_id', $tenant->id)->delete();

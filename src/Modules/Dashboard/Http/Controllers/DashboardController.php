@@ -31,6 +31,7 @@ class DashboardController extends Controller
             ->leftJoin('users', 'pireps.user_id', '=', 'users.id')
             ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name')
             ->where('pireps.deleted_at', null)
+            ->where('pireps.tenant_id', app('currentTenant')->id)
             ->orderBy('pireps.created_at', 'desc')
             ->take(5)
             ->get();
