@@ -12,6 +12,7 @@ use App\Models\Rank;
 use function App\Helpers\tenant_cache_remember;
 use function App\Helpers\tenant_cache_forget;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class LeaderboardController extends Controller
 {
@@ -102,5 +103,15 @@ class LeaderboardController extends Controller
             'message' => 'User leaderboard data fetched successfully',
             'data' => $leaderboardData
         ]);
+    }
+
+    public function leaderboard()
+    {
+        $breadcrumbs = [
+            [
+                'title' => 'Leaderboard'
+            ]
+        ];
+        return Inertia::render('Integration/Pages/Leaderboard', ['breadcrumbs' => $breadcrumbs]);
     }
 }

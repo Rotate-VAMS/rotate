@@ -80,6 +80,9 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::get('jxGetLeaderboardEvents', 'jxGetLeaderboardEvents')->name('integrations.settings.jxGetLeaderboardEvents');
         Route::post('jxUpdateLeaderboardEvent', 'jxUpdateLeaderboardEvent')->name('integrations.settings.jxUpdateLeaderboardEvent');
         Route::post('jxGetUserLeaderboardData', 'jxGetUserLeaderboardData')->name('integrations.settings.jxGetUserLeaderboardData');
+
+        // Full leaderboard view
+        Route::get('leaderboard', 'leaderboard')->name('integrations.settings.leaderboard');
     });
 });
 
