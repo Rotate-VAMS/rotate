@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::post('jxUpdateLeaderboardSettings', 'jxUpdateLeaderboardSettings')->name('integrations.settings.jxUpdateLeaderboardSettings');
         Route::get('jxGetLeaderboardEvents', 'jxGetLeaderboardEvents')->name('integrations.settings.jxGetLeaderboardEvents');
         Route::post('jxUpdateLeaderboardEvent', 'jxUpdateLeaderboardEvent')->name('integrations.settings.jxUpdateLeaderboardEvent');
+        Route::post('jxGetUserLeaderboardData', 'jxGetUserLeaderboardData')->name('integrations.settings.jxGetUserLeaderboardData');
     });
 });
 

@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Leaderboard;
 use App\Models\SystemSettings;
 use App\Helpers\RotateConstants;
+use App\Models\Pirep;
+use App\Models\User;
+use App\Models\Rank;
 use function App\Helpers\tenant_cache_remember;
 use function App\Helpers\tenant_cache_forget;
 use Illuminate\Http\Request;
@@ -70,6 +73,34 @@ class LeaderboardController extends Controller
             'hasErrors' => false,
             'message' => 'Leaderboard event updated successfully',
             'data' => $leaderboardEvent
+        ]);
+    }
+
+    public function jxGetUserLeaderboardData(Request $request)
+    {
+        $users = User::where('status', User::PILOT_STATUS_ACTIVE)->orderBy('points', 'desc')->get();
+        $leaderboardData = [];
+        foreach ($users as $user) {
+            $leaderboardData[$user->id] = [
+                'user_name' => $user->name,
+                'points' => $user->points,
+                'callsign' => $user->callsign,
+                'rank' => $user->rank ? Rank::find($user->rank_id)->name : 'Unknown',
+                'flying_hours' => $user->flying_hours,
+                'total_flights' => Pirep::where('user_id', $user->id)->count(),
+            ];
+        }
+
+        if ($request->view === 'dashboard') {
+            $leaderboardData = collect($leaderboardData)->sortByDesc('points')->take(10)->toArray();
+        } else {
+            $leaderboardData = collect($leaderboardData)->sortByDesc('points')->toArray();
+        }
+
+        return response()->json([
+            'hasErrors' => false,
+            'message' => 'User leaderboard data fetched successfully',
+            'data' => $leaderboardData
         ]);
     }
 }

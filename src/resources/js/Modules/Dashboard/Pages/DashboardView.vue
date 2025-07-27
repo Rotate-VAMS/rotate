@@ -4,6 +4,7 @@ import RecentActivity from '../components/RecentActivity.vue';
 import UpcomingEvents from '../components/UpcomingEvents.vue';
 import QuickLinks from '../components/QuickLinks.vue';
 import DashboardButtons from '../components/DashboardButtons.vue';
+import DashboardLeaderboard from '../components/DashboardLeaderboard.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, usePage } from '@inertiajs/vue3';
 
@@ -55,6 +56,11 @@ const getGreeting = () => {
         <UpcomingEvents :events="props.upcomingEvents" />
         <QuickLinks />
       </div>
+    </div>
+
+    <!-- Pilot Leaderboard Section -->
+    <div class="mt-8">
+      <DashboardLeaderboard />
     </div>
   </AppLayout>
 </template>
