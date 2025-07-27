@@ -9,6 +9,7 @@ use App\Models\Documents;
 use App\Models\EventAttendance;
 use App\Models\CustomFieldConfiguration;
 use App\Models\CustomFieldValues;
+use App\Models\Pirep;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -92,12 +93,13 @@ class EventsController extends Controller
     {
         $cacheKey = 'events:list:upcoming';
         $events = tenant_cache_remember($cacheKey, 1800, function () {
-            $events = Event::where('event_date_time', '>=', time())->orderBy('event_date_time', 'asc')->get();
+            $events = Event::orderBy('event_date_time', 'asc')->get();
             foreach ($events as $event) {
                 $event->attendees = EventAttendance::where('event_id', $event->id)->get()->pluck('user_id')->toArray();
                 $event->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_EVENTS, $event->id);
                 $event->origin_city = RotateAirportHelper::icaoToCity($event->origin);
                 $event->destination_city = RotateAirportHelper::icaoToCity($event->destination);
+                $event->completed = $event->event_date_time < time();
                 $cover_image = Documents::fetchDocument(Documents::ENTITY_TYPE_EVENT, $event->id);
                 if (isset($cover_image['error'])) {
                     $cover_image = Documents::DEFAULT_IMAGE;
@@ -202,6 +204,85 @@ class EventsController extends Controller
         return response()->json([
             'hasErrors' => false,
             'data' => $customFields
+        ]);
+    }
+
+    public function jxFileEventPirep(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'event_id' => 'required|integer',
+            'flight_time_hours' => 'required|min:0',
+            'flight_time_minutes' => 'required|min:0',
+            'flight_type_id' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
+        }
+
+        $event = Event::find($request->event_id);
+        if (!$event) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Event not found';
+            return response()->json($this->errorBag);
+        }
+
+        if ($event->event_date_time > time()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Event has not started yet';
+            return response()->json($this->errorBag);
+        }
+
+        $pirep = Pirep::createEditPirep($request->all(), 'create', true);
+        
+        if (isset($pirep['error'])) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $pirep['error'];
+            return response()->json($this->errorBag);
+        }
+        
+        tenant_cache_forget('pireps:list:all');
+        return response()->json([
+            'hasErrors' => false,
+            'message' => $pirep['success']
+        ]);
+    }
+
+    public function jxEditEventPirep(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer',
+            'event_id' => 'required|integer',
+            'flight_time_hours' => 'required|min:0',
+            'flight_time_minutes' => 'required|min:0',
+            'flight_type_id' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
+        }
+
+        $event = Event::find($request->event_id);
+        if (!$event) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'Event not found';
+            return response()->json($this->errorBag);
+        }
+
+        $pirep = Pirep::createEditPirep($request->all(), 'edit', true);
+        
+        if (isset($pirep['error'])) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $pirep['error'];
+            return response()->json($this->errorBag);
+        }
+        
+        tenant_cache_forget('pireps:list:all');
+        return response()->json([
+            'hasErrors' => false,
+            'message' => $pirep['success']
         ]);
     }
 }

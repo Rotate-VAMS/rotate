@@ -22,7 +22,7 @@
       <!-- Inject RotateFormComponent drawer -->
       <RotateFormComponent
         :visible="showDrawer"
-        :title="formMode === 'create' ? 'Create Pirep' : 'Edit Pirep'"
+        :title="getFormTitle()"
         :fields="formFields"
         :initialData="formData"
         :isEditMode="formMode === 'edit'"
@@ -55,11 +55,21 @@ const props = defineProps({
 const showDrawer = ref(false)
 const formMode = ref('create')
 const formData = ref({})
+const isEventPirep = ref(false)
 
 // Store fetched data
 const fleets = ref([])
 const routes = ref([])
 const flightTypes = ref([])
+
+// Function to get form title based on mode and type
+const getFormTitle = () => {
+  if (formMode.value === 'create') {
+    return 'Create Pirep'
+  } else {
+    return isEventPirep.value ? 'Edit Event Pirep' : 'Edit Pirep'
+  }
+}
 
 // Function to convert custom fields to form fields
 const convertCustomFieldsToFormFields = (customFields) => {
@@ -103,7 +113,8 @@ const getFieldType = (dataType) => {
 // Computed form fields that update based on the toggle state and custom fields
 const formFields = computed(() => {
   const baseFields = [
-    { 
+    // Only show route field if not an event PIREP
+    ...(isEventPirep.value ? [] : [{
       name: 'route_id', 
       label: 'Route', 
       type: 'searchable-select', 
@@ -111,7 +122,7 @@ const formFields = computed(() => {
       options: routes.value.map(route => ({ id: route.id, name: route.flight_number + ' - ' + route.route })),
       placeholder: 'Search routes...',
       searchPlaceholder: 'Search routes...'
-    },
+    }]),
     {
       group: 'Flight Time',
       fields: [
@@ -142,6 +153,7 @@ watch(() => props.customFields, (newCustomFields) => {
 const openDrawerForCreate = () => {
   formMode.value = 'create'
   formData.value = {}
+  isEventPirep.value = false
   showDrawer.value = true
 }
 
@@ -192,8 +204,9 @@ const fetchFlightTypes = async () => {
 const submitForm = async (payload) => {
   try {
     page.props.loading = true
+    
     // Basic validation
-    if (!payload.route_id) {
+    if (!isEventPirep.value && !payload.route_id) {
       showToast('Please select a route.', 'error')
       page.props.loading = false
       return
@@ -247,7 +260,15 @@ const submitForm = async (payload) => {
       customData: customData
     }
 
-    const response = await rotateDataService('/pireps/jxCreateEditPirep', finalSubmitPayload)
+    // Use different endpoints based on PIREP type and mode
+    let endpoint
+    if (isEventPirep.value) {
+      endpoint = formMode.value === 'edit' ? '/events/jxEditEventPirep' : '/events/jxFileEventPirep'
+    } else {
+      endpoint = '/pireps/jxCreateEditPirep'
+    }
+    
+    const response = await rotateDataService(endpoint, finalSubmitPayload)
     if (response.hasErrors) {
       showToast(response.message, 'error')
       page.props.loading = false
@@ -275,11 +296,14 @@ const handleOpenEditDrawer = async (event) => {
   page.props.loading = true
   const pirep = event.detail
   
+  // Check if this is an event PIREP
+  isEventPirep.value = pirep.is_event || pirep.event_id || false
+  
   // Ensure data is loaded before mapping
   if (fleets.value.length === 0) {
     await fetchFleets()
   }
-  if (routes.value.length === 0) {
+  if (!isEventPirep.value && routes.value.length === 0) {
     await fetchRoutes()
   }
   if (flightTypes.value.length === 0) {
@@ -294,6 +318,11 @@ const handleOpenEditDrawer = async (event) => {
     flight_time_hours: Math.floor(pirep.flight_time / 60), // Map total minutes to hours
     flight_time_minutes: pirep.flight_time % 60, // Map total minutes to minutes
     flight_type_id: pirep.flight_type_id,
+  }
+  
+  // For event PIREPs, add the event_id
+  if (isEventPirep.value) {
+    mappedPirep.event_id = pirep.event_id
   }
   
   // Map custom fields from custom_fields array to direct properties
@@ -317,11 +346,15 @@ defineExpose({
   openDrawerForCreate,
   openDrawerForEdit: async (pirep) => {
     page.props.loading = true
+    
+    // Check if this is an event PIREP
+    isEventPirep.value = pirep.is_event || pirep.event_id || false
+    
     // Ensure data is loaded before mapping
     if (fleets.value.length === 0) {
       await fetchFleets()
     }
-    if (routes.value.length === 0) {
+    if (!isEventPirep.value && routes.value.length === 0) {
       await fetchRoutes()
     }
     if (flightTypes.value.length === 0) {
@@ -336,6 +369,11 @@ defineExpose({
       flight_time_hours: Math.floor(pirep.flight_time / 60), // Map total minutes to hours
       flight_time_minutes: pirep.flight_time % 60, // Map total minutes to minutes
       flight_type_id: pirep.flight_type_id,
+    }
+    
+    // For event PIREPs, add the event_id
+    if (isEventPirep.value) {
+      mappedPirep.event_id = pirep.event_id
     }
     
     // Map custom fields from custom_fields array to direct properties

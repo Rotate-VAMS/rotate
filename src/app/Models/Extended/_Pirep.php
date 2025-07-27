@@ -12,7 +12,7 @@ use App\Models\SystemSettings;
 
 class _Pirep extends Model
 {
-    public static function createEditPirep($data, $mode)
+    public static function createEditPirep($data, $mode, $eventMode=false)
     {
         if ($mode === 'create') {
             $pirep = new Pirep();
@@ -21,11 +21,16 @@ class _Pirep extends Model
         }
         $flightTime = (int)$data['flight_time_hours'] * 60 + (int)$data['flight_time_minutes'];
         $pirep->user_id = Auth::user()->id;
-        $pirep->route_id = $data['route_id'];
         $pirep->flight_time = $flightTime;
         $pirep->flight_type_id = $data['flight_type_id'];
         $pirep->tenant_id = Auth::user()->tenant_id;
-
+        
+        if (!$eventMode) {
+            $pirep->route_id = $data['route_id'];
+        } else {
+            $pirep->event_id = $data['event_id'];
+        }
+        
         // Compute the computed fligth time
         $pirep->computed_flight_time = $flightTime * FlightType::find($pirep->flight_type_id)->multiplier;
 

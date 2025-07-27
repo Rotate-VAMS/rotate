@@ -122,13 +122,11 @@ const fetchPirepCustomFields = async () => {
 };
 
 const fetchPireps = async (filter = 'my') => {
-  console.log('Fetching pireps with filter:', filter);
   try {
     page.props.loading = true
     const response = await rotateDataService('/pireps/jxFetchPireps', {
       filter: filter
     })
-    console.log('Pireps fetched:', response.data?.length || 0, 'items');
     pireps.value = response.data || []
     analytics.value = response.analytics || {}
     page.props.loading = false
@@ -150,7 +148,6 @@ const handleOpenEditDrawer = (event) => {
 
 // Handle pireps updated event
 const handlePirepsUpdated = () => {
-  console.log('Pireps updated event received, refreshing data...');
   fetchPireps(pirepFilter.value);
 };
 

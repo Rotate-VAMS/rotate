@@ -69,7 +69,10 @@
           </td>
           <td class="px-6 py-4">
             <div class="font-semibold">{{ pirep.origin }} - {{ pirep.destination }}</div>
-            <div class="text-s text-gray-400">{{ pirep.flight_number }}</div>
+            <div v-if="pirep.flight_number" class="text-s text-gray-400">{{ pirep.flight_number }}</div>
+            <div v-else class="flex items-center gap-2 mt-2">
+              <span class="shadow-md rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-yellow-200 px-2 py-1 text-xs text-gray-800 border border-yellow-400 font-semibold">{{ pirep.event_name }}</span>
+            </div>
           </td>
           <td class="px-6 py-4">
             <div class="font-semibold">{{ formatFlightTime(pirep.flight_time) }}</div>
@@ -207,18 +210,18 @@ const getCustomFieldValue = (pirep, fieldKey) => {
 // Function to get gradient class for flight type pills
 const getFlightTypePillClass = (flightTypeName) => {
   const gradients = [
-    'bg-gradient-to-r from-indigo-500 to-purple-500',
-    'bg-gradient-to-r from-blue-500 to-cyan-500',
-    'bg-gradient-to-r from-green-500 to-emerald-500',
-    'bg-gradient-to-r from-orange-500 to-red-500',
-    'bg-gradient-to-r from-pink-500 to-rose-500',
-    'bg-gradient-to-r from-yellow-500 to-orange-500',
-    'bg-gradient-to-r from-teal-500 to-blue-500',
-    'bg-gradient-to-r from-purple-500 to-pink-500',
-    'bg-gradient-to-r from-red-500 to-pink-500',
-    'bg-gradient-to-r from-cyan-500 to-blue-500',
-    'bg-gradient-to-r from-emerald-500 to-teal-500',
-    'bg-gradient-to-r from-violet-500 to-purple-500'
+    'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-md',
+    'bg-gradient-to-r from-blue-500 to-cyan-600 shadow-md',
+    'bg-gradient-to-r from-green-500 to-emerald-600 shadow-md',
+    'bg-gradient-to-r from-orange-500 to-red-600 shadow-md',
+    'bg-gradient-to-r from-pink-500 to-rose-600 shadow-md',
+    'bg-gradient-to-r from-yellow-500 to-orange-600 shadow-md',
+    'bg-gradient-to-r from-teal-500 to-blue-600 shadow-md',
+    'bg-gradient-to-r from-purple-500 to-pink-600 shadow-md',
+    'bg-gradient-to-r from-red-500 to-pink-600 shadow-md',
+    'bg-gradient-to-r from-cyan-500 to-blue-600 shadow-md',
+    'bg-gradient-to-r from-emerald-500 to-teal-600 shadow-md',
+    'bg-gradient-to-r from-violet-500 to-purple-600 shadow-md'
   ];
   
   // Assign classes randomly

@@ -3,9 +3,11 @@
     <!-- Header -->
     <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-4 pb-3 relative">
       <div class="flex justify-between items-center">
-        <div class="font-bold text-lg tracking-wide">{{ airline }}</div>
+        <div v-if="airline !== '-'" class="font-bold text-lg tracking-wide">{{ airline }}</div>
+        <div v-else class="font-bold text-lg tracking-wide">{{ pirep.event_name || '-' }}</div>
       </div>
-      <div class="text-sm text-white/80 mt-1">Flight <span class="font-bold">{{ flightNo }}</span></div>
+      <div v-if="flightNo !== '-'" class="text-sm text-white/80 mt-1">Flight <span class="font-bold">{{ flightNo }}</span></div>
+      <div v-else class="text-sm text-white/80 mt-1"><span class="font-bold rounded-full bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-200 px-2 py-1 text-xs text-gray-800 border border-yellow-400">Event PIREP</span></div>
     </div>
 
     <!-- Main Content -->

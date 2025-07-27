@@ -90,7 +90,7 @@
               <span class="bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-xs font-semibold">{{ getCustomFieldValue(event, customField.field_key) }}</span>
             </div>
           </div>
-          <div v-if="true" class="flex items-center gap-2 p-4 border-t bg-gray-50">
+          <div v-if="!event.completed" class="flex items-center gap-2 p-4 border-t bg-gray-50">
             <button
               @click="event.attendees.includes(user.id) ? deregisterForEvent(event) : registerForEvent(event)"
               class="flex items-center gap-2 text-sm"
@@ -102,10 +102,30 @@
               <span v-if="event.attendees.includes(user.id)">Deregister</span>
             </button>
           </div>
+          <div v-else class="flex items-center gap-2 p-4 border-t bg-gray-50">
+            <button
+              @click="fileEventPirep(event)"
+              class="flex items-center gap-2 text-sm text-green-600 hover:text-green-800"
+            >
+              <TicketCheckIcon class="w-4 h-4" />
+              <span>File Pirep</span>
+            </button>
+          </div>
         </div>
       </div>
       <EventsTable v-else :customFields="customFields" @update:analytics="updateAnalytics" />
     </div>
+
+    <!-- Event PIREP Form Drawer -->
+    <RotateFormComponent
+      :visible="showPirepDrawer"
+      :title="`File PIREP for ${selectedEvent?.event_name || 'Event'}`"
+      :fields="pirepFormFields"
+      :initialData="pirepFormData"
+      :isEditMode="false"
+      @close="closePirepDrawer"
+      @submit="submitEventPirep"
+    />
   </div>
 </template>
 
@@ -115,6 +135,7 @@ import { FilterIcon, TicketCheckIcon, TicketXIcon } from 'lucide-vue-next'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 import EventsTable from './EventsTable.vue'
+import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import { inject } from 'vue'
 
 const showToast = inject('showToast');
@@ -127,6 +148,71 @@ const loading = ref(true)
 const search = ref('')
 const viewMode = ref(localStorage.getItem('eventsViewMode') || 'card')
 const emit = defineEmits(['update:analytics'])
+
+// Event PIREP form state
+const showPirepDrawer = ref(false)
+const selectedEvent = ref(null)
+const pirepFormData = ref({})
+const flightTypes = ref([])
+const pirepCustomFields = ref([])
+
+// Computed form fields for event PIREP
+const pirepFormFields = computed(() => {
+  const baseFields = [
+    {
+      group: 'Flight Time',
+      fields: [
+        { name: 'flight_time_hours', label: 'Hours', type: 'number', required: true, min: 0, max: 23 },
+        { name: 'flight_time_minutes', label: 'Minutes', type: 'number', required: true, min: 0, max: 59 },
+      ]
+    },
+    { 
+      name: 'flight_type_id', 
+      label: 'Flight Type', 
+      type: 'select', 
+      required: true, 
+      options: flightTypes.value.map(type => ({ id: type.id, name: type.flight_type + ' (' + type.multiplier + 'x)' }))
+    },
+  ]
+
+  // Add custom fields for PIREPs
+  const customFormFields = pirepCustomFields.value.map(field => {
+    const formField = {
+      name: field.field_key,
+      label: field.field_name,
+      type: getFieldType(field.data_type),
+      required: field.is_required === 1,
+      description: field.field_description
+    }
+    
+    // Add options for dropdown fields
+    if (field.data_type === 6) { // Dropdown type
+      if (Array.isArray(field.options)) {
+        formField.options = field.options.map(opt => ({ id: opt, name: opt }))
+      } else if (typeof field.options === 'object') {
+        formField.options = Object.values(field.options).map(opt => ({ id: opt, name: opt }))
+      } else {
+        formField.options = []
+      }
+    }
+    return formField
+  })
+
+  return [...baseFields, ...customFormFields]
+})
+
+// Function to map data types to form field types
+const getFieldType = (dataType) => {
+  switch (dataType) {
+    case 1: return 'text' // Text
+    case 2: return 'number' // Integer
+    case 3: return 'number' // Float
+    case 4: return 'checkbox' // Boolean
+    case 5: return 'datetime-local' // Date
+    case 6: return 'select' // Dropdown
+    default: return 'text'
+  }
+}
 
 const setViewMode = (mode) => {
   viewMode.value = mode
@@ -230,9 +316,27 @@ const fetchEvents = async () => {
   }
 }
 
+const fetchFlightTypes = async () => {
+  try {
+    const response = await rotateDataService('/settings/jxFetchFlightTypes')
+    flightTypes.value = response.data || []
+  } catch (e) {
+    console.error('Error fetching flight types:', e)
+  }
+}
+
+const fetchPirepCustomFields = async () => {
+  try {
+    const response = await rotateDataService('/pireps/jxGetPirepCustomFields')
+    pirepCustomFields.value = response.data || []
+  } catch (e) {
+    console.error('Error fetching PIREP custom fields:', e)
+  }
+}
+
 const fetchAll = async () => {
   loading.value = true
-  await Promise.all([fetchCustomFields(), fetchEvents()])
+  await Promise.all([fetchCustomFields(), fetchEvents(), fetchFlightTypes(), fetchPirepCustomFields()])
   loading.value = false
 }
 
@@ -264,6 +368,83 @@ const deregisterForEvent = async (event) => {
 
 const handleEditEvent = (event) => {
   window.dispatchEvent(new CustomEvent('open-edit-drawer', { detail: event.detail }))
+}
+
+const fileEventPirep = async (event) => {
+  selectedEvent.value = event
+  pirepFormData.value = {
+    event_id: event.id
+  }
+  showPirepDrawer.value = true
+}
+
+const closePirepDrawer = () => {
+  showPirepDrawer.value = false
+  selectedEvent.value = null
+  pirepFormData.value = {}
+}
+
+const submitEventPirep = async (payload) => {
+  try {
+    page.props.loading = true
+    
+    // Basic validation
+    if (!payload.flight_time_hours || payload.flight_time_hours < 0 || payload.flight_time_hours > 23) {
+      showToast('Please enter a valid flight time hours (0-23).', 'error')
+      page.props.loading = false
+      return
+    }
+    
+    if (!payload.flight_time_minutes || payload.flight_time_minutes < 0 || payload.flight_time_minutes > 59) {
+      showToast('Please enter a valid flight time minutes (0-59).', 'error')
+      page.props.loading = false
+      return
+    }
+    
+    if (!payload.flight_type_id) {
+      showToast('Please select a flight type.', 'error')
+      page.props.loading = false
+      return
+    }
+
+    // Separate custom fields from regular fields
+    const customData = {}
+    const regularData = {}
+    
+    // Get custom field keys
+    const customFieldKeys = pirepCustomFields.value.map(field => field.field_key)
+    
+    // Separate the data
+    Object.keys(payload).forEach(key => {
+      if (customFieldKeys.includes(key)) {
+        customData[key] = payload[key]
+      } else {
+        regularData[key] = payload[key]
+      }
+    })
+    
+    // Add customData to the regular payload
+    const finalPayload = {
+      ...regularData,
+      customData: customData,
+      event_id: selectedEvent.value.id
+    }
+
+    const response = await rotateDataService('/events/jxFileEventPirep', finalPayload)
+    if (response.hasErrors) {
+      showToast(response.message || 'Error occurred while filing pirep', 'error')
+      page.props.loading = false
+      return;
+    }
+    
+    showToast(response.message || 'PIREP filed successfully', 'success')
+    closePirepDrawer()
+    page.props.loading = false
+  } catch (e) {
+    console.error(e)
+    page.props.loading = false
+    showToast('Error occurred while filing pirep', 'error')
+  }
 }
 
 const updateAnalytics = (analytics) => {

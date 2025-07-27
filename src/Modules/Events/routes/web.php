@@ -12,5 +12,7 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::post('/jxRegisterForEvent', 'jxRegisterForEvent')->name('events.jxRegisterForEvent');
         Route::post('/jxDeRegisterForEvent', 'jxDeRegisterForEvent')->name('events.jxDeRegisterForEvent');
         Route::get('/jxFetchCustomFields', 'jxFetchCustomFields')->name('events.jxFetchCustomFields');
+        Route::post('/jxFileEventPirep', 'jxFileEventPirep')->name('events.jxFileEventPirep');
+        Route::post('/jxEditEventPirep', 'jxEditEventPirep')->name('events.jxEditEventPirep');
     });
 });
