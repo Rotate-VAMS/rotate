@@ -13,3 +13,8 @@ Route::get('/', function () {
 })->name('home');
 
 Route::post('/logout', [CustomLogoutController::class, 'destroy'])->name('logout');
+
+// CSRF token refresh route
+Route::get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+})->middleware('web');

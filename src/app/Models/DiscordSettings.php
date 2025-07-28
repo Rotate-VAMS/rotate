@@ -25,20 +25,24 @@ class DiscordSettings extends Model
     const DISCORD_EVENT_ACTIVITY_DISABLED = 0;
 
     /**
-     * Get a setting value by key
+     * Get a setting value by key for current tenant
      */
     public static function getSetting(string $key, $default = null)
     {
-        $setting = self::where('setting_key', $key)->first();
+        $setting = self::where('setting_key', $key)
+            ->where('tenant_id', app('currentTenant')->id)
+            ->first();
         return $setting ? $setting->setting_value : $default;
     }
 
     /**
-     * Set a setting value
+     * Set a setting value for current tenant
      */
     public static function setSetting(string $key, $value): bool
     {
-        $setting = self::where('setting_key', $key)->first();
+        $setting = self::where('setting_key', $key)
+            ->where('tenant_id', app('currentTenant')->id)
+            ->first();
         
         if ($setting) {
             $setting->setting_value = $value;
@@ -46,13 +50,14 @@ class DiscordSettings extends Model
         } else {
             return self::create([
                 'setting_key' => $key,
-                'setting_value' => $value
+                'setting_value' => $value,
+                'tenant_id' => app('currentTenant')->id
             ])->save();
         }
     }
 
     /**
-     * Get event notification channel ID
+     * Get event notification channel ID for current tenant
      */
     public static function getEventNotificationChannel(): ?string
     {
@@ -60,7 +65,7 @@ class DiscordSettings extends Model
     }
 
     /**
-     * Set event notification channel ID
+     * Set event notification channel ID for current tenant
      */
     public static function setEventNotificationChannel(string $channelId): bool
     {

@@ -19,7 +19,7 @@ class RotateDiscordBotService
         $content = trim($message->content);
 
         // Only respond to !pirep in public
-        if ($content === '!pirep' && !$message->channel->is_private) {
+        if ($content === '!rotate pirep' && !$message->channel->is_private) {
             $user = User::where('discord_id', $userId)->first();
             if (!$user) {
                 $message->author->sendMessage("❌ Your Discord account is not linked to a Rotate account. Please link your account first.");

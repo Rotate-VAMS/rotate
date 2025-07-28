@@ -27,10 +27,31 @@ class DiscordNotificationService
     public function sendEventNotification(Event $event): bool
     {
         try {
+            Log::info('=== DISCORD NOTIFICATION SERVICE CALLED ===');
+            Log::info('Event ID: ' . $event->id);
+            Log::info('Event Name: ' . $event->event_name);
+            Log::info('Timestamp: ' . now());
+            
+            // Check if notification has already been sent for this event using database
+            $existingMessage = \App\Models\DiscordEventMessage::where('event_id', $event->id)
+                ->where('tenant_id', app('currentTenant')->id)
+                ->first();
+            
+            if ($existingMessage) {
+                Log::warning("Discord notification already sent for event {$event->id}, skipping duplicate");
+                return true; // Return true since notification was already sent
+            }
+            
+            // Verify the event belongs to the current tenant
+            if ($event->tenant_id !== app('currentTenant')->id) {
+                Log::warning("Discord notification skipped: Event {$event->id} does not belong to current tenant");
+                return false;
+            }
+
             $channelId = DiscordSettings::getEventNotificationChannel();
             
             if (!$channelId) {
-                Log::info('Discord event notification channel not configured');
+                Log::info('Discord event notification channel not configured for current tenant');
                 return false;
             }
 
@@ -47,6 +68,7 @@ class DiscordNotificationService
                 $this->addInitialReaction($result['channel_id'], $result['message_id']);
             }
             
+            Log::info('=== DISCORD NOTIFICATION SERVICE COMPLETED ===');
             return $result['success'];
 
         } catch (\Exception $e) {
@@ -145,7 +167,6 @@ class DiscordNotificationService
         $message .= "🛫 **Origin:** {$event->origin} ({$originCity})\n";
         $message .= "🛬 **Destination:** {$event->destination} ({$destinationCity})\n";
         $message .= "✈️ **Aircraft:** {$aircraftList}\n\n";
-        $message .= "👥 **Attendees:** 0\n\n";
         $message .= "**Click the ✅ reaction below to register for this event!**\n";
         $message .= "Join us for this exciting event! 🚀";
 

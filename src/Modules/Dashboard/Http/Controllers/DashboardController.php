@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use SebastianBergmann\Diff\Diff;
+use Modules\Integration\Http\Controllers\LeaderboardController;
 
 class DashboardController extends Controller
 {
@@ -56,6 +57,10 @@ class DashboardController extends Controller
             ];
         }
 
+        $leaderboardController = new LeaderboardController();
+        $leaderboard = $leaderboardController->jxGetUserLeaderboardData(new Request(['view' => 'dashboard']));
+        $leaderboardData = $leaderboard->getData()->data;
+
         $analytics = [
             ['title' => 'Your Total Flights', 'value' => Pirep::where('user_id', $user->id)->count(), 'type' => 'flights'],
             ['title' => 'Your Total Routes', 'value' => Route::count(), 'type' => 'routes'],
@@ -67,6 +72,7 @@ class DashboardController extends Controller
             'analytics' => $analytics,
             'recentActivities' => $pireps,
             'upcomingEvents' => $events,
+            'leaderboard' => $leaderboardData,
         ]);
     }
 }

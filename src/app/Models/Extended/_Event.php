@@ -53,8 +53,13 @@ class _Event extends Model
 
         // Dispatch event for Discord notification (only for new events)
         if ($mode === 'create' && DiscordSettings::getSetting(DiscordSettings::DISCORD_BOT_EVENT_ACTIVITY) == DiscordSettings::DISCORD_EVENT_ACTIVITY_ENABLED) {
-            Log::info('Dispatching EventCreated event for event ID: ' . $event->id);
+            Log::info('=== DISPATCHING EVENT CREATED ===');
+            Log::info('Event ID: ' . $event->id);
+            Log::info('Event Name: ' . $event->event_name);
+            Log::info('Dispatch timestamp: ' . now());
+            Log::info('Process ID: ' . getmypid());
             EventCreated::dispatch($event);
+            Log::info('=== EVENT DISPATCHED ===');
         }
 
         return $event;

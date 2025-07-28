@@ -103,20 +103,14 @@ class DiscordController extends Controller
      */
     public function jxToggleDiscordBotEventActivity()
     {
-        $setting = DiscordSettings::where('setting_key', DiscordSettings::DISCORD_BOT_EVENT_ACTIVITY)->first();
-        if (!$setting) {
-            $setting = new DiscordSettings();
-            $setting->setting_key = DiscordSettings::DISCORD_BOT_EVENT_ACTIVITY;
-            $setting->setting_value = DiscordSettings::DISCORD_EVENT_ACTIVITY_DISABLED;
-            $setting->save();
-        }
-
-        $setting->setting_value = $setting->setting_value == DiscordSettings::DISCORD_EVENT_ACTIVITY_DISABLED ? DiscordSettings::DISCORD_EVENT_ACTIVITY_ENABLED : DiscordSettings::DISCORD_EVENT_ACTIVITY_DISABLED;
-        $setting->save();
+        $currentValue = DiscordSettings::getSetting(DiscordSettings::DISCORD_BOT_EVENT_ACTIVITY, DiscordSettings::DISCORD_EVENT_ACTIVITY_DISABLED);
+        $newValue = $currentValue == DiscordSettings::DISCORD_EVENT_ACTIVITY_DISABLED ? DiscordSettings::DISCORD_EVENT_ACTIVITY_ENABLED : DiscordSettings::DISCORD_EVENT_ACTIVITY_DISABLED;
+        
+        DiscordSettings::setSetting(DiscordSettings::DISCORD_BOT_EVENT_ACTIVITY, $newValue);
 
         return response()->json([
             'hasErrors' => false,
-            'message' => 'Discord bot event activity ' . ($setting->setting_value == DiscordSettings::DISCORD_EVENT_ACTIVITY_DISABLED ? 'disabled' : 'enabled') . ' successfully'
+            'message' => 'Discord bot event activity ' . ($newValue == DiscordSettings::DISCORD_EVENT_ACTIVITY_DISABLED ? 'disabled' : 'enabled') . ' successfully'
         ]);
     }
 } 

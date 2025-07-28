@@ -15,13 +15,8 @@
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-    </div>
-
     <!-- Leaderboard Entries -->
-    <div v-else-if="leaderboardData.length > 0" class="space-y-3 mb-6">
+    <div v-if="leaderboardData.length > 0" class="space-y-3 mb-6">
       <div 
         v-for="(pilot, index) in leaderboardData" 
         :key="pilot.id"
@@ -190,38 +185,25 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import rotateDataService from '@/rotate.js'
 
 const props = defineProps({
-  timePeriod: {
-    type: String,
-    default: 'monthly'
+  leaderboard: {
+    type: Array,
+    required: true
   }
 })
 
-const loading = ref(false)
 const leaderboardData = ref([])
 
-// Fetch leaderboard data
-const fetchLeaderboardData = async () => {
-  loading.value = true
-  try {
-    const response = await rotateDataService('/settings/jxGetUserLeaderboardData', {
-      view: 'dashboard'
-    })
-    
-    if (response && response.data) {
-      // Convert object to array and add rank information
-      leaderboardData.value = Object.entries(response.data).map(([id, pilot]) => ({
-        id,
-        ...pilot
-      }))
-    }
-  } catch (error) {
-    console.error('Error fetching leaderboard data:', error)
+// Initialize leaderboard data from props
+const initializeLeaderboardData = () => {
+  if (props.leaderboard) {
+    leaderboardData.value = Object.entries(props.leaderboard).map(([id, pilot]) => ({
+      id,
+      ...pilot
+    }))
+  } else {
     leaderboardData.value = []
-  } finally {
-    loading.value = false
   }
 }
 
@@ -264,8 +246,13 @@ const openFullLeaderboard = () => {
   window.location.href = '/settings/leaderboard'
 }
 
-// Fetch data on component mount
+// Initialize data when component mounts or props change
 onMounted(() => {
-  fetchLeaderboardData()
+  initializeLeaderboardData()
 })
+
+// Watch for prop changes
+watch(() => props.leaderboard, () => {
+  initializeLeaderboardData()
+}, { immediate: true })
 </script>

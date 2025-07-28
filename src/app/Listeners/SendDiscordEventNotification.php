@@ -26,6 +26,8 @@ class SendDiscordEventNotification
             Log::info('=== EVENT LISTENER TRIGGERED ===');
             Log::info('EventCreated event triggered for event ID: ' . $event->event->id);
             Log::info('Event name: ' . $event->event->event_name);
+            Log::info('Listener timestamp: ' . now());
+            Log::info('Process ID: ' . getmypid());
             
             $discordService = new DiscordNotificationService();
             $success = $discordService->sendEventNotification($event->event);

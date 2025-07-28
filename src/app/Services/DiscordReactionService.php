@@ -52,10 +52,18 @@ class DiscordReactionService
                 return;
             }
 
-            // Find user by Discord ID
-            $user = User::where('discord_id', $userId)->first();
+            // Verify the event belongs to the current tenant
+            if ($event->tenant_id !== app('currentTenant')->id) {
+                Log::warning("Discord reaction skipped: Event {$event->id} does not belong to current tenant");
+                return;
+            }
+
+            // Find user by Discord ID for current tenant
+            $user = User::where('discord_id', $userId)
+                ->where('tenant_id', app('currentTenant')->id)
+                ->first();
             if (!$user) {
-                Log::warning("No user found for Discord ID: {$userId}");
+                Log::warning("No user found for Discord ID: {$userId} in current tenant");
                 $this->sendPrivateMessage($userId, "❌ Your Discord account is not linked to a Rotate account. Please link your account first.");
                 return;
             }
@@ -63,6 +71,7 @@ class DiscordReactionService
             // Check if user is already registered
             $existingAttendance = EventAttendance::where('event_id', $event->id)
                 ->where('user_id', $user->id)
+                ->where('tenant_id', app('currentTenant')->id)
                 ->first();
 
             if ($existingAttendance) {
@@ -75,6 +84,7 @@ class DiscordReactionService
             $attendance = new EventAttendance();
             $attendance->event_id = $event->id;
             $attendance->user_id = $user->id;
+            $attendance->tenant_id = app('currentTenant')->id;
             $attendance->created_at = now();
             $attendance->updated_at = now();
 
@@ -124,8 +134,16 @@ class DiscordReactionService
                 return;
             }
 
-            // Find user by Discord ID
-            $user = User::where('discord_id', $userId)->first();
+            // Verify the event belongs to the current tenant
+            if ($event->tenant_id !== app('currentTenant')->id) {
+                Log::warning("Discord reaction removal skipped: Event {$event->id} does not belong to current tenant");
+                return;
+            }
+
+            // Find user by Discord ID for current tenant
+            $user = User::where('discord_id', $userId)
+                ->where('tenant_id', app('currentTenant')->id)
+                ->first();
             if (!$user) {
                 return;
             }
@@ -133,6 +151,7 @@ class DiscordReactionService
             // Remove user registration
             $attendance = EventAttendance::where('event_id', $event->id)
                 ->where('user_id', $user->id)
+                ->where('tenant_id', app('currentTenant')->id)
                 ->first();
 
             if ($attendance) {
@@ -192,12 +211,20 @@ class DiscordReactionService
     }
 
     /**
-     * Update event message with current attendance
+     * Update event message with current attendance count
      */
     protected function updateEventMessage(string $channelId, string $messageId, Event $event): void
     {
         try {
-            $attendees = EventAttendance::where('event_id', $event->id)->get();
+            // Verify the event belongs to the current tenant
+            if ($event->tenant_id !== app('currentTenant')->id) {
+                Log::warning("Event message update skipped: Event {$event->id} does not belong to current tenant");
+                return;
+            }
+
+            $attendees = EventAttendance::where('event_id', $event->id)
+                ->where('tenant_id', app('currentTenant')->id)
+                ->get();
             $attendeeCount = $attendees->count();
 
             $message = $this->formatEventMessageWithAttendance($event, $attendeeCount);

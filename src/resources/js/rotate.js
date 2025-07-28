@@ -35,18 +35,45 @@ const RotateDataService = {
     }
   },
 
+  // Get CSRF token with multiple fallbacks
+  getCsrfToken() {
+    // Try to get from DOM meta tag first (most reliable)
+    const metaTag = document.querySelector('meta[name="csrf-token"]')
+    if (metaTag) {
+      return metaTag.getAttribute('content')
+    }
+    
+    // Try to get from Inertia props if available
+    if (window.Inertia && window.Inertia.props && window.Inertia.props.csrf_token) {
+      return window.Inertia.props.csrf_token
+    }
+    
+    return null
+  },
+
   // Service methods that can be used directly
-  async get(url) {
+  async get(url, retryCount = 0) {
     try {
+      const csrfToken = this.getCsrfToken()
+      const headers = {
+        'Content-Type': 'application/json',
+      }
+      
+      if (csrfToken) {
+        headers['X-CSRF-TOKEN'] = csrfToken
+      }
+
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document
-            .querySelector('meta[name="csrf-token"]')
-            .getAttribute('content'),
-        },
+        headers,
       })
+
+      if (response.status === 419 && retryCount < 1) {
+        // Token expired, try to refresh page to get new token
+        console.warn('CSRF token expired, refreshing page...')
+        window.location.reload()
+        return
+      }
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       return await response.json()
@@ -56,18 +83,29 @@ const RotateDataService = {
     }
   },
 
-  async post(url, data = {}) {
+  async post(url, data = {}, retryCount = 0) {
     try {
+      const csrfToken = this.getCsrfToken()
+      const headers = {
+        'Content-Type': 'application/json',
+      }
+      
+      if (csrfToken) {
+        headers['X-CSRF-TOKEN'] = csrfToken
+      }
+
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document
-            .querySelector('meta[name="csrf-token"]')
-            .getAttribute('content'),
-        },
+        headers,
         body: JSON.stringify(data),
       })
+
+      if (response.status === 419 && retryCount < 1) {
+        // Token expired, try to refresh page to get new token
+        console.warn('CSRF token expired, refreshing page...')
+        window.location.reload()
+        return
+      }
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       return await response.json()

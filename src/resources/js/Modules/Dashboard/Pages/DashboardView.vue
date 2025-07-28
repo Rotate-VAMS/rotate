@@ -12,7 +12,8 @@ const props = defineProps({
     analytics: Array,
     recentActivities: Array,
     upcomingEvents: Array,
-});
+    leaderboard: Array,
+  });
 
 const user = usePage().props.auth.user;
 
@@ -60,7 +61,7 @@ const getGreeting = () => {
 
     <!-- Pilot Leaderboard Section -->
     <div class="mt-8">
-      <DashboardLeaderboard />
+      <DashboardLeaderboard :leaderboard="props.leaderboard" />
     </div>
   </AppLayout>
 </template>
