@@ -38,4 +38,9 @@ return [
     'discord' => [
         'token' => env('ROTATE_DISCORD_BOT_TOKEN'),
     ],
+
+    'razorpay' => [
+        'key_id' => env('RAZORPAY_TEST_KEY_ID'),
+        'key_secret' => env('RAZORPAY_TEST_KEY_SECRET'),
+    ],
 ];
