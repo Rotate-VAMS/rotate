@@ -4,7 +4,6 @@
         <div>
           <p class="text-sm text-gray-500">{{ title }}</p>
           <p class="text-2xl font-bold text-gray-800">{{ value }}</p>
-          <p class="text-xs text-green-500" v-if="growth">+{{ growth }} from last month</p>
         </div>
         <div class="p-2 rounded-full" :class="bgClass">
           <component :is="icon" class="w-6 h-6 text-white" />
@@ -20,22 +19,22 @@
   const props = defineProps({
     title: String,
     value: [Number, String],
-    growth: [Number, String],
-    type: String
+    type: String,
+    caption: String
   });
   
   const iconMap = {
-    pilots: UserIcon,
+    flights: UserIcon,
     routes: PlaneIcon,
-    flights: ActivityIcon,
+    ranks: ActivityIcon,
     events: CalendarIcon,
   };
   
   const bgClassMap = {
-    pilots: 'bg-indigo-500',
-    routes: 'bg-green-500',
-    flights: 'bg-purple-500',
-    events: 'bg-orange-500',
+    flights: 'bg-gradient-to-r from-indigo-600 via-blue-500 to-blue-500 shadow-lg border border-indigo-400',
+    routes: 'bg-gradient-to-r from-green-600 via-lime-500 to-lime-500 shadow-lg border border-green-400',
+    ranks: 'bg-gradient-to-r from-purple-600 via-pink-500 to-pink-500 shadow-lg border border-purple-400',
+    events: 'bg-gradient-to-r from-orange-600 via-yellow-500 to-yellow-500 shadow-lg border border-yellow-400',
   };
   
   const icon = iconMap[props.type] || UserIcon;

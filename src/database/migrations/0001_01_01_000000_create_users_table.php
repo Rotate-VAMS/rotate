@@ -20,6 +20,8 @@ return new class extends Migration
             $table->rememberToken();
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
+            $table->string('discord_id')->nullable()->unique();
+            $table->foreignId('tenant_id')->nullable()->constrained('tenants');
             $table->timestamps();
         });
 

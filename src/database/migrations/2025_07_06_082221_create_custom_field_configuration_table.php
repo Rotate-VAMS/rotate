@@ -17,10 +17,11 @@ return new class extends Migration
             $table->string('field_key');
             $table->text('field_description')->nullable();
             $table->integer('data_type');
-            $table->integer('aggregation_type')->default(0);
             $table->integer('source_type');
             $table->boolean('is_required')->default(false);
             $table->boolean('is_active')->default(true);
+            $table->integer('dropdown_value_type')->nullable();
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->timestamps();
 
             $table->unique(['field_key', 'source_type']);

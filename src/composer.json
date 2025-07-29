@@ -13,8 +13,9 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "nwidart/laravel-modules": "^12.0",
+        "razorpay/razorpay": "^2.9",
         "spatie/laravel-permission": "^6.20",
-        "stancl/tenancy": "^3.9",
+        "team-reflex/discord-php": "^10.18",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
@@ -31,8 +32,17 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "Modules\\": "Modules/"
-        }
+            "Modules\\": "Modules/",
+            "Helpers\\": "app/Helpers/",
+            "Importers\\": "app/Importers/",
+            "Services\\": "app/Services/",
+            "Exporters\\": "app/Exporters/"
+            
+        },
+        "files": [
+            "app/Helpers/TenantStorageHelper.php",
+            "app/Helpers/TenantCacheHelper.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

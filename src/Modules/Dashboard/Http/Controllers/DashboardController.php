@@ -2,9 +2,21 @@
 
 namespace Modules\Dashboard\Http\Controllers;
 
+use App\Helpers\RotateAirportHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Event;
+use App\Models\EventAttendance;
+use App\Models\Pirep;
+use App\Models\Route;
+use App\Models\Rank;
+use Carbon\Carbon;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use SebastianBergmann\Diff\Diff;
+use Modules\Integration\Http\Controllers\LeaderboardController;
 
 class DashboardController extends Controller
 {
@@ -13,75 +25,60 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
+        
+        $pireps = DB::table('pireps')
+            ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
+            ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')
+            ->leftJoin('users', 'pireps.user_id', '=', 'users.id')
+            ->leftJoin('events', 'pireps.event_id', '=', 'events.id')
+            ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name', 'events.event_name', 'events.origin as event_origin', 'events.destination as event_destination')
+            ->where('pireps.deleted_at', null)
+            ->where('pireps.tenant_id', app('currentTenant')->id)
+            ->orderBy('pireps.created_at', 'desc')
+            ->take(5)
+            ->get();
+        foreach ($pireps as $pirep) {
+            $pirep->origin = $pirep->origin ?? $pirep->event_origin;
+            $pirep->destination = $pirep->destination ?? $pirep->event_destination;
+            $pirep->route = $pirep->origin  . ' - ' . $pirep->destination;
+            $pirep->distance = $pirep->distance ?? RotateAirportHelper::distanceBetweenICAOs($pirep->origin, $pirep->destination);
+            $pirep->time_ago = Carbon::parse($pirep->created_at)->diffForHumans();
+            $pirep->event_name = $pirep->event_name ?? 'None';
+        }
+
+        // Fetch latest 5 events
+        $events = Event::where('deleted_at', null)->where('event_date_time', '>', time())->orderBy('event_date_time', 'asc')->take(5)->get();
+        foreach ($events as $event) {
+            $event->participants = EventAttendance::where('event_id', $event->id)->count() ?? 0;
+        }
+
+        $upcomingRank = Rank::whereNot('id', $user->rank_id)->where('min_hours', '>', $user->flying_hours)->orderBy('id', 'asc')->first();
+        if (isset($upcomingRank)) {
+            $upcomingRank->caption = 'Coming up in ' . ($upcomingRank->min_hours - (User::find($user->id)->flying_hours % 60)) . ' hours';
+        } else {
+            $upcomingRank = (object) [
+                'name' => 'None',
+                'caption' => 'None',
+            ];
+        }
+
+        $leaderboardController = new LeaderboardController();
+        $leaderboard = $leaderboardController->jxGetUserLeaderboardData(new Request(['view' => 'dashboard']));
+        $leaderboardData = $leaderboard->getData()->data;
+
         $analytics = [
-            ['title' => 'Total Pilots', 'value' => 247, 'growth' => 12, 'type' => 'pilots', 'type' => 'pilots'],
-            ['title' => 'Active Routes', 'value' => 1456, 'growth' => 23, 'type' => 'routes', 'type' => 'routes'],
-            ['title' => 'Monthly Flights', 'value' => 892, 'growth' => 18, 'type' => 'flights', 'type' => 'flights'],
-            ['title' => 'Upcoming Events', 'value' => 3, 'growth' => null, 'type' => 'events', 'type' => 'events'],
-        ];
-
-        $recentActivities = [
-            ['id' => 1, 'initials' => 'JS', 'name' => 'John Smith', 'route' => 'KJFK → EGLL', 'aircraft' => 'B777-300ER', 'status' => 'completed', 'time_ago' => '2h ago'],
-            ['id' => 2, 'initials' => 'SJ', 'name' => 'Sarah Johnson', 'route' => 'KLAX → RJTT', 'aircraft' => 'A350-900', 'status' => 'in-progress', 'time_ago' => '4h ago'],
-            ['id' => 3, 'initials' => 'MW', 'name' => 'Mike Wilson', 'route' => 'EDDF → OMDB', 'aircraft' => 'A380-800', 'status' => 'completed', 'time_ago' => '6h ago'],
-        ];
-
-        $events = [
-            ['id' => 1, 'name' => 'Atlantic Crossing Event', 'date' => 'Dec 15, 2024', 'participants' => 45],
-            ['id' => 2, 'name' => 'Holiday Charter Flights', 'date' => 'Dec 20, 2024', 'participants' => 23],
-            ['id' => 3, 'name' => 'New Year Fly-In', 'date' => 'Jan 1, 2025', 'participants' => 67],
-        ];
-
-        $quickLinks = [
-            ['label' => 'Browse Routes', 'url' => '/routes', 'icon' => 'RouteIcon'],
-            ['label' => 'Airport Charts', 'url' => '/charts', 'icon' => 'MapPinIcon'],
-            ['label' => 'Pilot Management', 'url' => '/users', 'icon' => 'UsersIcon'],
-            ['label' => 'Settings', 'url' => '/settings', 'icon' => 'SettingsIcon'],
+            ['title' => 'Your Total Flights', 'value' => Pirep::where('user_id', $user->id)->count(), 'type' => 'flights'],
+            ['title' => 'Your Total Routes', 'value' => Route::count(), 'type' => 'routes'],
+            ['title' => 'Upcoming Rank', 'value' => $upcomingRank->name, 'caption' => $upcomingRank->caption, 'type' => 'ranks'],
+            ['title' => 'Upcoming Events', 'value' => Event::where('event_date_time', '>', time())->where('tenant_id', app('currentTenant')->id)->count(), 'type' => 'events'],
         ];
 
         return Inertia::render('Dashboard/Pages/DashboardView', [
             'analytics' => $analytics,
-            'recentActivities' => $recentActivities,
+            'recentActivities' => $pireps,
             'upcomingEvents' => $events,
+            'leaderboard' => $leaderboardData,
         ]);
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('dashboard::create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request) {}
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('dashboard::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('dashboard::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
 }

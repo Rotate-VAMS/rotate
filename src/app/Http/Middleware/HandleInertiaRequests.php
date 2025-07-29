@@ -40,11 +40,25 @@ class HandleInertiaRequests extends Middleware
                 'user' => fn () => $request->user()
                     ? array_merge(
                         $request->user()->only(['id', 'name', 'email']),
-                        ['role' => $request->user()->getRoleNames()->first()]
+                        [
+                            'role' => $request->user()->getRoleNames()->first(),
+                            'rank' => $request->user()->rank?->name ?? null,
+                            'permissions' => $request->user()->getPermissionsViaRoles()->pluck('name'),
+                            'status' => $request->user()->status,
+                            'flying_hours' => $request->user()->flying_hours,
+                            'created_at' => $request->user()->created_at->format('M Y'),
+                            'discord_id' => $request->user()->discord_id,
+                        ]
                     )
                     : null,
             ],
             'csrf_token' => fn () => csrf_token(),
+            'flash' => [
+                'error' => fn () => $request->session()->get('error'),
+                'success' => fn () => $request->session()->get('success'),
+                'warning' => fn () => $request->session()->get('warning'),
+                'info' => fn () => $request->session()->get('info'),
+            ],
         ]);
     }
 }

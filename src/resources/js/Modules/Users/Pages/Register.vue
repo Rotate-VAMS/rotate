@@ -56,7 +56,9 @@
   <script setup>
   import { reactive } from 'vue'
   import { router } from '@inertiajs/vue3'
-  
+  import { inject } from 'vue'
+
+  const showToast = inject('showToast');
   const props = defineProps({
     errors: Object,
   })
@@ -74,6 +76,9 @@
     form.processing = true
     router.post('/register', form, {
       onFinish: () => (form.processing = false),
+      onError: (errors) => {
+        showToast(errors.message || 'Error occurred', 'error')
+      }
     })
   }
   </script>

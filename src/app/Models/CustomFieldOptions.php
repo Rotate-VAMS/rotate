@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_CustomFieldOptions;
+use App\Models\Traits\BelongsToTenant;
 
-class CustomFieldOptions extends Model
+class CustomFieldOptions extends _CustomFieldOptions
 {
+    use BelongsToTenant;
+
     protected $table = 'custom_field_options';
 
     protected $fillable = [

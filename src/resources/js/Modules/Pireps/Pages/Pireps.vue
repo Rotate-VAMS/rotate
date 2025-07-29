@@ -2,17 +2,43 @@
   <AppLayout title="Pilots">
     <div class="space-y-6">
       <AppBreadcrumb :items="breadcrumbs" />
-      <PirepsHeader />
+      <PirepsHeader ref="pirepsHeaderRef" :custom-fields="pirepCustomFields" />
 
       <!-- Analytics Cards -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <PirepsAnalyticsCard title="My Pireps" :value="analytics.myPireps" :icon="icons.Users" />
-        <PirepsAnalyticsCard title="All Pireps" :value="analytics.allPireps" :icon="icons.Activity" />
+        <PirepsAnalyticsCard title="All Pireps" :value="analytics.totalPireps" :icon="icons.Activity" />
       </div>
 
-      <!-- View Toggle -->
-      <div class="flex justify-between items-center mb-4">
-        <div></div> <!-- spacer -->
+      <!-- Filter and View Toggle -->
+      <div class="flex justify-between flex-wrap gap-2 items-center mb-4">
+        <!-- Pireps Filter Toggle -->
+        <div class="flex gap-2">
+          <button
+            @click="switchFilter('my')"
+            :class="[
+              'px-4 py-2 rounded-md text-sm font-medium',
+              pirepFilter === 'my'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ]"
+          >
+            My Pireps
+          </button>
+          <button
+            @click="switchFilter('all')"
+            :class="[
+              'px-4 py-2 rounded-md text-sm font-medium',
+              pirepFilter === 'all'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ]"
+          >
+            All Pireps
+          </button>
+        </div>
+
+        <!-- View Toggle -->
         <div class="flex gap-2">
           <button
             @click="switchView('cards')"
@@ -44,11 +70,12 @@
         <div v-if="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <BoardingPass
             v-for="pirep in pireps"
-            :key="pirep.id"
-            v-bind="pirep"
+            :key="`${pirep.id}-${pirep.updated_at || pirep.created_at}`"
+            :pirep="pirep"
+            :custom-fields="pirepCustomFields"
           />
         </div>
-        <PirepsTable v-else />
+        <PirepsTable v-else :custom-fields="pirepCustomFields" :pireps="pireps" />
       </div>
     </div>
   </AppLayout>
@@ -62,21 +89,76 @@ import PirepsAnalyticsCard from '../components/PirepsAnalyticsCard.vue';
 import PirepsTable from '../components/PirepsTable.vue';
 import BoardingPass from '../components/BoardingPass.vue';
 import { Users, Activity, Clock, Star } from 'lucide-vue-next';
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted, inject, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import rotateDataService from '@/rotate.js';
 
 const page = usePage();
-
 const breadcrumbs = page.props.breadcrumbs || [];
-const analytics = ref({
-  myPireps: 4,
-  allPireps: 6,
-});
+const pirepsHeaderRef = ref(null);
+const pirepCustomFields = ref([]);
+const pireps = ref([]);
+const showToast = inject('showToast');
+
 const icons = { Users, Activity, Clock, Star };
+const analytics = ref({});
+
+// Fetch pirep custom fields
+const fetchPirepCustomFields = async () => {
+  try {
+    page.props.loading = true
+    const response = await rotateDataService('/pireps/jxGetPirepCustomFields');
+    if (response.hasErrors) {
+      showToast(response.message, 'error');
+      return;
+    }
+    pirepCustomFields.value = response.data;
+    page.props.loading = false
+  } catch (e) {
+    console.error(e)
+    showToast('Error fetching pirep custom fields', 'error');
+    page.props.loading = false
+  }
+};
+
+const fetchPireps = async (filter = 'my') => {
+  try {
+    page.props.loading = true
+    const response = await rotateDataService('/pireps/jxFetchPireps', {
+      filter: filter
+    })
+    pireps.value = response.data || []
+    analytics.value = response.analytics || {}
+    page.props.loading = false
+  } catch (e) {
+    console.error(e)
+    page.props.loading = false
+    showToast('Error fetching pireps', 'error')
+  }
+}
+
+fetchPirepCustomFields();
+
+// Handle edit pirep event
+const handleOpenEditDrawer = (event) => {
+  if (pirepsHeaderRef.value) {
+    pirepsHeaderRef.value.openDrawerForEdit(event.detail);
+  }
+};
+
+// Handle pireps updated event
+const handlePirepsUpdated = () => {
+  fetchPireps(pirepFilter.value);
+};
 
 const getViewFromQuery = () => {
   const params = new URLSearchParams(window.location.search);
   return params.get('view') || 'cards';
+};
+
+const getFilterFromQuery = () => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('filter') || 'my';
 };
 
 const setViewInQuery = (view) => {
@@ -86,54 +168,44 @@ const setViewInQuery = (view) => {
   window.history.replaceState({}, '', newUrl);
 };
 
+const setFilterInQuery = (filter) => {
+  const params = new URLSearchParams(window.location.search);
+  params.set('filter', filter);
+  const newUrl = `${window.location.pathname}?${params.toString()}`;
+  window.history.replaceState({}, '', newUrl);
+};
+
 const viewMode = ref(getViewFromQuery());
+const pirepFilter = ref(getFilterFromQuery());
 
 const switchView = (mode) => {
   viewMode.value = mode;
   setViewInQuery(mode);
 };
 
-onMounted(() => {
-  window.addEventListener('popstate', () => {
-    viewMode.value = getViewFromQuery();
-  });
+const switchFilter = (filter) => {
+  pirepFilter.value = filter;
+  setFilterInQuery(filter);
+};
+
+// Watch for filter changes and refetch data
+watch(pirepFilter, (newFilter) => {
+  fetchPireps(newFilter);
 });
 
-// Sample data, replace with actual fetched data
-const pireps = ref([
-  {
-    id: 1,
-    departure: 'KJFK',
-    arrival: 'EGLL',
-    flight_code: 'RO142',
-    flight_time: '7h 42m',
-    pilot: 'John Smith',
-    distance: '3,459 NM',
-    aircraft: ['Boeing 777-300ER'],
-    fuel: '24,580 lbs',
-    score: 95,
-    multiplier: '2.5x',
-    computed: '19h 15m',
-    status: 'Completed',
-    barcode: 'PIREP-001',
-    timeAgo: '2h ago',
-  },
-  {
-    id: 2,
-    departure: 'KLAX',
-    arrival: 'RJTT',
-    flight_code: 'RO287',
-    flight_time: '11h 20m',
-    pilot: 'Sarah Johnson',
-    distance: '5,487 NM',
-    aircraft: ['Airbus A350-900'],
-    fuel: '32,120 lbs',
-    score: 88,
-    multiplier: '1.8x',
-    computed: '20h 24m',
-    status: 'In-Progress',
-    barcode: 'PIREP-002',
-    timeAgo: '4h ago',
-  }
-]);
+onMounted(() => {
+  fetchPireps(pirepFilter.value);
+
+  window.addEventListener('popstate', () => {
+    viewMode.value = getViewFromQuery();
+    pirepFilter.value = getFilterFromQuery();
+  });
+  window.addEventListener('open-edit-drawer', handleOpenEditDrawer);
+  window.addEventListener('pireps-updated', handlePirepsUpdated);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('open-edit-drawer', handleOpenEditDrawer);
+  window.removeEventListener('pireps-updated', handlePirepsUpdated);
+});
 </script>

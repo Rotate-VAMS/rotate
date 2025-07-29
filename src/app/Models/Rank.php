@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_Rank;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Traits\BelongsToTenant;
 
-class Rank extends Model
+class Rank extends _Rank
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToTenant;
 
     protected $table = 'ranks';
     protected $fillable = ['name', 'min_hours'];

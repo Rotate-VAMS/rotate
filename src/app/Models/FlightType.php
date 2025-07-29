@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_FlightType;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Traits\BelongsToTenant;
 
-class FlightType extends Model
+class FlightType extends _FlightType
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToTenant;
 
     protected $table = 'flight_types';
     protected $fillable = ['flight_type', 'multiplier'];

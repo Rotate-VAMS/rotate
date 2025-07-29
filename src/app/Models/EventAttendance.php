@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_EventAttendance;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Traits\BelongsToTenant;
 
-class EventAttendance extends Model
+class EventAttendance extends _EventAttendance
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToTenant;
 
     protected $table = 'event_attendance';
     protected $fillable = ['event_id', 'user_id'];

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Extended\_CustomFieldConfiguration;
+use App\Models\Traits\BelongsToTenant;
 
-class CustomFieldConfiguration extends Model
+class CustomFieldConfiguration extends _CustomFieldConfiguration
 {
+    use BelongsToTenant;
+
     protected $table = 'custom_field_configuration';
 
     protected $fillable = [
@@ -13,7 +16,6 @@ class CustomFieldConfiguration extends Model
         'field_key',
         'field_description',
         'data_type',
-        'aggregation_type',
         'source_type',
         'is_required',
         'is_active',
