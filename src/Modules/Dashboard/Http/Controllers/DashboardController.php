@@ -2,6 +2,7 @@
 
 namespace Modules\Dashboard\Http\Controllers;
 
+use App\Helpers\RotateAirportHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -30,15 +31,20 @@ class DashboardController extends Controller
             ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
             ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')
             ->leftJoin('users', 'pireps.user_id', '=', 'users.id')
-            ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name')
+            ->leftJoin('events', 'pireps.event_id', '=', 'events.id')
+            ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name', 'events.event_name', 'events.origin as event_origin', 'events.destination as event_destination')
             ->where('pireps.deleted_at', null)
             ->where('pireps.tenant_id', app('currentTenant')->id)
             ->orderBy('pireps.created_at', 'desc')
             ->take(5)
             ->get();
         foreach ($pireps as $pirep) {
-            $pirep->route = $pirep->origin . ' - ' . $pirep->destination;
+            $pirep->origin = $pirep->origin ?? $pirep->event_origin;
+            $pirep->destination = $pirep->destination ?? $pirep->event_destination;
+            $pirep->route = $pirep->origin  . ' - ' . $pirep->destination;
+            $pirep->distance = $pirep->distance ?? RotateAirportHelper::distanceBetweenICAOs($pirep->origin, $pirep->destination);
             $pirep->time_ago = Carbon::parse($pirep->created_at)->diffForHumans();
+            $pirep->event_name = $pirep->event_name ?? 'None';
         }
 
         // Fetch latest 5 events
@@ -65,7 +71,7 @@ class DashboardController extends Controller
             ['title' => 'Your Total Flights', 'value' => Pirep::where('user_id', $user->id)->count(), 'type' => 'flights'],
             ['title' => 'Your Total Routes', 'value' => Route::count(), 'type' => 'routes'],
             ['title' => 'Upcoming Rank', 'value' => $upcomingRank->name, 'caption' => $upcomingRank->caption, 'type' => 'ranks'],
-            ['title' => 'Upcoming Events', 'value' => Event::where('event_date_time', '>', now())->count(), 'type' => 'events'],
+            ['title' => 'Upcoming Events', 'value' => Event::where('event_date_time', '>', time())->where('tenant_id', app('currentTenant')->id)->count(), 'type' => 'events'],
         ];
 
         return Inertia::render('Dashboard/Pages/DashboardView', [

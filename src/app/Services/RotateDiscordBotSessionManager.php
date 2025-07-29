@@ -6,11 +6,12 @@ class RotateDiscordBotSessionManager
 {
     protected static array $sessions = [];
 
-    public static function start(string $userId): void
+    public static function start(string $userId, string $sessionType = 'pirep'): void
     {
         self::$sessions[$userId] = [
             'step' => 'origin',
-            'data' => []
+            'data' => [],
+            'session_type' => $sessionType
         ];
     }
 
@@ -27,6 +28,11 @@ class RotateDiscordBotSessionManager
     public static function getData(string $userId): array
     {
         return self::$sessions[$userId]['data'] ?? [];
+    }
+
+    public static function getSessionType(string $userId): ?string
+    {
+        return self::$sessions[$userId]['session_type'] ?? null;
     }
 
     public static function update(string $userId, string $key, string $value, string $nextStep): void

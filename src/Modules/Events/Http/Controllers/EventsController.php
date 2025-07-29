@@ -271,6 +271,12 @@ class EventsController extends Controller
             return response()->json($this->errorBag);
         }
 
+        if (!Event::checkIsUserWasParticipant($event->id, Auth::user()->id)) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'You are not a participant of this event';
+            return response()->json($this->errorBag);
+        }
+
         $pirep = Pirep::createEditPirep($request->all(), 'edit', true);
         
         if (isset($pirep['error'])) {

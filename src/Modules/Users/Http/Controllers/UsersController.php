@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Exporters\RotatePilotsExporter;
+use App\Models\Pirep;
+
 use function App\Helpers\tenant_cache_remember;
 use function App\Helpers\tenant_cache_forget;
 
@@ -43,7 +45,7 @@ class UsersController extends Controller
                 'totalPilots' => $analyticsUsers->count(),
                 'activePilots' => $analyticsUsers->where('status', User::PILOT_STATUS_ACTIVE)->count(),
                 'totalFlyingHours' => $analyticsUsers->sum('flying_hours'),
-                'totalFlyingDistance' => DB::table('pireps')->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')->sum('routes.distance'),
+                'totalFlyingDistance' => Pirep::getTotalFlyingDistance(),
             ];
         });
         return response()->json([

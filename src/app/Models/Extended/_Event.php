@@ -8,6 +8,7 @@ use App\Models\EventAttendance;
 use App\Models\CustomFieldValues;
 use App\Models\DiscordSettings;
 use App\Events\EventCreated;
+use App\Helpers\RotateConstants;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
@@ -77,5 +78,11 @@ class _Event extends Model
         $event->delete();
 
         return ['success' => 'Event deleted successfully'];
+    }
+
+    public static function checkIsUserWasParticipant($eventId, $userId)
+    {
+        $eventAttendance = EventAttendance::where('event_id', $eventId)->where('user_id', $userId)->first();
+        return $eventAttendance ? true : false;
     }
 }

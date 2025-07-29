@@ -171,11 +171,16 @@ class User extends Authenticatable
     {
         $flights = DB::table('pireps')
             ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
-            ->select('routes.origin', 'routes.destination')
+            ->leftJoin('events', 'pireps.event_id', '=', 'events.id')
+            ->select('routes.origin', 'routes.destination', 'events.event_name', 'events.origin as event_origin', 'events.destination as event_destination')
             ->where('pireps.user_id', $pilotId)
             ->orderBy('pireps.created_at', 'desc')
             ->take(5)
             ->get();
+        foreach ($flights as $flight) {
+            $flight->origin = $flight->origin ?? $flight->event_origin;
+            $flight->destination = $flight->destination ?? $flight->event_destination;
+        }
         return $flights;
     }
 }

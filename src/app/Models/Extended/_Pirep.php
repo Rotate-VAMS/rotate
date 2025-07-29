@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Leaderboard;
 use App\Models\SystemSettings;
+use App\Helpers\RotateAirportHelper;
+use Illuminate\Support\Facades\DB;
 
 class _Pirep extends Model
 {
@@ -75,6 +77,24 @@ class _Pirep extends Model
         }
 
         return ['success' => $mode === 'create' ? 'Pirep created successfully' : 'Pirep updated successfully'];
+    }
+
+    public static function getTotalFlyingDistance()
+    {
+        $pireps = DB::table('pireps')
+            ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
+            ->leftJoin('events', 'pireps.event_id', '=', 'events.id')
+            ->select('routes.origin', 'routes.destination', 'events.event_name', 'events.origin as event_origin', 'events.destination as event_destination')
+            ->where('pireps.tenant_id', app('currentTenant')->id)
+            ->get();
+        $totalDistance = 0;
+        foreach ($pireps as $pirep) {
+            $origin = $pirep->origin ?? $pirep->event_origin;
+            $destination = $pirep->destination ?? $pirep->event_destination;
+            $totalDistance += RotateAirportHelper::distanceBetweenICAOs($origin, $destination);
+        }
+
+        return round($totalDistance, 2);
     }
 
 }

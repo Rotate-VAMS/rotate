@@ -13,7 +13,11 @@
         </div>
         <div>
           <p class="font-bold text-xs sm:text-sm">{{ activity.pilot_name }}</p>
-          <p class="text-sm text-gray-500">{{ activity.origin }} → {{ activity.destination }} · {{ activity.flight_number }}</p>
+          <p class="text-sm text-gray-500"
+            :class="{ 'shadow-md rounded-full text-xs text-gray-800 font-semibold bg-gradient-to-br from-yellow-200 via-yellow-400 to-yellow-200 border border-yellow-400 px-2 py-1 mt-1': !activity.flight_number }"
+          >
+            {{ activity.origin }} → {{ activity.destination }} · {{ activity.flight_number ? activity.flight_number : activity.event_name }}
+          </p>
         </div>
       </div>
       <div class="text-xs text-right">
