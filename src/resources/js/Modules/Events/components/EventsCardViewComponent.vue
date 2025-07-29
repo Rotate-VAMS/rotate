@@ -90,7 +90,7 @@
               <span class="bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-xs font-semibold">{{ getCustomFieldValue(event, customField.field_key) }}</span>
             </div>
           </div>
-          <div v-if="!event.completed" class="flex items-center gap-2 p-4 border-t bg-gray-50">
+          <div v-if="!event.completed && !event.pirep_filled" class="flex items-center gap-2 p-4 border-t bg-gray-50">
             <button
               @click="event.attendees.includes(user.id) ? deregisterForEvent(event) : registerForEvent(event)"
               class="flex items-center gap-2 text-sm"
@@ -102,7 +102,7 @@
               <span v-if="event.attendees.includes(user.id)">Deregister</span>
             </button>
           </div>
-          <div v-else class="flex items-center gap-2 p-4 border-t bg-gray-50">
+          <div v-else-if="!event.pirep_filled && event.attendees.includes(user.id)" class="flex items-center gap-2 p-4 border-t bg-gray-50">
             <button
               @click="fileEventPirep(event)"
               class="flex items-center gap-2 text-sm text-green-600 hover:text-green-800"
@@ -439,6 +439,7 @@ const submitEventPirep = async (payload) => {
     
     showToast(response.message || 'PIREP filed successfully', 'success')
     closePirepDrawer()
+    fetchEvents()
     page.props.loading = false
   } catch (e) {
     console.error(e)

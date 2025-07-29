@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Exporters\RotatePilotsExporter;
 use App\Models\Pirep;
-
+use App\Helpers\RotateConstants;
 use function App\Helpers\tenant_cache_remember;
 use function App\Helpers\tenant_cache_forget;
 
@@ -36,10 +36,10 @@ class UsersController extends Controller
 
     public function jxFetchPilots()
     {
-        $pilots = tenant_cache_remember('users:pilots:all', 1800, function () {
+        $pilots = tenant_cache_remember('users:pilots:all', RotateConstants::SECONDS_IN_ONE_DAY, function () {
             return User::fetchAllPilots();
         });
-        $analyticsUsers = tenant_cache_remember('users:pilots:analytics', 1800, function () {
+        $analyticsUsers = tenant_cache_remember('users:pilots:analytics', RotateConstants::SECONDS_IN_ONE_DAY, function () {
             $analyticsUsers = User::where('tenant_id', app('currentTenant')->id)->get();
             return [
                 'totalPilots' => $analyticsUsers->count(),

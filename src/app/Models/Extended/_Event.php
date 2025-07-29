@@ -9,6 +9,7 @@ use App\Models\CustomFieldValues;
 use App\Models\DiscordSettings;
 use App\Events\EventCreated;
 use App\Helpers\RotateConstants;
+use App\Models\Pirep;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
@@ -84,5 +85,11 @@ class _Event extends Model
     {
         $eventAttendance = EventAttendance::where('event_id', $eventId)->where('user_id', $userId)->first();
         return $eventAttendance ? true : false;
+    }
+
+    public static function checkIfEventPirepIsFilled($eventId, $userId)
+    {
+        $pirep = Pirep::where('event_id', $eventId)->where('user_id', $userId)->first();
+        return $pirep ? true : false;
     }
 }

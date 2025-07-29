@@ -11,6 +11,7 @@ use App\Models\Leaderboard;
 use App\Models\SystemSettings;
 use App\Helpers\RotateAirportHelper;
 use Illuminate\Support\Facades\DB;
+use function App\Helpers\tenant_cache_forget;
 
 class _Pirep extends Model
 {
@@ -47,6 +48,8 @@ class _Pirep extends Model
         }
 
         if (SystemSettings::getSystemSetting(SystemSettings::LEADERBOARD_POINTS_CONFIGURATION)->value === SystemSettings::SETTING_ENABLED && $mode === 'create') {
+            tenant_cache_forget('leaderboard:user_data:dashboard');
+            tenant_cache_forget('leaderboard:user_data:full');
             $pirepCount = Pirep::where('user_id', $pirep->user_id)->count();
 
             Leaderboard::logLeaderboardEvent($pirep->user_id, Leaderboard::EVENT_FILE_PIREP);

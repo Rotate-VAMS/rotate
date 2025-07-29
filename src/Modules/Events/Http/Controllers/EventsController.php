@@ -2,6 +2,7 @@
 
 namespace Modules\Events\Http\Controllers;
 
+use App\Helpers\RotateConstants;
 use App\Helpers\RotateAirportHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
@@ -92,10 +93,11 @@ class EventsController extends Controller
     public function jxFetchEvents(Request $request)
     {
         $cacheKey = 'events:list:upcoming';
-        $events = tenant_cache_remember($cacheKey, 1800, function () {
-            $events = Event::orderBy('event_date_time', 'asc')->get();
+        $events = tenant_cache_remember($cacheKey, RotateConstants::SECONDS_IN_ONE_DAY, function () {
+            $events = Event::orderBy('event_date_time', 'desc')->get();
             foreach ($events as $event) {
                 $event->attendees = EventAttendance::where('event_id', $event->id)->get()->pluck('user_id')->toArray();
+                $event->pirep_filled = Event::checkIfEventPirepIsFilled($event->id, Auth::user()->id);
                 $event->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_EVENTS, $event->id);
                 $event->origin_city = RotateAirportHelper::icaoToCity($event->origin);
                 $event->destination_city = RotateAirportHelper::icaoToCity($event->destination);
@@ -243,6 +245,7 @@ class EventsController extends Controller
         }
         
         tenant_cache_forget('pireps:list:all');
+        tenant_cache_forget('events:list:upcoming');
         return response()->json([
             'hasErrors' => false,
             'message' => $pirep['success']
@@ -271,12 +274,6 @@ class EventsController extends Controller
             return response()->json($this->errorBag);
         }
 
-        if (!Event::checkIsUserWasParticipant($event->id, Auth::user()->id)) {
-            $this->errorBag['hasErrors'] = true;
-            $this->errorBag['message'] = 'You are not a participant of this event';
-            return response()->json($this->errorBag);
-        }
-
         $pirep = Pirep::createEditPirep($request->all(), 'edit', true);
         
         if (isset($pirep['error'])) {
@@ -286,6 +283,7 @@ class EventsController extends Controller
         }
         
         tenant_cache_forget('pireps:list:all');
+        tenant_cache_forget('events:list:upcoming');
         return response()->json([
             'hasErrors' => false,
             'message' => $pirep['success']

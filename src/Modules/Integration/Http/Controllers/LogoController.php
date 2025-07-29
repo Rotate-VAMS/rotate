@@ -40,7 +40,7 @@ class LogoController extends Controller
     public function jxFetchLogo(Request $request)
     {
         $default = false;
-        $logo = tenant_cache_remember('integration:logo', 1800, function () {
+        $logo = tenant_cache_remember('integration:logo', RotateConstants::SECONDS_IN_ONE_DAY, function () {
             $logo = Documents::fetchDocument(Documents::DOCUMENT_TYPE_LOGO, RotateConstants::CONSTANT_FOR_ONE);
             return $logo;
         });

@@ -2,6 +2,7 @@
 
 namespace Modules\Integration\Http\Controllers;
 
+use App\Helpers\RotateConstants;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -40,7 +41,7 @@ class RanksController extends Controller
 
     public function jxFetchRanks(Request $request)
     {
-        $ranks = tenant_cache_remember('integration:ranks:all', 1800, function () {
+        $ranks = tenant_cache_remember('integration:ranks:all', RotateConstants::SECONDS_IN_ONE_DAY, function () {
             return Rank::all();
         });
         return response()->json([

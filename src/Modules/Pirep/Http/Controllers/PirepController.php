@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\RotateAirportHelper;
+use App\Helpers\RotateConstants;
 use App\Models\Event;
 
 use function App\Helpers\tenant_cache_remember;
@@ -50,7 +51,7 @@ class PirepController extends Controller
                 ->orderBy('pireps.created_at', 'desc')
                 ->get();
         } else {
-            $pireps = tenant_cache_remember('pireps:list:all', 1800, function () {
+            $pireps = tenant_cache_remember('pireps:list:all', RotateConstants::SECONDS_IN_ONE_DAY, function () {
                 $pireps = DB::table('pireps')
                     ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
                     ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')

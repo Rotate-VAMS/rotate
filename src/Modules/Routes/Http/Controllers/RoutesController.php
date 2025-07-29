@@ -15,6 +15,8 @@ use App\Models\CustomFieldValues;
 use Illuminate\Support\Facades\Auth;
 use App\Importers\RotateRoutesImporter;
 use App\Exporters\RotateRoutesExporter;
+use App\Helpers\RotateConstants;
+
 use function App\Helpers\tenant_cache_remember;
 use function App\Helpers\tenant_cache_forget;
 
@@ -45,7 +47,7 @@ class RoutesController extends Controller
     {
         $scope = $request->scope ?? 'all';
         $cacheKey = 'routes:list:' . $scope;
-        $routesData = tenant_cache_remember($cacheKey, 1800, function () use ($scope) {
+        $routesData = tenant_cache_remember($cacheKey, RotateConstants::SECONDS_IN_ONE_DAY, function () use ($scope) {
             $routes = Route::all();
             if ($scope === 'active') {
                 $routes = $routes->where('status', Route::ROUTE_STATUS_ACTIVE);

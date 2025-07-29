@@ -7,7 +7,7 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <EventsAnalyticsCard title="Total Events" :value="analyticsData.totalEvents" :icon="icons.Users" />
         <EventsAnalyticsCard title="Active Events" :value="analyticsData.activeEvents" :icon="icons.Activity" />
-        </div>
+      </div>
   
       <EventsCardViewComponent @update:analytics="updateAnalytics" />
     </div>

@@ -2,6 +2,7 @@
 
 namespace Modules\Integration\Http\Controllers;
 
+use App\Helpers\RotateConstants;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -57,7 +58,7 @@ class IntegrationController extends Controller
 
     public function jxFetchCustomFields(Request $request)
     {
-        $customFieldConfigurations = tenant_cache_remember('integration:custom_fields:all', 1800, function () {
+        $customFieldConfigurations = tenant_cache_remember('integration:custom_fields:all', RotateConstants::SECONDS_IN_ONE_DAY, function () {
             return CustomFieldConfiguration::all();
         });
         return response()->json([
@@ -143,7 +144,7 @@ class IntegrationController extends Controller
         }
 
         $cacheKey = 'integration:custom_field_options:' . $request->field_id;
-        $customFieldOptions = tenant_cache_remember($cacheKey, 1800, function () use ($request) {
+        $customFieldOptions = tenant_cache_remember($cacheKey, RotateConstants::SECONDS_IN_ONE_DAY, function () use ($request) {
             return CustomFieldOptions::fetchCustomFieldOptions($request->field_id);
         });
         return response()->json([
