@@ -1,69 +1,80 @@
 <template>
-  <div class="p-6 bg-white rounded-xl shadow-sm relative">
-    <div class="flex flex-row justify-between items-center mb-2">
-      <h2 class="text-lg font-semibold">Custom Field Configuration</h2>
-      <button
-        @click="openDrawerForCreate"
-        class="btn-primary bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-bold rounded-md px-4 py-2 flex items-center gap-2"
-      >
-        <PlusIcon class="w-4 h-4" /> Create New Field
-      </button>
-    </div>
-    <p>Manage your custom fields and their configurations.</p>
-
-    <!-- Custom Fields Card Grid -->
-    <div v-if="customFields.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-      <div
-        v-for="field in customFields"
-        :key="field.id"
-        class="bg-gray-50 border border-gray-200 rounded-lg p-5 flex flex-col justify-between shadow-sm"
-      >
-        <div>
-          <h3 class="font-semibold text-base mb-1">{{ field.field_name }}</h3>
-          <p class="text-gray-600 text-sm mb-4">{{ field.field_description }}</p>
+    <div class="max-w-4xl mx-auto p-4 sm:p-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+      <div class="flex items-center gap-3 mb-4 sm:mb-0">
+        <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+          <Hash class="w-6 h-6 text-white" />
         </div>
-        <div class="flex gap-2">
-          <button class="btn btn-sm flex items-center gap-2" @click="editField(field)">
-            <EditIcon class="w-4 h-4" />
-            <span class="text-sm">Edit</span>
-          </button>
-          <button v-if="field.data_type === 6" class="btn btn-sm flex items-center gap-2" @click="configureField(field)">
-            <SettingsIcon class="w-4 h-4" />
-            <span class="text-sm">Configure</span>
-          </button>
-          <button class="btn btn-sm flex items-center gap-2" @click="deleteField(field)">
-            <TrashIcon class="w-4 h-4" />
-            <span class="text-sm">Delete</span>
-          </button>
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Custom Fields</h1>
+          <p class="text-gray-600 text-sm sm:text-base">Manage your custom fields and their configurations.</p>
         </div>
       </div>
+      <div class="flex flex-row justify-between items-center mb-2">
+        <button
+          @click="openDrawerForCreate"
+          class="btn-primary bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-bold rounded-md px-4 py-2 flex items-center gap-2"
+        >
+          <PlusIcon class="w-4 h-4" /> Create New Field
+        </button>
+      </div>
     </div>
-    <div v-else class="text-gray-400 text-center mt-8">
-      No custom fields found.
-    </div>
+    <div class="p-6 bg-white rounded-xl shadow-sm relative">
+      <!-- Custom Fields Card Grid -->
+      <div v-if="customFields.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+        <div
+          v-for="field in customFields"
+          :key="field.id"
+          class="bg-gray-50 border border-gray-200 rounded-lg p-5 flex flex-col justify-between shadow-sm"
+        >
+          <div>
+            <h3 class="font-semibold text-base mb-1">{{ field.field_name }}</h3>
+            <p class="text-gray-600 text-sm mb-4">{{ field.field_description }}</p>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-sm flex items-center gap-2" @click="editField(field)">
+              <EditIcon class="w-4 h-4" />
+              <span class="text-sm">Edit</span>
+            </button>
+            <button v-if="field.data_type === 6" class="btn btn-sm flex items-center gap-2" @click="configureField(field)">
+              <SettingsIcon class="w-4 h-4" />
+              <span class="text-sm">Configure</span>
+            </button>
+            <button class="btn btn-sm flex items-center gap-2" @click="deleteField(field)">
+              <TrashIcon class="w-4 h-4" />
+              <span class="text-sm">Delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div v-else class="text-gray-400 text-center">
+        No custom fields found.
+      </div>
 
-    <!-- Inject RotateFormComponent drawer -->
-    <RotateFormComponent
-      :visible="showDrawer"
-      :title="formMode === 'create' ? 'Create Custom Field' : 'Edit Custom Field'"
-      :fields="formFields"
-      :initialData="formData"
-      :isEditMode="formMode === 'edit'"
-      @close="showDrawer = false"
-      @submit="submitForm"
-    />
+      <!-- Inject RotateFormComponent drawer -->
+      <RotateFormComponent
+        :visible="showDrawer"
+        :title="formMode === 'create' ? 'Create Custom Field' : 'Edit Custom Field'"
+        :fields="formFields"
+        :initialData="formData"
+        :isEditMode="formMode === 'edit'"
+        @close="showDrawer = false"
+        @submit="submitForm"
+      />
 
-    <!-- Configure Drawer -->
-    <div v-if="showConfigureDrawer" class="fixed inset-0 z-50 overflow-hidden">
-      <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-      <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
-        <div class="w-screen max-w-md">
-          <CustomFieldDropdownConfigureComponent
-            :field="selectedFieldForConfigure"
-            :visible="showConfigureDrawer"
-            @close="showConfigureDrawer = false"
-            @save="handleConfigureSave"
-          />
+      <!-- Configure Drawer -->
+      <div v-if="showConfigureDrawer" class="fixed inset-0 z-50 overflow-hidden">
+        <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+        <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+          <div class="w-screen max-w-md">
+            <CustomFieldDropdownConfigureComponent
+              :field="selectedFieldForConfigure"
+              :visible="showConfigureDrawer"
+              @close="showConfigureDrawer = false"
+              @save="handleConfigureSave"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -72,7 +83,7 @@
 
 <script setup>
 import { ref, inject } from 'vue'
-import { PlusIcon, EditIcon, TrashIcon, SettingsIcon } from 'lucide-vue-next'
+import { PlusIcon, EditIcon, TrashIcon, SettingsIcon, Hash } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import CustomFieldDropdownConfigureComponent from './CustomFieldDropdownConfigureComponent.vue'
 import rotateDataService from '@/rotate.js'

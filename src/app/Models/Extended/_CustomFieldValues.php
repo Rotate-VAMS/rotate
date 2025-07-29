@@ -5,6 +5,7 @@ namespace App\Models\Extended;
 use App\Models\CustomFieldValues;
 use App\Models\CustomFieldConfiguration;
 use App\Helpers\RotateConstants;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -46,7 +47,7 @@ class _CustomFieldValues extends Model
                     $customFieldValue->value_display = $customFieldValue->value;
                     break;
                 case CustomFieldConfiguration::DATA_TYPE_DATE:
-                    $customFieldValue->value_display = $customFieldValue->value;
+                    $customFieldValue->value_display = date('Y-m-d H:i:s', strtotime($customFieldValue->value));
                     break;
                 default:
                     break;

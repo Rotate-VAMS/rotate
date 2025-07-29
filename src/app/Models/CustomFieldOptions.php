@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use App\Models\Extended\_CustomFieldOptions;
+use App\Models\Traits\BelongsToTenant;
 
 class CustomFieldOptions extends _CustomFieldOptions
 {
+    use BelongsToTenant;
+
     protected $table = 'custom_field_options';
 
     protected $fillable = [

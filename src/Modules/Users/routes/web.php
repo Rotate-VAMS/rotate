@@ -11,5 +11,14 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::post('/jxDeletePilot', 'jxDeletePilot')->name('pilots.jxDeletePilot');
         Route::get('/jxGetUserCustomFields', 'jxGetUserCustomFields')->name('pilots.jxGetUserCustomFields');
         Route::post('/jxTogglePilotStatus', 'jxTogglePilotStatus')->name('pilots.jxTogglePilotStatus');
+        
+        // Manage Profile
+        Route::get('/manage-profile', 'manageProfile')->name('pilots.manageProfile');
+        Route::post('/jxUpdatePersonalInfo', 'jxUpdatePersonalInfo')->name('pilots.jxUpdatePersonalInfo');
+        Route::post('/jxUpdatePassword', 'jxUpdatePassword')->name('pilots.jxUpdatePassword');
+        Route::post('/jxUpdateDiscordInfo', 'jxUpdateDiscordInfo')->name('pilots.jxUpdateDiscordInfo');
+
+        // Export pilots
+        Route::get('/jxExportPilots', 'jxExportPilots')->name('pilots.jxExportPilots');
     });
 });

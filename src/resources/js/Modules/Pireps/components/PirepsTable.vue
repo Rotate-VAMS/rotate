@@ -31,11 +31,22 @@
     <table class="w-full text-sm text-left text-gray-700">
       <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
         <tr>
-          <th class="px-6 py-3 cursor-pointer hover:bg-gray-200 transition-colors">Route</th>
-          <th class="px-6 py-3">Flight Time</th>
-          <th class="px-6 py-3">Flight Type</th>
-          <th class="px-6 py-3">Distance</th>
-          <th class="px-6 py-3">Status</th>
+          <!-- Show icon and text inline if possible -->
+          <th class="px-6 py-3 hover:bg-gray-200 transition-colors">
+            <UserIcon class="w-4 h-4 inline-block mr-2" /> Pilot
+          </th>
+          <th class="px-6 py-3 hover:bg-gray-200 transition-colors">
+            <RouteIcon class="w-4 h-4 inline-block mr-2" /> Route
+          </th>
+          <th class="px-6 py-3 hover:bg-gray-200 transition-colors">
+            <ClockIcon class="w-4 h-4 inline-block mr-2" /> Flight Time
+          </th>
+          <th class="px-6 py-3 hover:bg-gray-200 transition-colors">
+            <PlaneIcon class="w-4 h-4 inline-block mr-2" /> Flight Type
+          </th>
+          <th class="px-6 py-3 hover:bg-gray-200 transition-colors">
+            <RouteIcon class="w-4 h-4 inline-block mr-2" /> Distance
+          </th>
           <th 
             v-for="customField in customFields" 
             :key="customField.id" 
@@ -43,7 +54,7 @@
           >
             {{ customField.field_name }}
           </th>
-          <th class="px-6 py-3" v-if="user.permissions.includes('edit-pirep') || user.permissions.includes('delete-pirep')">Actions</th>
+          <th class="px-6 py-3" v-if="user.permissions.includes('edit-all-pirep') || user.permissions.includes('delete-all-pirep') || user.permissions.includes('edit-own-pirep') || user.permissions.includes('delete-own-pirep')">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -53,32 +64,47 @@
           class="border-b hover:bg-gray-50"
         >
           <td class="px-6 py-4">
-            <div class="font-semibold">{{ pirep.route }}</div>
-            <div class="text-s text-gray-400">{{ pirep.flight_number }}</div>
+            <div class="font-semibold">{{ pirep.pilot_name }}</div>
+            <div class="text-s text-gray-400">{{ pirep.callsign }}</div>
           </td>
           <td class="px-6 py-4">
-            <div class="text-xs text-gray-400">{{ formatFlightTime(pirep.flight_time) }}</div>
+            <div class="font-semibold">{{ pirep.origin }} - {{ pirep.destination }}</div>
+            <div v-if="pirep.flight_number" class="text-s text-gray-400">{{ pirep.flight_number }}</div>
+            <div v-else class="flex items-center gap-2 mt-2">
+              <span class="shadow-md rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-yellow-200 px-2 py-1 text-xs text-gray-800 border border-yellow-400 font-semibold">{{ pirep.event_name }}</span>
+            </div>
           </td>
           <td class="px-6 py-4">
-            <div class="text-xs text-gray-400">{{ pirep.flight_type_name }}</div>
+            <div class="font-semibold">{{ formatFlightTime(pirep.flight_time) }}</div>
           </td>
-          <td class="px-6 py-4 text-center font-medium">{{ pirep.distance }} NM</td>
           <td class="px-6 py-4">
-            <div class="text-xs text-gray-400">{{ pirep.status ? 'Completed' : 'In-Progress' }}</div>
+            <div class="flex items-center gap-2">
+              <span 
+                :class="getFlightTypePillClass(pirep.flight_type_name)"
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white"
+              >
+                {{ pirep.flight_type_name }}
+              </span>
+              <span class="text-xs text-gray-400">({{ pirep.multiplier }}x)</span>
+            </div>
           </td>
+          <td class="px-6 py-4">
+            <div class="font-semibold">{{ pirep.distance }} NM</div>
+          </td>
+
           <td 
             v-for="customField in customFields" 
             :key="customField.id" 
             class="px-6 py-4"
           >
-            <div class="text-sm">
+            <div class="font-semibold">
               {{ getCustomFieldValue(pirep, customField.field_key) }}
             </div>
           </td>
-          <td class="px-6 py-4" v-if="user.permissions.includes('edit-pirep') || user.permissions.includes('delete-pirep')">
+          <td class="px-6 py-4" v-if="user.permissions.includes('edit-all-pirep') || user.permissions.includes('delete-all-pirep') || (user.permissions.includes('edit-own-pirep') && pirep.user_id === user.id) || (user.permissions.includes('delete-own-pirep') && pirep.user_id === user.id)">
             <div class="flex items-center gap-2">
               <button 
-                v-if="user.permissions.includes('edit-pirep')"
+                v-if="user.permissions.includes('edit-all-pirep') || (user.permissions.includes('edit-own-pirep') && pirep.user_id === user.id)"
                 @click="editPirep(pirep)"
                 class="text-blue-600 hover:text-blue-800 p-1 rounded"
                 title="Edit Pirep"
@@ -86,7 +112,7 @@
                 <EditIcon class="w-4 h-4" />
               </button>
               <button 
-                v-if="user.permissions.includes('delete-pirep')"
+                v-if="user.permissions.includes('delete-all-pirep') || (user.permissions.includes('delete-own-pirep') && pirep.user_id === user.id)"
                 @click="deletePirep(pirep)"
                 class="text-red-600 hover:text-red-800 p-1 rounded"
                 title="Delete Pirep"
@@ -103,8 +129,9 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
-import { FilterIcon, BadgeIcon, EditIcon, TrashIcon } from 'lucide-vue-next'
+import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, UserIcon, ClockIcon, PlaneIcon } from 'lucide-vue-next'
 import RotateDataService from '@/rotate.js'
+import { RouteIcon } from 'lucide-vue-next';
 import { usePage } from '@inertiajs/vue3';
 
 const showToast = inject('showToast');
@@ -180,6 +207,31 @@ const getCustomFieldValue = (pirep, fieldKey) => {
   return '-'
 }
 
+// Function to get gradient class for flight type pills
+const getFlightTypePillClass = (flightTypeName) => {
+  const gradients = [
+    'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-md',
+    'bg-gradient-to-r from-blue-500 to-cyan-600 shadow-md',
+    'bg-gradient-to-r from-green-500 to-emerald-600 shadow-md',
+    'bg-gradient-to-r from-orange-500 to-red-600 shadow-md',
+    'bg-gradient-to-r from-pink-500 to-rose-600 shadow-md',
+    'bg-gradient-to-r from-yellow-500 to-orange-600 shadow-md',
+    'bg-gradient-to-r from-teal-500 to-blue-600 shadow-md',
+    'bg-gradient-to-r from-purple-500 to-pink-600 shadow-md',
+    'bg-gradient-to-r from-red-500 to-pink-600 shadow-md',
+    'bg-gradient-to-r from-cyan-500 to-blue-600 shadow-md',
+    'bg-gradient-to-r from-emerald-500 to-teal-600 shadow-md',
+    'bg-gradient-to-r from-violet-500 to-purple-600 shadow-md'
+  ];
+  
+  // Assign classes randomly
+  const hash = flightTypeName.split('').reduce((acc, char) => {
+    return acc + char.charCodeAt(0);
+  }, 0);
+  
+  return gradients[Math.abs(hash) % gradients.length];
+};
+
 const formatFlightTime = (totalMinutes) => {
   if (totalMinutes === null || totalMinutes === undefined) {
     return '-';
@@ -196,32 +248,29 @@ const editPirep = (pirep) => {
 }
 
 const deletePirep = async (pirep) => {
+  page.props.loading = true
   const response = await RotateDataService('/pireps/jxDeletePireps', { id: pirep.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred', 'error')
     return;
   }
   showToast(response.message || 'Pirep deleted successfully', 'success')
+  page.props.loading = false
   window.dispatchEvent(new CustomEvent('pireps-updated'))
 }
 
 // Event listeners
-const handlePirepsUpdated = () => {
-  window.dispatchEvent(new CustomEvent('pireps-updated'))
-}
-
 const handleEditPirep = (event) => {
   // This will be handled by the parent component
   window.dispatchEvent(new CustomEvent('open-edit-drawer', { detail: event.detail }))
 }
 
 onMounted(() => {
-  window.addEventListener('pireps-updated', handlePirepsUpdated)
   window.addEventListener('edit-pirep', handleEditPirep)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('pireps-updated', handlePirepsUpdated)
   window.removeEventListener('edit-pirep', handleEditPirep)
 })
 </script>

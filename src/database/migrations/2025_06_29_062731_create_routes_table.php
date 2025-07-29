@@ -21,6 +21,7 @@ return new class extends Migration
             $table->integer('flight_time');
             $table->unsignedBigInteger('min_rank_id');
             $table->boolean('status')->default(true);
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
             

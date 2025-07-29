@@ -4,11 +4,11 @@
       <Transition name="slide">
         <div
           v-if="visible"
-          class="fixed top-[64px] right-0 z-[9999] h-[calc(100vh-64px)] w-full lg:w-1/2 bg-white shadow-xl overflow-y-auto transition-all duration-300"
+          class="fixed top-0 right-0 z-[9999] h-screen w-full lg:w-1/2 bg-white shadow-xl overflow-y-auto transition-all duration-300"
         >
           <div class="p-4 border-b flex justify-between items-center">
             <h2 class="text-lg font-semibold text-gray-800">
-              {{ isEditMode ? 'Edit' : 'Create' }} {{ title }}
+              {{ title }}
             </h2>
             <button @click="closeDrawer" class="text-gray-500 hover:text-gray-800">
               <XIcon class="w-5 h-5" />

@@ -87,7 +87,10 @@
           <table class="w-full text-sm text-left text-gray-700 min-w-full">
             <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
               <tr>
-                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Pilot</th>
+                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+                  <PilotIcon class="w-4 h-4 inline-block mr-2" />
+                  Pilot
+                </th>
                 <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Rank</th>
                 <th class="px-4 sm:px-6 py-3 whitespace-nowrap text-center">Flights</th>
                 <th class="px-4 sm:px-6 py-3 whitespace-nowrap text-center">Hours</th>
@@ -190,12 +193,30 @@
       <table class="w-full text-sm text-left text-gray-700 min-w-full">
       <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
         <tr>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Pilot</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Rank</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap text-center">Flights</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap text-center">Hours</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Recent Flights</th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Status</th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+              <UserIcon class="w-4 h-4 inline-block mr-2" />
+              Pilot
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+              <BadgeIcon class="w-4 h-4 inline-block mr-2" />
+              Rank
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap text-center">
+              <PlaneIcon class="w-4 h-4 inline-block mr-2" />
+              Flights
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap text-center">
+              <ClockIcon class="w-4 h-4 inline-block mr-2" />
+              Hours
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+              <RouteIcon class="w-4 h-4 inline-block mr-2" />
+              Recent Flights
+            </th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">
+              <ShieldCheckIcon class="w-4 h-4 inline-block mr-2" />
+              Status
+            </th>
           <th 
             v-for="customField in customFields" 
             :key="customField.id" 
@@ -213,22 +234,33 @@
           class="border-b hover:bg-gray-50"
         >
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-            <div class="font-semibold">{{ pilot.name }}</div>
-            <div class="text-xs text-gray-400">{{ pilot.callsign }}</div>
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center justify-center">
+                  <span class="text-sm font-medium">{{ pilot.name.charAt(0) }}</span>
+                </div>
+                <div>
+                  <div class="font-semibold">{{ pilot.name }}</div>
+                  <div class="text-xs text-gray-400">{{ pilot.callsign }}</div>
+                </div>
+              </div>
           </td>
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-            <span :class="pilot.rank_color" class="inline-flex items-center text-sm font-medium px-2 py-1 rounded-full">
-              <BadgeIcon class="w-4 h-4 mr-1" /> {{ pilot.rank }}
+            <span :class="getRankPillClass(pilot.rank)" class="inline-flex items-center text-sm font-medium px-2 py-1 rounded-full text-white">
+              {{ pilot.rank }}
             </span>
           </td>
-            <td class="px-4 sm:px-6 py-4 text-center font-medium">{{ pilot.flights }}</td>
-            <td class="px-4 sm:px-6 py-4 text-center font-medium">{{ pilot.flying_hours }}</td>
+            <td class="px-4 sm:px-6 py-4 text-center font-medium">
+              <div class="font-semibold"> {{ pilot.flights }} </div>
+            </td>
+            <td class="px-4 sm:px-6 py-4 text-center font-medium">
+              <div class="font-semibold"> {{ pilot.flying_hours }} Hrs.</div>
+            </td>
             <td class="px-4 sm:px-6 py-4">
             <div class="flex gap-1 overflow-x-auto max-w-xs whitespace-nowrap">
               <span
                 v-for="flight in pilot.recent_flights"
                 :key="flight"
-                  class="bg-gray-200 text-xs rounded-full px-3 py-1 font-medium flex-shrink-0"
+                  class="bg-gray-300 text-xs font-semibold rounded-md px-3 py-1 flex-shrink-0"
               >
                 {{ flight.origin }} - {{ flight.destination }}
               </span>
@@ -236,7 +268,7 @@
           </td>
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
             <span
-              :class="pilot.status === '1' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'"
+              :class="pilot.status == 1 ? 'bg-gradient-to-r from-green-100 to-green-300 text-green-800' : 'bg-gradient-to-r from-red-100 to-red-300 text-red-800'"
               class="text-xs font-semibold px-3 py-1 rounded-full"
             >
               {{ statusText[pilot.status] }}
@@ -262,7 +294,7 @@
                 <EditIcon class="w-4 h-4" />
               </button>
               <button 
-                v-if="user.permissions.includes('delete-user')"
+                v-if="user.permissions.includes('delete-user') && user.id != pilot.id"
                 @click="deletePilot(pilot)"
                 class="text-red-600 hover:text-red-800 p-1 rounded"
                 title="Delete Pilot"
@@ -270,7 +302,7 @@
                 <TrashIcon class="w-4 h-4" />
               </button>
               <button
-                v-if="user.permissions.includes('edit-user')"
+                v-if="user.permissions.includes('edit-user') && user.id != pilot.id"
                 @click="togglePilotStatus(pilot)"
                 :class="pilot.status == '1' ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'"
                 class="p-1 rounded"
@@ -290,7 +322,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ShieldCheckIcon, ShieldMinusIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-vue-next'
+import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ShieldCheckIcon, ShieldMinusIcon, ChevronDownIcon, ChevronRightIcon, UserIcon, ClockIcon, PlaneIcon, RouteIcon } from 'lucide-vue-next'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 import { inject } from 'vue'
@@ -352,6 +384,30 @@ const filteredPilots = computed(() => {
     return false
   })
 })
+
+const getRankPillClass = (rank) => {
+  const gradients = [
+    'bg-gradient-to-r from-indigo-500 to-purple-500',
+    'bg-gradient-to-r from-blue-500 to-cyan-500',
+    'bg-gradient-to-r from-green-500 to-emerald-500',
+    'bg-gradient-to-r from-orange-500 to-red-500',
+    'bg-gradient-to-r from-pink-500 to-rose-500',
+    'bg-gradient-to-r from-yellow-500 to-orange-500',
+    'bg-gradient-to-r from-teal-500 to-blue-500',
+    'bg-gradient-to-r from-purple-500 to-pink-500',
+    'bg-gradient-to-r from-red-500 to-pink-500',
+    'bg-gradient-to-r from-cyan-500 to-blue-500',
+    'bg-gradient-to-r from-emerald-500 to-teal-500',
+    'bg-gradient-to-r from-violet-500 to-purple-500'
+  ];
+  
+  // Assign classes randomly
+  const hash = rank.split('').reduce((acc, char) => {
+    return acc + char.charCodeAt(0);
+  }, 0);
+  
+  return gradients[Math.abs(hash) % gradients.length];
+};
 
 // Computed property for grouped pilots
 const groupedPilots = computed(() => {
@@ -487,14 +543,17 @@ const toggleGroup = (groupKey) => {
 
 const fetchPilots = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/pilots/jxFetchPilots', {})
     pilots.value = response.data || []
     analytics.value = response.analytics || {}
     
     // Emit analytics data to parent component
     emit('analytics-updated', analytics.value)
+    page.props.loading = false
   } catch (e) {
     console.error(e)
+    page.props.loading = false
     showToast('Error fetching pilots', 'error')
   }
 }
@@ -506,23 +565,29 @@ const editPilot = (pilot) => {
 }
 
 const deletePilot = async (pilot) => {
+  page.props.loading = true
   const response = await rotateDataService('/pilots/jxDeletePilot', { id: pilot.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred', 'error')
     return;
   }
   showToast(response.message || 'Pilot deleted successfully', 'success')
   fetchPilots()
+  page.props.loading = false
 }
 
 const togglePilotStatus = async (pilot) => {
+  page.props.loading = true
   const response = await rotateDataService('/pilots/jxTogglePilotStatus', { id: pilot.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred', 'error')
     return;
   }
   showToast(response.message || 'Pilot status toggled successfully', 'success')
   fetchPilots()
+  page.props.loading = false
 }
 
 // Event listeners

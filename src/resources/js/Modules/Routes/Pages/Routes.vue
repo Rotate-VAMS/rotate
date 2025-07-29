@@ -40,23 +40,28 @@
   // Fetch route custom fields
   const fetchRouteCustomFields = async () => {
     try {
+      page.props.loading = true
       const response = await rotateDataService('/routes/jxGetRouteCustomFields')
       if (response.hasErrors) {
         showToast(response.message, 'error')
         return;
       }
       routeCustomFields.value = response.data
+      page.props.loading = false
     } catch (e) {
       showToast('Error fetching route custom fields', 'error')
+      page.props.loading = false
     }
   }
   fetchRouteCustomFields()
 
   // Handle edit route event
   const handleOpenEditDrawer = (event) => {
+    page.props.loading = true
     if (routesHeaderRef.value) {
       routesHeaderRef.value.openDrawerForEdit(event.detail)
     }
+    page.props.loading = false
   }
 
   const updateAnalytics = (analytics) => {

@@ -5,11 +5,10 @@ namespace Modules\Integration\Http\Controllers;
 use App\Helpers\RotateConstants;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
-use App\Models\CustomFieldConfiguration;
-use App\Models\CustomFieldOptions;
 use App\Models\Documents;
+use function App\Helpers\tenant_cache_remember;
+use function App\Helpers\tenant_cache_forget;
 
 class LogoController extends Controller
 {
@@ -34,15 +33,19 @@ class LogoController extends Controller
             $this->errorBag['message'] = $logo['error'];
             return response()->json($this->errorBag);
         }
+        tenant_cache_forget('integration:logo');
         return response()->json(['hasErrors' => false, 'message' => 'Logo created successfully']);
     }
 
     public function jxFetchLogo(Request $request)
     {
         $default = false;
-        $logo = Documents::fetchDocument(Documents::DOCUMENT_TYPE_LOGO, RotateConstants::CONSTANT_FOR_ONE);
+        $logo = tenant_cache_remember('integration:logo', RotateConstants::SECONDS_IN_ONE_DAY, function () {
+            $logo = Documents::fetchDocument(Documents::DOCUMENT_TYPE_LOGO, RotateConstants::CONSTANT_FOR_ONE);
+            return $logo;
+        });
         if (isset($logo['error'])) {
-            $logo = Documents::DEFAULT_LOGO;
+            $logo = null;
             $default = true;
         }
         return response()->json(['hasErrors' => false, 'default' => $default, 'data' => $logo]);
@@ -56,7 +59,7 @@ class LogoController extends Controller
             $this->errorBag['message'] = $deletedLogo['error'];
             return response()->json($this->errorBag);
         }
-
+        tenant_cache_forget('integration:logo');
         return response()->json(['hasErrors' => false, 'message' => 'Logo deleted successfully']);
     }
 }

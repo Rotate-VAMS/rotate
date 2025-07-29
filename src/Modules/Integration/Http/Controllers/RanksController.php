@@ -2,10 +2,13 @@
 
 namespace Modules\Integration\Http\Controllers;
 
+use App\Helpers\RotateConstants;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Rank;
+use function App\Helpers\tenant_cache_remember;
+use function App\Helpers\tenant_cache_forget;
 
 class RanksController extends Controller
 {
@@ -28,6 +31,7 @@ class RanksController extends Controller
             $this->errorBag['message'] = 'Failed to create rank';
             return response()->json($this->errorBag);
         }
+        tenant_cache_forget('integration:ranks:all');
 
         return response()->json([
             'hasErrors' => false,
@@ -37,7 +41,9 @@ class RanksController extends Controller
 
     public function jxFetchRanks(Request $request)
     {
-        $ranks = Rank::all();
+        $ranks = tenant_cache_remember('integration:ranks:all', RotateConstants::SECONDS_IN_ONE_DAY, function () {
+            return Rank::all();
+        });
         return response()->json([
             'hasErrors' => false,
             'data' => $ranks
@@ -58,6 +64,7 @@ class RanksController extends Controller
             $this->errorBag['message'] = 'Failed to delete rank';
             return response()->json($this->errorBag);
         }
+        tenant_cache_forget('integration:ranks:all');
     
         return response()->json([
             'hasErrors' => false,

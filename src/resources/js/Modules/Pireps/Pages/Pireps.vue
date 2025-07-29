@@ -70,7 +70,7 @@
         <div v-if="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <BoardingPass
             v-for="pirep in pireps"
-            :key="pirep.id"
+            :key="`${pirep.id}-${pirep.updated_at || pirep.created_at}`"
             :pirep="pirep"
             :custom-fields="pirepCustomFields"
           />
@@ -106,27 +106,33 @@ const analytics = ref({});
 // Fetch pirep custom fields
 const fetchPirepCustomFields = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/pireps/jxGetPirepCustomFields');
     if (response.hasErrors) {
       showToast(response.message, 'error');
       return;
     }
     pirepCustomFields.value = response.data;
+    page.props.loading = false
   } catch (e) {
     console.error(e)
     showToast('Error fetching pirep custom fields', 'error');
+    page.props.loading = false
   }
 };
 
 const fetchPireps = async (filter = 'my') => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/pireps/jxFetchPireps', {
       filter: filter
     })
     pireps.value = response.data || []
     analytics.value = response.analytics || {}
+    page.props.loading = false
   } catch (e) {
     console.error(e)
+    page.props.loading = false
     showToast('Error fetching pireps', 'error')
   }
 }
@@ -138,6 +144,11 @@ const handleOpenEditDrawer = (event) => {
   if (pirepsHeaderRef.value) {
     pirepsHeaderRef.value.openDrawerForEdit(event.detail);
   }
+};
+
+// Handle pireps updated event
+const handlePirepsUpdated = () => {
+  fetchPireps(pirepFilter.value);
 };
 
 const getViewFromQuery = () => {
@@ -190,9 +201,11 @@ onMounted(() => {
     pirepFilter.value = getFilterFromQuery();
   });
   window.addEventListener('open-edit-drawer', handleOpenEditDrawer);
+  window.addEventListener('pireps-updated', handlePirepsUpdated);
 });
 
 onUnmounted(() => {
   window.removeEventListener('open-edit-drawer', handleOpenEditDrawer);
+  window.removeEventListener('pireps-updated', handlePirepsUpdated);
 });
 </script>

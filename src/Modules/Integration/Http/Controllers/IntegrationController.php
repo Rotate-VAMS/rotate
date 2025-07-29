@@ -2,12 +2,15 @@
 
 namespace Modules\Integration\Http\Controllers;
 
+use App\Helpers\RotateConstants;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use App\Models\CustomFieldConfiguration;
 use App\Models\CustomFieldOptions;
+use function App\Helpers\tenant_cache_remember;
+use function App\Helpers\tenant_cache_forget;
 
 class IntegrationController extends Controller
 {
@@ -45,6 +48,7 @@ class IntegrationController extends Controller
             $this->errorBag['message'] = 'Failed to create custom field configuration';
             return response()->json($this->errorBag);
         }
+        tenant_cache_forget('integration:custom_fields:all');
 
         return response()->json([
             'hasErrors' => false,
@@ -54,7 +58,9 @@ class IntegrationController extends Controller
 
     public function jxFetchCustomFields(Request $request)
     {
-        $customFieldConfigurations = CustomFieldConfiguration::all();
+        $customFieldConfigurations = tenant_cache_remember('integration:custom_fields:all', RotateConstants::SECONDS_IN_ONE_DAY, function () {
+            return CustomFieldConfiguration::all();
+        });
         return response()->json([
             'hasErrors' => false,
             'data' => $customFieldConfigurations
@@ -75,6 +81,7 @@ class IntegrationController extends Controller
             $this->errorBag['message'] = 'Failed to delete custom field configuration';
             return response()->json($this->errorBag);
         }
+        tenant_cache_forget('integration:custom_fields:all');
 
         return response()->json([
             'hasErrors' => false,
@@ -115,6 +122,8 @@ class IntegrationController extends Controller
                 return response()->json($this->errorBag);
             }
         }
+        $cacheKey = 'integration:custom_field_options:' . $request->field_id;
+        tenant_cache_forget($cacheKey);
 
         return response()->json([
             'hasErrors' => false,
@@ -134,7 +143,10 @@ class IntegrationController extends Controller
             return response()->json($this->errorBag);
         }
 
-        $customFieldOptions = CustomFieldOptions::fetchCustomFieldOptions($request->field_id);
+        $cacheKey = 'integration:custom_field_options:' . $request->field_id;
+        $customFieldOptions = tenant_cache_remember($cacheKey, RotateConstants::SECONDS_IN_ONE_DAY, function () use ($request) {
+            return CustomFieldOptions::fetchCustomFieldOptions($request->field_id);
+        });
         return response()->json([
             'hasErrors' => false,
             'data' => $customFieldOptions
@@ -155,6 +167,8 @@ class IntegrationController extends Controller
             $this->errorBag['message'] = 'Failed to delete custom field option';
             return response()->json($this->errorBag);
         }
+        $cacheKey = 'integration:custom_field_options:' . $request->field_id;
+        tenant_cache_forget($cacheKey);
 
         return response()->json([
             'hasErrors' => false,

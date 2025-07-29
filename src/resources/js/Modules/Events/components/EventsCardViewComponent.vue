@@ -29,14 +29,14 @@
       </div>
       <div class="flex items-center gap-2 ml-4">
         <button
-          :class="viewMode === 'card' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
+          :class="viewMode === 'card' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white' : 'bg-gray-200 text-gray-700'"
           class="px-3 py-1 rounded focus:outline-none"
           @click="setViewMode('card')"
         >
           Card View
         </button>
         <button
-          :class="viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
+          :class="viewMode === 'grid' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white' : 'bg-gray-200 text-gray-700'"
           class="px-3 py-1 rounded focus:outline-none"
           @click="setViewMode('grid')"
         >
@@ -71,44 +71,71 @@
             <div class="text-sm text-gray-600 mb-1 truncate">{{ event.event_description }}</div>
             <div class="flex items-center gap-2 text-sm">
               <span class="font-medium">Departure:</span>
-              <span>{{ event.origin }}</span>
+              <span>{{ event.origin_city }}</span>
+              <span class="text-sm text-gray-700">({{ event.origin }})</span>
             </div>
             <div class="flex items-center gap-2 text-sm">
               <span class="font-medium">Arrival:</span>
-              <span>{{ event.destination }}</span>
+              <span>{{ event.destination_city }}</span>
+              <span class="text-sm text-gray-700">({{ event.destination }})</span>
             </div>
             <div class="flex items-center gap-2 text-sm">
               <span class="font-medium">Aircraft:</span>
-              <span v-for="aircraft in parseAircraft(event.aircraft)" :key="aircraft" class="bg-gray-200 text-xs rounded-full px-3 py-1 font-medium">{{ aircraft }}</span>
+              <div class="flex flex-wrap gap-2 max-w-xs overflow-x-auto">
+                <span v-for="aircraft in parseAircraft(event.aircraft)" :key="aircraft" :class="getEventAircraftPillClass(aircraft)" class="inline-flex items-center text-xs font-medium px-3 py-1.5 rounded-full text-white">{{ aircraft }}</span>
+              </div>
             </div>
             <div v-for="customField in customFields" :key="customField.id" class="flex items-center gap-2 text-sm">
               <span class="font-medium">{{ customField.field_name }}:</span>
               <span class="bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-xs font-semibold">{{ getCustomFieldValue(event, customField.field_key) }}</span>
             </div>
           </div>
-          <div v-if="true" class="flex items-center gap-2 p-4 border-t bg-gray-50">
+          <div v-if="!event.completed && !event.pirep_filled" class="flex items-center gap-2 p-4 border-t bg-gray-50">
             <button
               @click="event.attendees.includes(user.id) ? deregisterForEvent(event) : registerForEvent(event)"
+              class="flex items-center gap-2 text-sm"
               :class="event.attendees.includes(user.id) ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'"
-              :title="event.attendees.includes(user.id) ? 'Deregister for Event' : 'Register for Event'"
             >
               <TicketCheckIcon v-if="!event.attendees.includes(user.id)" class="w-4 h-4" />
+              <span v-if="!event.attendees.includes(user.id)">Register</span>
               <TicketXIcon v-else class="w-4 h-4" />
+              <span v-if="event.attendees.includes(user.id)">Deregister</span>
+            </button>
+          </div>
+          <div v-else-if="!event.pirep_filled && event.attendees.includes(user.id)" class="flex items-center gap-2 p-4 border-t bg-gray-50">
+            <button
+              @click="fileEventPirep(event)"
+              class="flex items-center gap-2 text-sm text-green-600 hover:text-green-800"
+            >
+              <TicketCheckIcon class="w-4 h-4" />
+              <span>File Pirep</span>
             </button>
           </div>
         </div>
       </div>
       <EventsTable v-else :customFields="customFields" @update:analytics="updateAnalytics" />
     </div>
+
+    <!-- Event PIREP Form Drawer -->
+    <RotateFormComponent
+      :visible="showPirepDrawer"
+      :title="`File PIREP for ${selectedEvent?.event_name || 'Event'}`"
+      :fields="pirepFormFields"
+      :initialData="pirepFormData"
+      :isEditMode="false"
+      @close="closePirepDrawer"
+      @submit="submitEventPirep"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FilterIcon, EditIcon, TrashIcon, TicketCheckIcon, TicketXIcon } from 'lucide-vue-next'
+import { FilterIcon, TicketCheckIcon, TicketXIcon } from 'lucide-vue-next'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 import EventsTable from './EventsTable.vue'
+import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import { inject } from 'vue'
 
 const showToast = inject('showToast');
@@ -121,6 +148,71 @@ const loading = ref(true)
 const search = ref('')
 const viewMode = ref(localStorage.getItem('eventsViewMode') || 'card')
 const emit = defineEmits(['update:analytics'])
+
+// Event PIREP form state
+const showPirepDrawer = ref(false)
+const selectedEvent = ref(null)
+const pirepFormData = ref({})
+const flightTypes = ref([])
+const pirepCustomFields = ref([])
+
+// Computed form fields for event PIREP
+const pirepFormFields = computed(() => {
+  const baseFields = [
+    {
+      group: 'Flight Time',
+      fields: [
+        { name: 'flight_time_hours', label: 'Hours', type: 'number', required: true, min: 0, max: 23 },
+        { name: 'flight_time_minutes', label: 'Minutes', type: 'number', required: true, min: 0, max: 59 },
+      ]
+    },
+    { 
+      name: 'flight_type_id', 
+      label: 'Flight Type', 
+      type: 'select', 
+      required: true, 
+      options: flightTypes.value.map(type => ({ id: type.id, name: type.flight_type + ' (' + type.multiplier + 'x)' }))
+    },
+  ]
+
+  // Add custom fields for PIREPs
+  const customFormFields = pirepCustomFields.value.map(field => {
+    const formField = {
+      name: field.field_key,
+      label: field.field_name,
+      type: getFieldType(field.data_type),
+      required: field.is_required === 1,
+      description: field.field_description
+    }
+    
+    // Add options for dropdown fields
+    if (field.data_type === 6) { // Dropdown type
+      if (Array.isArray(field.options)) {
+        formField.options = field.options.map(opt => ({ id: opt, name: opt }))
+      } else if (typeof field.options === 'object') {
+        formField.options = Object.values(field.options).map(opt => ({ id: opt, name: opt }))
+      } else {
+        formField.options = []
+      }
+    }
+    return formField
+  })
+
+  return [...baseFields, ...customFormFields]
+})
+
+// Function to map data types to form field types
+const getFieldType = (dataType) => {
+  switch (dataType) {
+    case 1: return 'text' // Text
+    case 2: return 'number' // Integer
+    case 3: return 'number' // Float
+    case 4: return 'checkbox' // Boolean
+    case 5: return 'datetime-local' // Date
+    case 6: return 'select' // Dropdown
+    default: return 'text'
+  }
+}
 
 const setViewMode = (mode) => {
   viewMode.value = mode
@@ -162,6 +254,30 @@ const parseAircraft = (aircraft) => {
   }
 }
 
+const getEventAircraftPillClass = (aircraft) => {
+  const gradients = [
+    'bg-gradient-to-r from-indigo-500 to-purple-500',
+    'bg-gradient-to-r from-blue-500 to-cyan-500',
+    'bg-gradient-to-r from-green-500 to-emerald-500',
+    'bg-gradient-to-r from-orange-500 to-red-500',
+    'bg-gradient-to-r from-pink-500 to-rose-500',
+    'bg-gradient-to-r from-yellow-500 to-orange-500',
+    'bg-gradient-to-r from-teal-500 to-blue-500',
+    'bg-gradient-to-r from-purple-500 to-pink-500',
+    'bg-gradient-to-r from-red-500 to-pink-500',
+    'bg-gradient-to-r from-cyan-500 to-blue-500',
+    'bg-gradient-to-r from-emerald-500 to-teal-500',
+    'bg-gradient-to-r from-violet-500 to-purple-500'
+  ];
+  
+  // Assign classes randomly
+  const hash = aircraft.split('').reduce((acc, char) => {
+    return acc + char.charCodeAt(0);
+  }, 0);
+  
+  return gradients[Math.abs(hash) % gradients.length];
+}
+
 const getCustomFieldValue = (event, fieldKey) => {
   if (event.custom_fields && Array.isArray(event.custom_fields)) {
     const customField = event.custom_fields.find(field => {
@@ -189,65 +305,147 @@ const fetchCustomFields = async () => {
 
 const fetchEvents = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/events/jxFetchEvents')
     events.value = response.data || []
     emit('update:analytics', response.analytics || {})
+    page.props.loading = false
   } catch (e) {
     console.error(e)
+    page.props.loading = false
+  }
+}
+
+const fetchFlightTypes = async () => {
+  try {
+    const response = await rotateDataService('/settings/jxFetchFlightTypes')
+    flightTypes.value = response.data || []
+  } catch (e) {
+    console.error('Error fetching flight types:', e)
+  }
+}
+
+const fetchPirepCustomFields = async () => {
+  try {
+    const response = await rotateDataService('/pireps/jxGetPirepCustomFields')
+    pirepCustomFields.value = response.data || []
+  } catch (e) {
+    console.error('Error fetching PIREP custom fields:', e)
   }
 }
 
 const fetchAll = async () => {
   loading.value = true
-  await Promise.all([fetchCustomFields(), fetchEvents()])
+  await Promise.all([fetchCustomFields(), fetchEvents(), fetchFlightTypes(), fetchPirepCustomFields()])
   loading.value = false
 }
 
 const registerForEvent = async (event) => {
+  page.props.loading = true
   const response = await rotateDataService('/events/jxRegisterForEvent', { id: event.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred while registering for event', 'error')
     return;
   }
   showToast(response.message || 'Event registered successfully', 'success')
   fetchEvents()
+  page.props.loading = false
 }
 
 const deregisterForEvent = async (event) => {
+  page.props.loading = true
   const response = await rotateDataService('/events/jxDeRegisterForEvent', { id: event.id })
   if (response.hasErrors) {
+    page.props.loading = false
     showToast(response.message || 'Error occurred while deregistering for event', 'error')
     return;
   }
   showToast(response.message || 'Event deregistered successfully', 'success')
   fetchEvents()
-}
-
-const editEvent = (event) => {
-  window.dispatchEvent(new CustomEvent('edit-event', { detail: event }))
-}
-
-const deleteEvent = async (event) => {
-  try {
-      const response = await rotateDataService('/events/jxDeleteEvent', { id: event.id })
-      if (response.hasErrors) {
-        showToast(response.message || 'Error occurred while deleting event', 'error')
-        return;
-      }
-      showToast(response.message || 'Event deleted successfully', 'success')
-      fetchEvents()
-    } catch (e) {
-      console.error(e)
-    showToast('Error occurred while deleting event', 'error')
-  }
-}
-
-const handleEventsUpdated = () => {
-  fetchEvents()
+  page.props.loading = false
 }
 
 const handleEditEvent = (event) => {
   window.dispatchEvent(new CustomEvent('open-edit-drawer', { detail: event.detail }))
+}
+
+const fileEventPirep = async (event) => {
+  selectedEvent.value = event
+  pirepFormData.value = {
+    event_id: event.id
+  }
+  showPirepDrawer.value = true
+}
+
+const closePirepDrawer = () => {
+  showPirepDrawer.value = false
+  selectedEvent.value = null
+  pirepFormData.value = {}
+}
+
+const submitEventPirep = async (payload) => {
+  try {
+    page.props.loading = true
+    
+    // Basic validation
+    if (!payload.flight_time_hours || payload.flight_time_hours < 0 || payload.flight_time_hours > 23) {
+      showToast('Please enter a valid flight time hours (0-23).', 'error')
+      page.props.loading = false
+      return
+    }
+    
+    if (!payload.flight_time_minutes || payload.flight_time_minutes < 0 || payload.flight_time_minutes > 59) {
+      showToast('Please enter a valid flight time minutes (0-59).', 'error')
+      page.props.loading = false
+      return
+    }
+    
+    if (!payload.flight_type_id) {
+      showToast('Please select a flight type.', 'error')
+      page.props.loading = false
+      return
+    }
+
+    // Separate custom fields from regular fields
+    const customData = {}
+    const regularData = {}
+    
+    // Get custom field keys
+    const customFieldKeys = pirepCustomFields.value.map(field => field.field_key)
+    
+    // Separate the data
+    Object.keys(payload).forEach(key => {
+      if (customFieldKeys.includes(key)) {
+        customData[key] = payload[key]
+      } else {
+        regularData[key] = payload[key]
+      }
+    })
+    
+    // Add customData to the regular payload
+    const finalPayload = {
+      ...regularData,
+      customData: customData,
+      event_id: selectedEvent.value.id
+    }
+
+    const response = await rotateDataService('/events/jxFileEventPirep', finalPayload)
+    if (response.hasErrors) {
+      showToast(response.message || 'Error occurred while filing pirep', 'error')
+      page.props.loading = false
+      return;
+    }
+    
+    showToast(response.message || 'PIREP filed successfully', 'success')
+    closePirepDrawer()
+    fetchEvents()
+    page.props.loading = false
+  } catch (e) {
+    console.error(e)
+    page.props.loading = false
+    showToast('Error occurred while filing pirep', 'error')
+  }
 }
 
 const updateAnalytics = (analytics) => {

@@ -6,7 +6,12 @@ use App\Models\Documents;
 use App\Models\Event;
 use App\Models\EventAttendance;
 use App\Models\CustomFieldValues;
+use App\Models\DiscordSettings;
+use App\Events\EventCreated;
+use App\Helpers\RotateConstants;
+use App\Models\Pirep;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class _Event extends Model
 {
@@ -48,6 +53,11 @@ class _Event extends Model
             }
         }
 
+        // Dispatch event for Discord notification (only for new events)
+        if ($mode === 'create' && DiscordSettings::getSetting(DiscordSettings::DISCORD_BOT_EVENT_ACTIVITY) == DiscordSettings::DISCORD_EVENT_ACTIVITY_ENABLED) {
+            EventCreated::dispatch($event);
+        }
+
         return $event;
     }
 
@@ -69,5 +79,17 @@ class _Event extends Model
         $event->delete();
 
         return ['success' => 'Event deleted successfully'];
+    }
+
+    public static function checkIsUserWasParticipant($eventId, $userId)
+    {
+        $eventAttendance = EventAttendance::where('event_id', $eventId)->where('user_id', $userId)->first();
+        return $eventAttendance ? true : false;
+    }
+
+    public static function checkIfEventPirepIsFilled($eventId, $userId)
+    {
+        $pirep = Pirep::where('event_id', $eventId)->where('user_id', $userId)->first();
+        return $pirep ? true : false;
     }
 }

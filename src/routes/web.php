@@ -12,8 +12,9 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-Route::get('/register', function () {
-    return Inertia::render('Users/Pages/Register');
-})->middleware('guest')->name('register');
-
 Route::post('/logout', [CustomLogoutController::class, 'destroy'])->name('logout');
+
+// CSRF token refresh route
+Route::get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+})->middleware('web');

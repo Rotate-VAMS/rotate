@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('event_id');
             $table->unsignedBigInteger('user_id');
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
             

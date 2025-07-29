@@ -11,10 +11,9 @@
         >
           <PlusIcon class="w-4 h-4" /> <span>Add Pilot</span>
         </button>
-        <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
-          <ImportIcon class="w-4 h-4" /> <span>Import</span>
-        </button>
-        <button class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
+        <button 
+          @click="exportPilots"
+          class="btn-white bg-white text-gray-800 font-bold rounded-md px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto">
           <UploadIcon class="w-4 h-4" /> <span>Export</span>
         </button> 
       </div>
@@ -34,7 +33,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { ImportIcon, UploadIcon, PlusIcon } from 'lucide-vue-next'
+import { UploadIcon, PlusIcon } from 'lucide-vue-next'
 import RotateFormComponent from '@/Components/RotateFormComponent.vue'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
@@ -93,7 +92,7 @@ const getFieldType = (dataType) => {
     case 2: return 'number' // Integer
     case 3: return 'number' // Float
     case 4: return 'checkbox' // Boolean
-    case 5: return 'date' // Date
+    case 5: return 'datetime-local' // Date
     case 6: return 'select' // Dropdown
     default: return 'text'
   }
@@ -123,6 +122,7 @@ const openDrawerForCreate = () => {
 // Fetch ranks
 const fetchRanks = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/settings/jxFetchRanks')
     const rankOptions = response.data.map(rank => ({
       id: rank.id,
@@ -134,22 +134,27 @@ const fetchRanks = async () => {
     if (rankField) {
       rankField.options = rankOptions
     }
+    page.props.loading = false
   } catch (e) {
     console.error(e)
+    page.props.loading = false
     showToast('Error fetching ranks', 'error')
   }
 }
 
 const fetchRoles = async () => {
   try {
+    page.props.loading = true
     const response = await rotateDataService('/settings/jxFetchRoles')
     const roleOptions = response.data.map(role => ({
       id: role.id,
       name: role.name
     }))
     formFields.value.find(field => field.name === 'role_id').options = roleOptions
+    page.props.loading = false
   } catch (e) {
     console.error(e)
+    page.props.loading = false
     showToast('Error fetching roles', 'error')
   }
 }
@@ -159,6 +164,7 @@ fetchRoles()
 
 // Submit handler
 const submitForm = async (payload) => {
+    page.props.loading = true
     // Separate custom fields from regular fields
     const customData = {}
     const regularData = {}
@@ -184,20 +190,31 @@ const submitForm = async (payload) => {
     const response = await rotateDataService('/pilots/jxCreateEditPilot', finalPayload)
     if (response.hasErrors) {
       showToast(response.message || 'Error occurred', 'error')
+      page.props.loading = false
       return;
     }
     showToast(response.message || 'Pilot created successfully', 'success')
     window.dispatchEvent(new CustomEvent('pilots-updated'))
     showDrawer.value = false
+    page.props.loading = false
+}
+
+// Export pilots
+const exportPilots = () => {
+  page.props.loading = true
+  window.location.href = '/pilots/jxExportPilots'
+  page.props.loading = false
 }
 
 // Expose methods for parent components
 defineExpose({
   openDrawerForCreate,
   openDrawerForEdit: (pilot) => {
+    page.props.loading = true
     formMode.value = 'edit'
     formData.value = { ...pilot }
     showDrawer.value = true
+    page.props.loading = false
   }
 })
 </script> 

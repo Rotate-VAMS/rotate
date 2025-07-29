@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
+// Import the helper function
+use function App\Helpers\tenant_storage_url;
+
 class _Documents extends Model
 {
     const ENTITY_TYPE_EVENT = 1;
@@ -107,7 +110,8 @@ class _Documents extends Model
         // Get file extension from the original filename
         $fileExtension = pathinfo($document[0]->document_name, PATHINFO_EXTENSION);
         
-        $documentPath = Storage::disk('public')->url('documents/' . $document[0]->document_key . '/' . $document[0]->version . '.' . $fileExtension);
+        // Use tenant-specific storage URL
+        $documentPath = tenant_storage_url('documents/' . $document[0]->document_key . '/' . $document[0]->version . '.' . $fileExtension);
         return $documentPath;
     }
 

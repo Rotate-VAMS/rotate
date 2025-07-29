@@ -43,7 +43,7 @@ class _Route extends Model
         }
 
         $route->distance = RotateAirportHelper::distanceBetweenICAOs($data['origin_icao'], $data['destination_icao']);
-        $route->flight_time = $route->distance / 1000 * 60 / 60;
+        $route->flight_time = ($route->distance / 450) * 60;
         $route->updated_at = now();
 
         if (!$route->save()) {

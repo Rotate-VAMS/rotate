@@ -14,6 +14,10 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 use Inertia\Inertia;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Hash;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -38,7 +42,27 @@ class FortifyServiceProvider extends ServiceProvider
 
         // Configure Fortify to use Inertia for login view
         Fortify::loginView(function () {
-            return Inertia::render('Users/Pages/Login');
+            return Inertia::render('Users/Pages/Login', [
+                'tenant' => app('currentTenant')->name,
+            ]);
+        });
+
+        // Custom login logic to check user status
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = User::where('email', $request->email)->first();
+
+            if ($user && 
+                Hash::check($request->password, $user->password)) {
+                
+                // Check if user is active
+                if ($user->status == User::PILOT_STATUS_INACTIVE) {
+                    throw ValidationException::withMessages([
+                        Fortify::username() => ['Your account has been deactivated. Please contact the administrator.'],
+                    ]);
+                }
+                
+                return $user;
+            }
         });
 
         RateLimiter::for('login', function (Request $request) {

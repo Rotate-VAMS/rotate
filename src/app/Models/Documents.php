@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use App\Models\Extended\_Documents;
+use App\Models\Traits\BelongsToTenant;
 
 class Documents extends _Documents
 {
+    use BelongsToTenant;
+
     protected $table = 'documents';
 
     protected $fillable = [

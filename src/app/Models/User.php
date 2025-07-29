@@ -14,10 +14,12 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Rank;
 use App\Models\Pirep;
 use Illuminate\Support\Facades\DB;
+use App\Models\Traits\BelongsToTenant;
+use App\Models\Tenant;
 
 class User extends Authenticatable
 {
-    use HasApiTokens;
+    use HasApiTokens, BelongsToTenant;
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
@@ -39,6 +41,7 @@ class User extends Authenticatable
         'status',
         'rank_id',
         'flying_hours',
+        'discord_id',
     ];
 
     /**
@@ -84,19 +87,24 @@ class User extends Authenticatable
         return $this->belongsTo(Rank::class);
     }
 
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
     public static function createEditPilot($data, $mode)
     {
         if ($mode === 'create') {
             $pilot = new User();
 
             // Validate email
-            $validateEmail = User::where('email', $data['email'])->first();
+            $validateEmail = User::where('email', $data['email'])->where('tenant_id', app('currentTenant')->id)->first();
             if ($validateEmail) {
                 return ['error' => 'Email already exists'];
             }
 
             // Validate callsign
-            $validateCallsign = User::where('callsign', $data['callsign'])->first();
+            $validateCallsign = User::where('callsign', $data['callsign'])->where('tenant_id', app('currentTenant')->id)->first();
             if ($validateCallsign) {
                 return ['error' => 'Callsign already exists'];
             }
@@ -113,6 +121,7 @@ class User extends Authenticatable
         $pilot->flying_hours = 0;
         $pilot->status = 1;
         $pilot->password = Hash::make(env('DEFAULT_PASSWORD'));
+        $pilot->tenant_id = app('currentTenant')->id;
         $pilot->created_at = now();
         $pilot->updated_at = now();
         if (!$pilot->save()) {
@@ -136,7 +145,7 @@ class User extends Authenticatable
 
     public static function fetchAllPilots()
     {
-        $pilots = User::all();
+        $pilots = User::where('tenant_id', app('currentTenant')->id)->get();
         $gridData = [];
         foreach ($pilots as $pilot) {
             $gridData[] = [
@@ -145,7 +154,7 @@ class User extends Authenticatable
                 'callsign' => $pilot->callsign,
                 'email' => $pilot->email,
                 'rank_id' => $pilot->rank_id,
-                'rank' => Rank::find($pilot->rank_id)->name,
+                'rank' => Rank::find($pilot->rank_id)->name ?? 'Rank not assigned',
                 'role' => $pilot->roles->pluck('name'),
                 'role_id' => $pilot->roles->pluck('id')->first(),
                 'flying_hours' => round($pilot->flying_hours/60, 2),
@@ -162,11 +171,16 @@ class User extends Authenticatable
     {
         $flights = DB::table('pireps')
             ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
-            ->select('routes.origin', 'routes.destination')
+            ->leftJoin('events', 'pireps.event_id', '=', 'events.id')
+            ->select('routes.origin', 'routes.destination', 'events.event_name', 'events.origin as event_origin', 'events.destination as event_destination')
             ->where('pireps.user_id', $pilotId)
             ->orderBy('pireps.created_at', 'desc')
             ->take(5)
             ->get();
+        foreach ($flights as $flight) {
+            $flight->origin = $flight->origin ?? $flight->event_origin;
+            $flight->destination = $flight->destination ?? $flight->event_destination;
+        }
         return $flights;
     }
 }

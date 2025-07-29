@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('field_id')->constrained('custom_field_configuration')->onDelete('cascade');
             $table->string('value');
             $table->string('label');
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

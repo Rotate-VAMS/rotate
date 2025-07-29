@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\RotateAirportHelper;
+use App\Helpers\RotateConstants;
+use App\Models\Event;
+
+use function App\Helpers\tenant_cache_remember;
+use function App\Helpers\tenant_cache_forget;
 
 class PirepController extends Controller
 {
@@ -33,45 +38,81 @@ class PirepController extends Controller
     public function jxFetchPireps(Request $request)
     {
         $filter = $request->filter;
-
-        $pireps = DB::table('pireps')
-            ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
-            ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')
-            ->leftJoin('users', 'pireps.user_id', '=', 'users.id')
-            ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name')
-            ->where('pireps.deleted_at', null)
-            ->orderBy('pireps.created_at', 'desc');
-
         if ($filter === 'my') {
-            $pireps->where('pireps.user_id', Auth::user()->id);
+            // Do not cache per-user data
+            $pireps = DB::table('pireps')
+                ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
+                ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')
+                ->leftJoin('users', 'pireps.user_id', '=', 'users.id')
+                ->leftJoin('events', 'pireps.event_id', '=', 'events.id')
+                ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name', 'users.callsign', 'events.origin as event_origin', 'events.destination as event_destination', 'events.event_name as event_name')
+                ->where('pireps.deleted_at', null)
+                ->where('pireps.user_id', Auth::user()->id)
+                ->orderBy('pireps.created_at', 'desc')
+                ->get();
+        } else {
+            $pireps = tenant_cache_remember('pireps:list:all', RotateConstants::SECONDS_IN_ONE_DAY, function () {
+                $pireps = DB::table('pireps')
+                    ->leftJoin('routes', 'pireps.route_id', '=', 'routes.id')
+                    ->leftJoin('flight_types', 'pireps.flight_type_id', '=', 'flight_types.id')
+                    ->leftJoin('users', 'pireps.user_id', '=', 'users.id')
+                    ->leftJoin('events', 'pireps.event_id', '=', 'events.id')
+                    ->select('pireps.*', 'routes.flight_number', 'routes.origin', 'routes.destination', 'routes.distance', 'flight_types.flight_type as flight_type_name', 'users.name as pilot_name', 'users.callsign', 'events.origin as event_origin', 'events.destination as event_destination', 'events.event_name as event_name')
+                    ->where('pireps.deleted_at', null)
+                    ->orderBy('pireps.created_at', 'desc')
+                    ->get();
+                foreach ($pireps as $pirep) {
+                    $pirep->is_event = $pirep->event_id ? true : false;
+                    $pirep->origin = $pirep->origin ? $pirep->origin : $pirep->event_origin;
+                    $pirep->destination = $pirep->destination ? $pirep->destination : $pirep->event_destination;
+                    $pirep->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PIREPS, $pirep->id);
+                    $pirep->origin_city = RotateAirportHelper::icaoToCity($pirep->origin);
+                    $pirep->destination_city = RotateAirportHelper::icaoToCity($pirep->destination);
+                    $pirep->event_name = $pirep->event_id ? Event::find($pirep->event_id)->event_name : null;
+                    $pirep->flight_time_hours = $pirep->flight_time;
+                    $pirep->computed_flight_time = $pirep->computed_flight_time;
+                    $pirep->multiplier = FlightType::find($pirep->flight_type_id)->multiplier ?? 1;
+                    $pirep->airline = RotateAirportHelper::airlineToICAO(substr($pirep->flight_number, 0, 2)) ?? '-';
+                    $pirep->distance = $pirep->distance ? $pirep->distance : RotateAirportHelper::distanceBetweenICAOs($pirep->origin, $pirep->destination);
+                }
+                $analyticsData = [
+                    'myPireps' => null, // Not cached globally
+                    'totalPireps' => Pirep::where('deleted_at', null)->count()
+                ];
+                return ['pireps' => $pireps, 'analytics' => $analyticsData];
+            });
         }
-
-        $pireps = $pireps->get();
-
-        foreach ($pireps as $pirep) {
-            $pirep->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PIREPS, $pirep->id);
-            $pirep->origin_city = RotateAirportHelper::icaoToCity($pirep->origin);
-            $pirep->destination_city = RotateAirportHelper::icaoToCity($pirep->destination);
-            $pirep->flight_time = $pirep->flight_time;
-            $pirep->computed_flight_time = $pirep->computed_flight_time;
-            $pirep->multiplier = FlightType::find($pirep->flight_type_id)->multiplier ?? 1;
-            $pirep->airline = RotateAirportHelper::airlineToICAO(substr($pirep->flight_number, 0, 2)) ?? '-';
+        if ($filter === 'my') {
+            foreach ($pireps as $pirep) {
+                $pirep->is_event = $pirep->event_id ? true : false;
+                $pirep->origin = $pirep->origin ? $pirep->origin : $pirep->event_origin;
+                $pirep->destination = $pirep->destination ? $pirep->destination : $pirep->event_destination;
+                $pirep->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_PIREPS, $pirep->id);
+                $pirep->origin_city = RotateAirportHelper::icaoToCity($pirep->origin ? $pirep->origin : $pirep->event_origin);
+                $pirep->destination_city = RotateAirportHelper::icaoToCity($pirep->destination ? $pirep->destination : $pirep->event_destination);
+                $pirep->event_name = $pirep->event_id ? Event::find($pirep->event_id)->event_name : null;
+                $pirep->flight_time_hours = $pirep->flight_time;
+                $pirep->computed_flight_time = $pirep->computed_flight_time;
+                $pirep->multiplier = FlightType::find($pirep->flight_type_id)->multiplier ?? 1;
+                $pirep->airline = RotateAirportHelper::airlineToICAO(substr($pirep->flight_number, 0, 2)) ?? '-';
+                $pirep->distance = $pirep->distance ? $pirep->distance : RotateAirportHelper::distanceBetweenICAOs($pirep->origin, $pirep->destination);
+            }
+            $analyticsData = [
+                'myPireps' => Pirep::where('user_id', Auth::user()->id)->where('deleted_at', null)->count(),
+                'totalPireps' => Pirep::where('deleted_at', null)->count()
+            ];
+            return response()->json(['message' => 'Pireps fetched successfully', 'data' => $pireps, 'analytics' => $analyticsData]);
+        } else {
+            return response()->json(['message' => 'Pireps fetched successfully', 'data' => $pireps['pireps'], 'analytics' => $pireps['analytics']]);
         }
-
-        $analyticsData = [
-            'myPireps' => $pireps->where('user_id', Auth::user()->id)->count(),
-            'totalPireps' => $pireps->count()
-        ];
-
-        return response()->json(['message' => 'Pireps fetched successfully', 'data' => $pireps, 'analytics' => $analyticsData]);
     }
 
     public function jxCreateEditPirep(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'route_id' => 'required|exists:routes,id',
-            'flight_time_hours' => 'required|string|min:0',
-            'flight_time_minutes' => 'required|string|min:0',
+            'flight_time_hours' => 'required|min:0',
+            'flight_time_minutes' => 'required|min:0',
             'flight_type_id' => 'required|exists:flight_types,id',
         ]);
         if ($validator->fails()) {
@@ -96,6 +137,7 @@ class PirepController extends Controller
             $this->errorBag['message'] = $response['error'];
             return response()->json($this->errorBag);
         }
+        tenant_cache_forget('pireps:list:all');
         return response()->json(['hasErrors' => false, 'message' => $response['success']]);
     }
 
@@ -132,6 +174,7 @@ class PirepController extends Controller
             $this->errorBag['message'] = 'Failed to delete pirep';
             return response()->json($this->errorBag);
         }
+        tenant_cache_forget('pireps:list:all');
         return response()->json(['hasErrors' => false, 'message' => 'Pirep deleted successfully']);
     }
 }

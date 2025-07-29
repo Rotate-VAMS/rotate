@@ -7,6 +7,8 @@ use Modules\Integration\Http\Controllers\FleetsController;
 use Modules\Integration\Http\Controllers\FlightTypesController;
 use Modules\Integration\Http\Controllers\LogoController;
 use Modules\Integration\Http\Controllers\RolesController;
+use Modules\Integration\Http\Controllers\DiscordController;
+use Modules\Integration\Http\Controllers\LeaderboardController;
 
 Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
     // Custom Fields
@@ -60,7 +62,29 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
     // Logo
     Route::group(['prefix' => 'settings', 'controller' => LogoController::class], function () {
         Route::post('jxCreateEditLogo', 'jxCreateEditLogo')->name('integrations.settings.jxCreateEditLogo');
-        Route::get('jxFetchLogo', 'jxFetchLogo')->name('integrations.settings.jxFetchLogo');
         Route::post('jxDeleteLogo', 'jxDeleteLogo')->name('integrations.settings.jxDeleteLogo');
     });
-});        
+
+    // Discord
+    Route::group(['prefix' => 'discord', 'controller' => DiscordController::class], function () {
+        Route::get('jxGetDiscordSettings', 'jxGetDiscordSettings')->name('integrations.settings.jxGetDiscordSettings');
+        Route::post('jxUpdateDiscordSettings', 'jxUpdateDiscordSettings')->name('integrations.settings.jxUpdateDiscordSettings');
+        Route::post('jxTestDiscordConnection', 'jxTestDiscordConnection')->name('integrations.settings.jxTestDiscordConnection');
+        Route::get('jxToggleDiscordBotEventActivity', 'jxToggleDiscordBotEventActivity')->name('integrations.settings.jxToggleDiscordBotEventActivity');
+    });
+
+    // Leaderboard
+    Route::group(['prefix' => 'settings', 'controller' => LeaderboardController::class], function () {
+        Route::get('jxGetLeaderboardSettings', 'jxGetLeaderboardSettings')->name('integrations.settings.jxGetLeaderboardSettings');
+        Route::post('jxUpdateLeaderboardSettings', 'jxUpdateLeaderboardSettings')->name('integrations.settings.jxUpdateLeaderboardSettings');
+        Route::get('jxGetLeaderboardEvents', 'jxGetLeaderboardEvents')->name('integrations.settings.jxGetLeaderboardEvents');
+        Route::post('jxUpdateLeaderboardEvent', 'jxUpdateLeaderboardEvent')->name('integrations.settings.jxUpdateLeaderboardEvent');
+        Route::post('jxGetUserLeaderboardData', 'jxGetUserLeaderboardData')->name('integrations.settings.jxGetUserLeaderboardData');
+
+        // Full leaderboard view
+        Route::get('leaderboard', 'leaderboard')->name('integrations.settings.leaderboard');
+    });
+});
+
+// Fetch logo outisde auth middleware
+Route::get('settings/jxFetchLogo', [LogoController::class, 'jxFetchLogo'])->name('integrations.settings.jxFetchLogo');
