@@ -25,6 +25,9 @@ class EventsController extends Controller
      */
     public function index()
     {
+        if (!in_array('events', $this->currentTenant->available_features)) {
+            abort(403, 'Upgrade to cadet plan to access this feature');
+        }
         // Breadcrumbs
         $breadcrumbs = [
             [

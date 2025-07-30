@@ -1,5 +1,5 @@
 <template>
-    <div class="rounded-xl p-5 shadow-md w-full glassmorphism">
+    <div v-if="visible" class="rounded-xl p-5 shadow-md w-full glassmorphism">
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-500">{{ title }}</p>
@@ -20,7 +20,8 @@
     title: String,
     value: [Number, String],
     type: String,
-    caption: String
+    caption: String,
+    visible: Boolean
   });
   
   const iconMap = {

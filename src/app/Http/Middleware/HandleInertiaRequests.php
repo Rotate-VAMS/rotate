@@ -51,6 +51,7 @@ class HandleInertiaRequests extends Middleware
                         ]
                     )
                     : null,
+                'tenant' => fn () => app('currentTenant'),
             ],
             'csrf_token' => fn () => csrf_token(),
             'flash' => [

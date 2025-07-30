@@ -19,6 +19,7 @@ class IdentifyTenant
     {
         $host = $request->getHost(); // e.g., va1.test
         $tenant = Tenant::where('domain', $host)->first();
+        $tenant->available_features = config('plans.' . $tenant->plan_key . '.features');
 
         if (!$tenant) {
             abort(404, 'Tenant not found');

@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-xl shadow-xl border border-gray-200 p-4 sm:p-6 glassmorphism">
+  <div v-if="tenant.available_features.includes('leaderboard')" class="bg-white rounded-xl shadow-xl border border-gray-200 p-4 sm:p-6 glassmorphism">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
       <div>
@@ -189,6 +189,10 @@ import { ref, onMounted, watch } from 'vue'
 const props = defineProps({
   leaderboard: {
     type: Array,
+    required: true
+  },
+  tenant: {
+    type: Object,
     required: true
   }
 })

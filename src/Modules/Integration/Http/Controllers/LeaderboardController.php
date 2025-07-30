@@ -130,6 +130,9 @@ class LeaderboardController extends Controller
 
     public function leaderboard()
     {
+        if (!in_array('leaderboard', $this->currentTenant->available_features)) {
+            abort(403, 'Upgrade to cadet plan to access this feature');
+        }
         $breadcrumbs = [
             [
                 'title' => 'Leaderboard'

@@ -20,12 +20,12 @@
   
   const page = usePage();
   const user = page.props.auth.user;
-
+  const tenant = page.props.auth.tenant;
   const buttons = [
-    { label: 'PIREPs', icon: PlaneIcon, route: '/pireps', visible: true, isPrimary: true },
-    { label: 'Pilots', icon: Users, route: '/pilots', visible: user.permissions.includes('view-user'), isPrimary: false },
-    { label: 'Events', icon: List, route: '/events', visible: user.permissions.includes('view-event'), isPrimary: false },
-    { label: 'Routes', icon: BookOpen, route: '/routes', visible: user.permissions.includes('view-route'), isPrimary: false },
+    { label: 'PIREPs', icon: PlaneIcon, route: '/pireps', visible: tenant.available_features.includes('pireps'), isPrimary: true },
+    { label: 'Pilots', icon: Users, route: '/pilots', visible: user.permissions.includes('view-user') && tenant.available_features.includes('users'), isPrimary: false },
+    { label: 'Events', icon: List, route: '/events', visible: user.permissions.includes('view-event') && tenant.available_features.includes('events'), isPrimary: false },
+    { label: 'Routes', icon: BookOpen, route: '/routes', visible: user.permissions.includes('view-route') && tenant.available_features.includes('routes'), isPrimary: false },
     // { label: 'Route Generator', icon: Route, route: '/routes/generator', visible: true, isPrimary: false },
     // { label: 'Airport Charts', icon: MapPin, route: '/charts', visible: true, isPrimary: false },
   ];
