@@ -17,6 +17,12 @@ class RazorpayWebhookController extends Controller
 {
     public function handle(Request $request)
     {
+        Log::info('Razorpay webhook received', [
+            'headers' => $request->headers->all(),
+            'body' => $request->getContent(),
+            'url' => $request->fullUrl()
+        ]);
+
         $signature = $request->header('X-Razorpay-Signature');
         $secret = env('RAZORPAY_WEBHOOK_SECRET');
         $body = $request->getContent();
@@ -28,6 +34,8 @@ class RazorpayWebhookController extends Controller
     
         $payload = $request->all();
         $event = $payload['event'] ?? null;
+        
+        Log::info("Processing Razorpay event: $event", $payload);
     
         switch ($event) {
             case 'payment.captured':
@@ -49,6 +57,8 @@ class RazorpayWebhookController extends Controller
     protected function handlePaymentCaptured(array $payload)
     {
         $paymentData = $payload['payload']['payment']['entity'];
+        
+        Log::info('Processing payment captured', $paymentData);
     
         $payment = new Payment();
         $payment->razorpay_payment_id = $paymentData['id'];
@@ -61,8 +71,11 @@ class RazorpayWebhookController extends Controller
     
         $tenant = Tenant::where('razorpay_order_id', $paymentData['order_id'])->first();
         if ($tenant) {
+            Log::info('Found tenant for order', ['tenant_id' => $tenant->id, 'order_id' => $paymentData['order_id']]);
             app(SubscriptionService::class)->activatePlan($tenant, $tenant->plan_key, $payment->razorpay_payment_id);
             $this->sendWelcomeEmail($tenant);
+        } else {
+            Log::warning('No tenant found for order', ['order_id' => $paymentData['order_id']]);
         }
     }
     
