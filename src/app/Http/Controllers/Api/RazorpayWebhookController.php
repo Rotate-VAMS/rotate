@@ -118,6 +118,10 @@ class RazorpayWebhookController extends Controller
             'order_id' => $orderData['id'],
             'amount' => $paymentData['amount']
         ]);
+        
+        // Debug: Log all tenants with order IDs
+        $allTenantsWithOrders = Tenant::whereNotNull('razorpay_order_id')->get(['id', 'name', 'domain', 'razorpay_order_id']);
+        Log::info('All tenants with order IDs', $allTenantsWithOrders->toArray());
     
         $payment = new Payment();
         $payment->razorpay_payment_id = $paymentData['id'];
@@ -130,11 +134,40 @@ class RazorpayWebhookController extends Controller
     
         $tenant = Tenant::where('razorpay_order_id', $orderData['id'])->first();
         if ($tenant) {
-            Log::info('Found tenant for order', ['tenant_id' => $tenant->id, 'order_id' => $orderData['id']]);
-            app(SubscriptionService::class)->activatePlan($tenant, $tenant->plan_key, $payment->razorpay_payment_id);
-            $this->sendWelcomeEmail($tenant);
+            Log::info('Found tenant for order', [
+                'tenant_id' => $tenant->id, 
+                'order_id' => $orderData['id'],
+                'tenant_name' => $tenant->name,
+                'tenant_domain' => $tenant->domain,
+                'plan_key' => $tenant->plan_key
+            ]);
+            
+            try {
+                Log::info('Calling SubscriptionService activatePlan', [
+                    'tenant_id' => $tenant->id,
+                    'plan_key' => $tenant->plan_key,
+                    'payment_id' => $payment->razorpay_payment_id
+                ]);
+                
+                app(SubscriptionService::class)->activatePlan($tenant, $tenant->plan_key, $payment->razorpay_payment_id);
+                
+                Log::info('SubscriptionService activatePlan completed successfully');
+                
+                $this->sendWelcomeEmail($tenant);
+                Log::info('Welcome email sent successfully');
+                
+            } catch (\Exception $e) {
+                Log::error('Error in SubscriptionService activatePlan', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'tenant_id' => $tenant->id
+                ]);
+            }
         } else {
-            Log::warning('No tenant found for order', ['order_id' => $orderData['id']]);
+            Log::warning('No tenant found for order', [
+                'order_id' => $orderData['id'],
+                'available_tenants' => Tenant::whereNotNull('razorpay_order_id')->pluck('razorpay_order_id', 'id')->toArray()
+            ]);
         }
     }
 
