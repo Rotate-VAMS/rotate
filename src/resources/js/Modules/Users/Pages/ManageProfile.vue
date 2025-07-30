@@ -193,7 +193,20 @@
                     </div>
                     
                     <!-- Discord Integration Form -->
-                    <div class="form-card">
+                    <div class="form-card relative">
+                        <!-- Upgrade Overlay -->
+                        <div v-if="!tenant.available_features.includes('discord-integration')" class="upgrade-overlay">
+                            <div class="overlay-content">
+                                <div class="upgrade-message">
+                                    <h3 class="upgrade-title">Discord Integration</h3>
+                                    <p class="upgrade-description">Connect your Discord account for enhanced features like filing PIREPs instantly and getting real-time events updates.</p>
+                                    <button class="upgrade-btn" @click="handleUpgrade">
+                                        Upgrade Now to Captain Plan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="form-header">
                             <div class="form-title">
                                 <MessageCircle size="20" class="form-icon discord-icon" />
@@ -213,6 +226,7 @@
                                         type="text"
                                         :placeholder="user.discord_id ? user.discord_id : 'Enter your Discord ID'"
                                         class="form-input"
+                                        :disabled="!tenant.available_features.includes('discord-integration')"
                                     />
                                 </div>
                                 <p class="input-hint">Enter your Discord ID (e.g., 123456789012345678)</p>
@@ -237,14 +251,14 @@
                                 <ul class="benefits-list">
                                     <li>• Tap on the cogwheel <Settings size="14" class="text-yellow-600 inline-block" /> in the bottom left corner of the desktop app to open up your <b>User Settings</b>.</li>
                                     <li>• Then head to <b>Advanced</b>.</li>
-                                    <li>• Now, tap on the main toggle next to <b>Developer Mode</b> to enable. A “checkmark” means it’s enabled, while an “x” means it’s disabled.</li>
+                                    <li>• Now, tap on the main toggle next to <b>Developer Mode</b> to enable. A "checkmark" means it's enabled, while an "x" means it's disabled.</li>
                                     <li>• Now, navigate back to your server and right click on your name, select <b>Copy UserID</b>.</li>
                                 </ul>
                                 <p class="mt-4 text-xs font-bold text-gray-500">For more information, please visit <a href="https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-" target="_blank" class="text-blue-600">this page</a>.</p>
                             </div>
                             
                             <div class="form-actions">
-                                <button type="submit" class="btn bg-gradient-to-r from-purple-400 to-purple-500 shadow-lg hover:from-purple-500 hover:to-purple-600 text-white border border-purple-600 font-bold" :disabled="discordInfoLoading">
+                                <button type="submit" class="btn bg-gradient-to-r from-purple-400 to-purple-500 shadow-lg hover:from-purple-500 hover:to-purple-600 text-white border border-purple-600 font-bold" :disabled="discordInfoLoading || !tenant.available_features.includes('discord-integration')">
                                     <svg v-if="discordInfoLoading" width="16" height="16" viewBox="0 0 24 24" fill="none" class="loading-icon">
                                         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="31.416" stroke-dashoffset="31.416">
                                             <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
@@ -300,6 +314,7 @@ import {
 
 const page = usePage();
 const user = page.props.auth?.user || {};
+const tenant = page.props.auth.tenant;
 const breadcrumbs = page.props.breadcrumbs || [];
 
 // Form data
@@ -425,6 +440,12 @@ const updateDiscordInfo = async () => {
         showToast('success', response.message);
         discordInfoLoading.value = false;
     }
+};
+
+const handleUpgrade = () => {
+    // This function will be implemented to redirect to the upgrade page
+    // For now, it just shows a toast
+    showToast('info', 'Upgrade functionality not yet implemented.');
 };
 </script>
 
@@ -830,6 +851,72 @@ const updateDiscordInfo = async () => {
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+.upgrade-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: auto; /* Block interactions with the form */
+}
+
+.overlay-content {
+    position: relative;
+    z-index: 12;
+    text-align: center;
+    padding: 20px;
+    pointer-events: auto;
+}
+
+.upgrade-message {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 320px;
+    margin: 0 auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.upgrade-title {
+    color: #d97706;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.upgrade-description {
+    color: #78350f;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.upgrade-btn {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.upgrade-btn:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 @media (max-width: 1024px) {
