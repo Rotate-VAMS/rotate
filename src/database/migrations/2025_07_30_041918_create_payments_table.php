@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('tenant_id')->nullable();
+            $table->string('tenant_id');
             $table->string('razorpay_payment_id')->unique();
             $table->string('razorpay_order_id')->nullable();
             $table->string('status')->default('created'); // created, captured, failed
@@ -21,8 +21,6 @@ return new class extends Migration
             $table->string('currency')->default('INR');
             $table->json('payload')->nullable();
             $table->timestamps();
-
-            $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
         });
     }
 

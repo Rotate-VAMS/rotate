@@ -28,14 +28,6 @@ class TenantRegistrationController extends Controller
         $plan = config('plans.' . $data['plan_key']);
 
         if ($plan['amount'] == 0) {
-            Artisan::call('tenant:register', [
-                'name' => $data['name'],
-                'domain' => $data['domain'],
-                '--admin-email' => $data['admin_email'],
-                '--admin-password' => $data['admin_password'],
-                '--admin-callsign' => $data['admin_callsign'],
-            ]);
-
             $tenant = Tenant::where('domain', $data['domain'])->first();
             app(SubscriptionService::class)->activatePlan($tenant, 'free');
 
