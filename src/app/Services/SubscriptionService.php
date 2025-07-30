@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Tenant;
 use Razorpay\Api\Api;
+use Illuminate\Support\Facades\Artisan;
 
 class SubscriptionService
 {
@@ -28,6 +29,14 @@ class SubscriptionService
 
     public function activatePlan(Tenant $tenant, string $planKey, ?string $razorpaySubscriptionId = null)
     {
+        Artisan::call('tenant:register', [
+            'name' => $tenant->name,
+            'domain' => $tenant->domain,
+            '--admin-email' => $tenant->admin_email,
+            '--admin-password' => $tenant->admin_password,
+            '--admin-callsign' => $tenant->admin_callsign,
+        ]);
+
         $plan = config('plans.' . $planKey);
 
         $interval = $plan['interval'] ?? null;

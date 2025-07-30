@@ -10,6 +10,8 @@ abstract class Controller
     public function __construct()
     {
         $this->errorBag = ['hasErrors' => false, 'message' => ''];
-        $this->currentTenant = app('currentTenant');
+        if (strpos(request()->getUri(), '/api/') === false) {
+            $this->currentTenant = app('currentTenant');
+        }
     }
 }
