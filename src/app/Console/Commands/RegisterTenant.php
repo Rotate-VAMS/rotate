@@ -14,6 +14,8 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TenantRegistrationMail;
 use function App\Helpers\set_permissions_team_id;
 
 class RegisterTenant extends Command
@@ -29,7 +31,8 @@ class RegisterTenant extends Command
                             {--admin-email=admin@example.com : Admin email address}
                             {--admin-password=12345678 : Admin password}
                             {--admin-callsign=Admin : Admin callsign}
-                            {--force : Force registration even if domain exists}';
+                            {--force : Force registration even if domain exists}
+                            {--no-email : Skip sending welcome email}';
 
     /**
      * The console command description.
@@ -49,6 +52,7 @@ class RegisterTenant extends Command
         $adminPassword = $this->option('admin-password');
         $adminCallsign = $this->option('admin-callsign');
         $force = $this->option('force');
+        $noEmail = $this->option('no-email');
 
         // Validate inputs
         $validator = Validator::make([
@@ -96,7 +100,15 @@ class RegisterTenant extends Command
             $this->info("✅ Tenant created successfully (ID: {$tenant->id})");
 
             // Seed tenant data
-            $this->seedTenantData($tenant, $adminEmail, $adminPassword, $adminCallsign);
+            $adminUser = $this->seedTenantData($tenant, $adminEmail, $adminPassword, $adminCallsign);
+
+            // Send welcome email (unless disabled)
+            if (!$noEmail) {
+                $this->sendWelcomeEmail($tenant, $adminUser, $adminPassword);
+                $this->info("✅ Welcome email sent to: {$adminEmail}");
+            } else {
+                $this->info("📧 Welcome email skipped (--no-email flag used)");
+            }
 
             $this->info("✅ Tenant registration completed successfully!");
             $this->info("Domain: {$domain}");
@@ -120,7 +132,7 @@ class RegisterTenant extends Command
     /**
      * Seed all necessary data for a tenant
      */
-    private function seedTenantData(Tenant $tenant, string $adminEmail, string $adminPassword, string $adminCallsign): void
+    private function seedTenantData(Tenant $tenant, string $adminEmail, string $adminPassword, string $adminCallsign): User
     {
         // Set the tenant context for all operations
         app()->instance('currentTenant', $tenant);
@@ -138,7 +150,7 @@ class RegisterTenant extends Command
         $this->assignPermissionsToRoles($tenant);
 
         // 4. Create admin user
-        $this->createAdminUser($tenant, $adminEmail, $adminPassword, $adminCallsign);
+        $adminUser = $this->createAdminUser($tenant, $adminEmail, $adminPassword, $adminCallsign);
 
         // 5. Create flight types
         $this->createFlightTypes($tenant);
@@ -153,6 +165,8 @@ class RegisterTenant extends Command
         $this->createLeaderboardSettings($tenant);
 
         $this->info("✅ Tenant data seeded successfully");
+        
+        return $adminUser;
     }
 
     /**
@@ -261,7 +275,7 @@ class RegisterTenant extends Command
     /**
      * Create admin user for the tenant
      */
-    private function createAdminUser(Tenant $tenant, string $email, string $password, string $callsign): void
+    private function createAdminUser(Tenant $tenant, string $email, string $password, string $callsign): User
     {
         $this->line("Creating admin user...");
 
@@ -279,6 +293,8 @@ class RegisterTenant extends Command
         $user->assignRole($adminRole);
 
         $this->line("  - Created admin user: {$email}");
+        
+        return $user;
     }
 
     /**
@@ -355,6 +371,22 @@ class RegisterTenant extends Command
         }
 
         $this->line("  - Created leaderboard settings");
+    }
+
+    /**
+     * Send welcome email to the admin user
+     */
+    private function sendWelcomeEmail(Tenant $tenant, User $adminUser, string $adminPassword): void
+    {
+        $this->line("Sending welcome email...");
+
+        try {
+            Mail::to($adminUser->email)->send(new TenantRegistrationMail($tenant, $adminUser, $adminPassword));
+            $this->line("  - Welcome email sent successfully");
+        } catch (\Exception $e) {
+            $this->warn("  - Failed to send welcome email: " . $e->getMessage());
+            // Don't fail the registration if email fails
+        }
     }
 
     /**

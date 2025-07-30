@@ -49,7 +49,7 @@ class TenantRegistrationController extends Controller
 
         $order = app(SubscriptionService::class)->createOrder($tempTenant, $data['plan_key']);
 
-        $tempTenant->razorpay_subscription_id = $order['id'];
+        $tempTenant->razorpay_order_id = $order['id'];
         $tempTenant->save();
         
         return response()->json([
