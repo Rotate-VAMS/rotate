@@ -45,12 +45,25 @@ class RazorpayWebhookController extends Controller
             case 'payment.failed':
                 $this->handlePaymentFailed($payload);
                 break;
+                
+            case 'order.paid':
+                $this->handleOrderPaid($payload);
+                break;
+                
+            case 'order.payment_authorized':
+                Log::info("Payment authorized for order", $payload);
+                break;
+                
+            case 'payment.authorized':
+                Log::info("Payment authorized", $payload);
+                break;
     
             default:
                 Log::info("Unhandled Razorpay event: $event", $payload);
                 break;
         }
     
+        Log::info("Webhook processed successfully for event: $event");
         return response()->json(['status' => 'ok']);
     }
     
@@ -93,6 +106,36 @@ class RazorpayWebhookController extends Controller
         $payment->save();
     
         Log::warning("Payment failed for order: {$paymentData['order_id']}", $paymentData);
+    }
+    
+    protected function handleOrderPaid(array $payload)
+    {
+        $paymentData = $payload['payload']['payment']['entity'];
+        $orderData = $payload['payload']['order']['entity'];
+        
+        Log::info('Processing order paid', [
+            'payment_id' => $paymentData['id'],
+            'order_id' => $orderData['id'],
+            'amount' => $paymentData['amount']
+        ]);
+    
+        $payment = new Payment();
+        $payment->razorpay_payment_id = $paymentData['id'];
+        $payment->razorpay_order_id = $orderData['id'];
+        $payment->amount = $paymentData['amount'] / 100;
+        $payment->currency = $paymentData['currency'];
+        $payment->status = $paymentData['status'];
+        $payment->payload = $paymentData;
+        $payment->save();
+    
+        $tenant = Tenant::where('razorpay_order_id', $orderData['id'])->first();
+        if ($tenant) {
+            Log::info('Found tenant for order', ['tenant_id' => $tenant->id, 'order_id' => $orderData['id']]);
+            app(SubscriptionService::class)->activatePlan($tenant, $tenant->plan_key, $payment->razorpay_payment_id);
+            $this->sendWelcomeEmail($tenant);
+        } else {
+            Log::warning('No tenant found for order', ['order_id' => $orderData['id']]);
+        }
     }
 
     /**
