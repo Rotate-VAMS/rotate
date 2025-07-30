@@ -31,18 +31,23 @@ class SubscriptionService
     public function activatePlan(Tenant $tenant, string $planKey, ?string $razorpayPaymentId = null)
     {
         // Delete the temp tenant first then re-create the propper tenant
+        $name = $tenant->name;
+        $domain = $tenant->domain;
+        $adminEmail = $tenant->admin_email;
+        $adminPassword = $tenant->admin_password;
+        $adminCallsign = $tenant->admin_callsign;
         $tenant->delete();
 
         Artisan::call('tenant:register', [
-            'name' => $tenant->name,
-            'domain' => $tenant->domain,
-            '--admin-email' => $tenant->admin_email,
-            '--admin-password' => 12345678,
-            '--admin-callsign' => $tenant->admin_callsign,
+            'name' => $name,
+            'domain' => $domain,
+            '--admin-email' => $adminEmail,
+            '--admin-password' => $adminPassword,
+            '--admin-callsign' => $adminCallsign,
         ]);
 
         // Fetch the new tenant
-        $tenant = Tenant::where('domain', $tenant->domain)->first();
+        $tenant = Tenant::where('domain', $domain)->first();
 
         // Update the payments table with new tenant ID
         $payment = Payment::where('razorpay_payment_id', $razorpayPaymentId)->first();
