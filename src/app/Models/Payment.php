@@ -8,8 +8,9 @@ class Payment extends Model
 {
     protected $fillable = [
         'tenant_id',
-        'razorpay_payment_id',
-        'razorpay_order_id',
+        'provider',
+        'payment_id',
+        'order_id',
         'status',
         'amount',
         'currency',

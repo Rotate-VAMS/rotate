@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
@@ -22,40 +21,27 @@ class TenantRegistrationController extends Controller
             'admin_email' => 'required|email|max:255|unique:users,email',
             'admin_password' => 'required|string|min:8',
             'admin_callsign' => 'required|string|max:255',
-            'plan_key' => 'required|in:' . implode(',', array_keys(config('plans'))),
+        ]);
+ 
+        // Register the tenant
+        Artisan::call('tenant:register', [
+            'name' => $data['name'],
+            'domain' => $data['domain'],
+            '--admin-email' => $data['admin_email'],
+            '--admin-password' => $data['admin_password'],
+            '--admin-callsign' => $data['admin_callsign'],
         ]);
 
-        $plan = config('plans.' . $data['plan_key']);
-
-        if ($plan['amount'] == 0) {
-            $tenant = Tenant::where('domain', $data['domain'])->first();
-            app(SubscriptionService::class)->activatePlan($tenant, 'free');
-
-            $this->sendWelcomeEmail($tenant, $data['admin_email'], $data['admin_password']);
-            return response()->json(['status' => 'success', 'message' => 'Tenant registered successfully (Free Plan).']);
-        }
-
-        $tempTenant = new Tenant();
-        $tempTenant->name = $data['name'];
-        $tempTenant->domain = $data['domain'];
-        $tempTenant->plan_key = $data['plan_key'];
-        $tempTenant->admin_email = $data['admin_email'];
-        $tempTenant->admin_password = bcrypt($data['admin_password']);
-        $tempTenant->admin_callsign = $data['admin_callsign'];
-        $tempTenant->save();
-
-        $order = app(SubscriptionService::class)->createOrder($tempTenant, $data['plan_key']);
-
-        $tempTenant->razorpay_order_id = $order['id'];
-        $tempTenant->save();
+        // Fetch the new tenant
+        $tenant = Tenant::where('domain', $data['domain'])->first();
         
+        // Send welcome email
+        $this->sendWelcomeEmail($tenant, $data['admin_email'], $data['admin_password']);
+
         return response()->json([
-            'order_id' => $order['id'],
-            'amount' => $order['amount'],
-            'currency' => $order['currency'],
-            'temp_tenant_id' => $tempTenant->id,
-            'status' => 'success',
-            'message' => 'Tenant registration in progress.',
+            'status' => 'success', 
+            'message' => 'Tenant registered successfully.',
+            'tenant_id' => $tenant->id,
         ]);
     }
 

@@ -28,44 +28,24 @@ class SubscriptionService
         return $order;
     }
 
-    public function activatePlan(Tenant $tenant, string $planKey, ?string $razorpayPaymentId = null)
+    public function activatePlan(Tenant $tenant, string $planKey, ?string $paymentId = null): void
     {
-        // Delete the temp tenant first then re-create the propper tenant
-        $name = $tenant->name;
-        $domain = $tenant->domain;
-        $adminEmail = $tenant->admin_email;
-        $adminPassword = $tenant->admin_password;
-        $adminCallsign = $tenant->admin_callsign;
-        $tenant->delete();
-
-        Artisan::call('tenant:register', [
-            'name' => $name,
-            'domain' => $domain,
-            '--admin-email' => $adminEmail,
-            '--admin-password' => $adminPassword,
-            '--admin-callsign' => $adminCallsign,
-        ]);
-
-        // Fetch the new tenant
-        $tenant = Tenant::where('domain', $domain)->first();
-
-        // Update the payments table with new tenant ID
-        $payment = Payment::where('razorpay_payment_id', $razorpayPaymentId)->first();
-        $payment->tenant_id = $tenant->id;
-        $payment->save();
-
         $plan = config('plans.' . $planKey);
-
+    
         $interval = $plan['interval'] ?? null;
         $validUntil = match ($interval) {
             'monthly' => now()->addMonth(),
             'yearly' => now()->addYear(),
             default => null,
         };
-
+    
         $tenant->update([
             'plan_key' => $planKey,
             'plan_valid_until' => $validUntil,
         ]);
+    
+        if ($paymentId) {
+            Payment::where('payment_id', $paymentId)->update(['tenant_id' => $tenant->id]);
+        }
     }
 }

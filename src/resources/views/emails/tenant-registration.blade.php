@@ -15,7 +15,7 @@
     <span style="color: #155724; font-weight: 600; font-size: 16px;">🎉 Registration Complete - Your Account is Ready!</span>
 </div>
 
-<p style="font-size: 16px; line-height: 1.6; color: #4a5568; margin-bottom: 25px;">Your virtual airline has been successfully registered and is ready to use. Here's everything you need to get started:</p>
+<p style="font-size: 16px; line-height: 1.6; color: #4a5568; margin-bottom: 25px;">Your virtual airline has been successfully registered and is ready to use. Your domain is <strong>{{ $tenant->domain }}</strong>. After logging in, you can upgrade your plan from the dashboard to access additional features.</p>
 
 ## 🎯 Account Details
 
@@ -32,10 +32,6 @@
         <div>
             <strong style="color: #2d3748; display: block; margin-bottom: 5px;">Admin Email:</strong>
             <span style="color: #4a5568;">{{ $adminUser->email }}</span>
-        </div>
-        <div>
-            <strong style="color: #2d3748; display: block; margin-bottom: 5px;">Plan:</strong>
-            <span style="color: #4a5568;">{{ $tenant->plan_key }}</span>
         </div>
         <div>
             <strong style="color: #2d3748; display: block; margin-bottom: 5px;">Admin Callsign:</strong>
@@ -102,6 +98,7 @@
     <h3 style="color: white; margin: 0 0 15px 0; font-size: 18px;">Next Steps:</h3>
     <ol style="color: rgba(255,255,255,0.9); line-height: 1.8; margin: 0; padding-left: 20px;">
         <li><strong>Login</strong> using the credentials above</li>
+        <li><strong>Upgrade Your Plan</strong> from the dashboard to unlock all features</li>
         <li><strong>Customize</strong> your virtual airline settings</li>
         <li><strong>Invite Pilots</strong> to join your airline</li>
         <li><strong>Configure Discord</strong> (optional) for notifications</li>

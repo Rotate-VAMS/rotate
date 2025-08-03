@@ -18,7 +18,7 @@ return [
     ],
     'cadet_monthly' => [
         'name' => 'Cadet Monthly',
-        'amount' => 500,
+        'amount' => 5,
         'interval' => 'monthly',
         'features' => [
             'users',
@@ -40,7 +40,7 @@ return [
     ],
     'cadet_yearly' => [
         'name' => 'Cadet Yearly',
-        'amount' => 5000,
+        'amount' => 50,
         'interval' => 'yearly',
         'features' => [
             'users',
@@ -62,7 +62,7 @@ return [
     ],
     'captain_monthly' => [
         'name' => 'Captain Monthly',
-        'amount' => 1000,
+        'amount' => 10,
         'interval' => 'monthly',
         'features' => [
             'users',
@@ -83,7 +83,7 @@ return [
     ],
     'captain_yearly' => [
         'name' => 'Captain Yearly',
-        'amount' => 10000,
+        'amount' => 100,
         'interval' => 'yearly',
         'features' => [
             'users',
