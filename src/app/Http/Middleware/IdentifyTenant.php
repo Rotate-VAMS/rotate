@@ -23,7 +23,7 @@ class IdentifyTenant
         }
 
         $host = $request->getHost(); // e.g., va1.test
-        $tenant = Tenant::where('domain', $host)->first();
+        $tenant = Tenant::where('domain', explode('.', $host)[0])->first();
         
         if (!$tenant) {
             abort(404, 'Tenant not found');
