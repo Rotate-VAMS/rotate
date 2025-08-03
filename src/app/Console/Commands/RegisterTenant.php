@@ -94,7 +94,7 @@ class RegisterTenant extends Command
                 'domain' => $domain,
                 'plan_key' => 'free',
                 'admin_email' => $adminEmail,
-                'admin_password' => $adminPassword,
+                'admin_password' => Hash::make($adminPassword),
                 'admin_callsign' => $adminCallsign,
             ]);
 
