@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "florianv/exchanger": "^2.8",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/jetstream": "^5.3",
@@ -14,6 +15,8 @@
         "laravel/tinker": "^2.10.1",
         "nwidart/laravel-modules": "^12.0",
         "paypal/paypal-checkout-sdk": "^1.0",
+        "php-http/guzzle7-adapter": "^1.1",
+        "razorpay/razorpay": "^2.9",
         "spatie/laravel-permission": "^6.20",
         "team-reflex/discord-php": "^10.18",
         "tightenco/ziggy": "^2.0"

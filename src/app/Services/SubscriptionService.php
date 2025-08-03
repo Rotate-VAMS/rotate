@@ -20,7 +20,7 @@ class SubscriptionService
 
         $order = $api->order->create([
             'receipt'         => 'rcpt_' . uniqid(),
-            'amount'          => $plan['amount'] * 100,
+            'amount'          => $plan['amount'],
             'currency'        => 'INR',
             'payment_capture' => 1,
         ]);

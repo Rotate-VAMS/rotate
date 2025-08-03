@@ -14,6 +14,7 @@ const props = defineProps({
 const title = ref(props.title);
 const page = usePage();
 const tenant = page.props.auth.tenant;
+const plan = page.props.auth.plan;
 const user = page.props.auth?.user || {};
 const showDropdown = ref(false);
 const logo = ref('');
@@ -146,6 +147,26 @@ const visitCheckout = () => {
                 <CreditCardIcon class="w-5 h-5" />
                 <span class="truncate">Buy/Upgrade Plan</span>
               </button>
+              <div class="px-3 sm:px-5 py-3 w-full">
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-3 sm:p-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-2 h-2 bg-green-500 shadow-lg rounded-full"></div>
+                    <span class="text-xs sm:text-sm font-semibold text-indigo-700 uppercase tracking-wide">Current Plan</span>
+                  </div>
+                  <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm sm:text-base font-bold text-gray-900 truncate">{{ plan.name }}</span>
+                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                        Active
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
+                      <span class="font-medium">Valid until:</span>
+                      <span class="font-semibold">{{ tenant.plan_valid_until ? new Date(tenant.plan_valid_until).toLocaleDateString() : 'N/A' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div class="border-t border-gray-200 my-1"></div>
               <form @submit.prevent="logout">
                 <button type="submit" class="flex items-center gap-2 px-3 sm:px-5 py-2 text-red-600 hover:bg-red-50 text-sm sm:text-base font-semibold w-full transition-colors text-left">

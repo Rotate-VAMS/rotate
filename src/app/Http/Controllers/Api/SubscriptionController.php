@@ -44,10 +44,8 @@ class SubscriptionController extends Controller
         }
     
         if ($request->gateway === 'razorpay') {
-            $amountInInr = round($amount * config('services.razorpay.usd_to_inr_rate', 83), 2);
-    
             try {
-                $order = app(RazorpayService::class)->createOrder($amountInInr);
+                $order = app(RazorpayService::class)->createOrder($amount);
             } catch (\Exception $e) {
                 return response()->json(['status' => 'error', 'message' => 'Razorpay order failed.'], 500);
             }
@@ -102,14 +100,9 @@ class SubscriptionController extends Controller
         ]);
 
         $tenant = Tenant::find((int)$request->tenant_id);
-        $plan = config('plans.' . $request->plan_key);
 
         $razorpayService = app(RazorpayService::class);
         $payment = $razorpayService->fetchPayment($request->payment_id);
-
-        if ($payment['status'] !== 'captured') {
-            return response()->json(['status' => 'error', 'message' => 'Payment not captured'], 400);
-        }
 
         // Save payment (already captured by Razorpay client)
         Payment::create([
@@ -118,10 +111,14 @@ class SubscriptionController extends Controller
             'payment_id' => $request->payment_id,
             'order_id' => $request->order_id,
             'status' => 'captured',
-            'amount' => round($plan['amount'] * config('services.razorpay.usd_to_inr_rate', 83), 2),
+            'amount' => $payment['amount']/100,
             'currency' => 'INR',
             'payload' => json_encode($request->all()),
         ]);
+
+        if ($payment['status'] !== 'captured') {
+            return response()->json(['status' => 'error', 'message' => 'Payment not captured'], 400);
+        }
 
         app(SubscriptionService::class)->activatePlan($tenant, $request->plan_key, $request->payment_id);
 
