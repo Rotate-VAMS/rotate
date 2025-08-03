@@ -16,6 +16,7 @@ const props = defineProps({
   });
 
 const user = usePage().props.auth.user;
+const tenant = usePage().props.auth.tenant;
 
 // Fetch greetings based on time of day
 const getGreeting = () => {
@@ -35,7 +36,7 @@ const getGreeting = () => {
         Welcome back to your dashboard!
       </p>
     </div>
-    <DashboardButtons />
+    <DashboardButtons :tenant="tenant" />
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
       <AnalyticsCard
         v-for="(card, index) in props.analytics"
@@ -44,6 +45,8 @@ const getGreeting = () => {
         :value="card.value"
         :type="card.type"
         :caption="card.caption"
+        :tenant="tenant"
+        :visible="card.visible"
       />
     </div>
 
@@ -54,14 +57,14 @@ const getGreeting = () => {
       </div>
 
       <div class="space-y-6">
-        <UpcomingEvents :events="props.upcomingEvents" />
+        <UpcomingEvents :events="props.upcomingEvents" :tenant="tenant" />
         <QuickLinks />
       </div>
     </div>
 
     <!-- Pilot Leaderboard Section -->
     <div class="mt-8">
-      <DashboardLeaderboard :leaderboard="props.leaderboard" />
+      <DashboardLeaderboard :leaderboard="props.leaderboard" :tenant="tenant" />
     </div>
   </AppLayout>
 </template>

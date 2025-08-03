@@ -63,15 +63,21 @@ class DashboardController extends Controller
             ];
         }
 
-        $leaderboardController = new LeaderboardController();
-        $leaderboard = $leaderboardController->jxGetUserLeaderboardData(new Request(['view' => 'dashboard']));
-        $leaderboardData = $leaderboard->getData()->data;
+        if (in_array('leaderboard', app('currentTenant')->available_features)) {
+            $leaderboardController = new LeaderboardController();
+            $leaderboard = $leaderboardController->jxGetUserLeaderboardData(new Request(['view' => 'dashboard']));
+            $leaderboardData = $leaderboard->getData()->data;
+        } else {
+            $leaderboardData = (object) [
+                'data' => [],
+            ];
+        }
 
         $analytics = [
-            ['title' => 'Your Total Flights', 'value' => Pirep::where('user_id', $user->id)->count(), 'type' => 'flights'],
-            ['title' => 'Your Total Routes', 'value' => Route::count(), 'type' => 'routes'],
-            ['title' => 'Upcoming Rank', 'value' => $upcomingRank->name, 'caption' => $upcomingRank->caption, 'type' => 'ranks'],
-            ['title' => 'Upcoming Events', 'value' => Event::where('event_date_time', '>', time())->where('tenant_id', app('currentTenant')->id)->count(), 'type' => 'events'],
+            ['title' => 'Your Total Flights', 'value' => Pirep::where('user_id', $user->id)->count(), 'type' => 'flights', 'visible' => in_array('pireps', app('currentTenant')->available_features)],
+            ['title' => 'Your Total Routes', 'value' => Route::where('tenant_id', app('currentTenant')->id)->count(), 'type' => 'routes', 'visible' => in_array('routes', app('currentTenant')->available_features)],
+            ['title' => 'Upcoming Rank', 'value' => $upcomingRank->name, 'caption' => $upcomingRank->caption, 'type' => 'ranks', 'visible' => true],
+            ['title' => 'Upcoming Events', 'value' => Event::where('event_date_time', '>', time())->where('tenant_id', app('currentTenant')->id)->count(), 'type' => 'events', 'visible' => in_array('events', app('currentTenant')->available_features)],
         ];
 
         return Inertia::render('Dashboard/Pages/DashboardView', [

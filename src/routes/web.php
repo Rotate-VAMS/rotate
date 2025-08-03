@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 use App\Http\Controllers\Auth\CustomLogoutController;
 
 Route::get('/', function () {

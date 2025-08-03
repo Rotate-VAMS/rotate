@@ -14,6 +14,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+
 use function App\Helpers\set_permissions_team_id;
 
 class RegisterTenant extends Command
@@ -96,7 +97,9 @@ class RegisterTenant extends Command
             $this->info("✅ Tenant created successfully (ID: {$tenant->id})");
 
             // Seed tenant data
-            $this->seedTenantData($tenant, $adminEmail, $adminPassword, $adminCallsign);
+            $adminUser = $this->seedTenantData($tenant, $adminEmail, $adminPassword, $adminCallsign);
+
+            
 
             $this->info("✅ Tenant registration completed successfully!");
             $this->info("Domain: {$domain}");
@@ -120,7 +123,7 @@ class RegisterTenant extends Command
     /**
      * Seed all necessary data for a tenant
      */
-    private function seedTenantData(Tenant $tenant, string $adminEmail, string $adminPassword, string $adminCallsign): void
+    private function seedTenantData(Tenant $tenant, string $adminEmail, string $adminPassword, string $adminCallsign): User
     {
         // Set the tenant context for all operations
         app()->instance('currentTenant', $tenant);
@@ -138,7 +141,7 @@ class RegisterTenant extends Command
         $this->assignPermissionsToRoles($tenant);
 
         // 4. Create admin user
-        $this->createAdminUser($tenant, $adminEmail, $adminPassword, $adminCallsign);
+        $adminUser = $this->createAdminUser($tenant, $adminEmail, $adminPassword, $adminCallsign);
 
         // 5. Create flight types
         $this->createFlightTypes($tenant);
@@ -153,6 +156,8 @@ class RegisterTenant extends Command
         $this->createLeaderboardSettings($tenant);
 
         $this->info("✅ Tenant data seeded successfully");
+        
+        return $adminUser;
     }
 
     /**
@@ -261,7 +266,7 @@ class RegisterTenant extends Command
     /**
      * Create admin user for the tenant
      */
-    private function createAdminUser(Tenant $tenant, string $email, string $password, string $callsign): void
+    private function createAdminUser(Tenant $tenant, string $email, string $password, string $callsign): User
     {
         $this->line("Creating admin user...");
 
@@ -279,6 +284,8 @@ class RegisterTenant extends Command
         $user->assignRole($adminRole);
 
         $this->line("  - Created admin user: {$email}");
+        
+        return $user;
     }
 
     /**
@@ -356,6 +363,8 @@ class RegisterTenant extends Command
 
         $this->line("  - Created leaderboard settings");
     }
+
+
 
     /**
      * Delete all data for a tenant

@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Tenant;
 use Razorpay\Api\Api;
+use Illuminate\Support\Facades\Artisan;
+use App\Models\Payment;
 
 class SubscriptionService
 {
@@ -18,7 +20,7 @@ class SubscriptionService
 
         $order = $api->order->create([
             'receipt'         => 'rcpt_' . uniqid(),
-            'amount'          => $plan['amount'] * 100,
+            'amount'          => $plan['amount'],
             'currency'        => 'INR',
             'payment_capture' => 1,
         ]);
@@ -26,21 +28,24 @@ class SubscriptionService
         return $order;
     }
 
-    public function activatePlan(Tenant $tenant, string $planKey, ?string $razorpaySubscriptionId = null)
+    public function activatePlan(Tenant $tenant, string $planKey, ?string $paymentId = null): void
     {
         $plan = config('plans.' . $planKey);
-
+    
         $interval = $plan['interval'] ?? null;
         $validUntil = match ($interval) {
             'monthly' => now()->addMonth(),
             'yearly' => now()->addYear(),
             default => null,
         };
-
+    
         $tenant->update([
             'plan_key' => $planKey,
             'plan_valid_until' => $validUntil,
-            'razorpay_subscription_id' => $razorpaySubscriptionId,
         ]);
+    
+        if ($paymentId) {
+            Payment::where('payment_id', $paymentId)->update(['tenant_id' => $tenant->id]);
+        }
     }
 }

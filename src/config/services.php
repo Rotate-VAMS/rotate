@@ -39,8 +39,15 @@ return [
         'token' => env('ROTATE_DISCORD_BOT_TOKEN'),
     ],
 
+    'paypal' => [
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'client_secret' => env('PAYPAL_CLIENT_SECRET'),
+        'mode' => env('PAYPAL_MODE', 'sandbox'), // or 'live'
+    ],
+
     'razorpay' => [
-        'key_id' => env('RAZORPAY_TEST_KEY_ID'),
-        'key_secret' => env('RAZORPAY_TEST_KEY_SECRET'),
+        'key_id' => env('RAZORPAY_KEY'),
+        'key_secret' => env('RAZROPAY_KEY_SECRET'),
+        'usd_to_inr_rate' => env('USD_TO_INR_RATE', 83),
     ],
 ];

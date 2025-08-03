@@ -17,12 +17,19 @@ class IdentifyTenant
      */
     public function handle($request, Closure $next)
     {
+        // Skip tenant identification for webhook routes
+        if ($request->is('api/razorpay/webhook')) {
+            return $next($request);
+        }
+
         $host = $request->getHost(); // e.g., va1.test
         $tenant = Tenant::where('domain', $host)->first();
-
+        
         if (!$tenant) {
             abort(404, 'Tenant not found');
         }
+
+        $tenant->available_features = config('plans.' . $tenant->plan_key . '.features');
 
         app()->instance('currentTenant', $tenant);
 

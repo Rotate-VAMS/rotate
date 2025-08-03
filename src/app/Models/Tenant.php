@@ -8,7 +8,11 @@ use Spatie\Permission\Models\Permission;
 
 class Tenant extends Model
 {
-    protected $fillable = ['name', 'domain'];
+    protected $fillable = ['name', 'domain', 'plan_key', 'plan_valid_until', 'razorpay_order_id', 'razorpay_subscription_id', 'admin_email', 'admin_password', 'admin_callsign'];
+
+    protected $casts = [
+        'plan_valid_until' => 'date',
+    ];
 
     public function users()
     {
