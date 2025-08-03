@@ -92,6 +92,10 @@ class RegisterTenant extends Command
             $tenant = Tenant::create([
                 'name' => $name,
                 'domain' => $domain,
+                'plan_key' => 'free',
+                'admin_email' => $adminEmail,
+                'admin_password' => $adminPassword,
+                'admin_callsign' => $adminCallsign,
             ]);
 
             $this->info("✅ Tenant created successfully (ID: {$tenant->id})");
