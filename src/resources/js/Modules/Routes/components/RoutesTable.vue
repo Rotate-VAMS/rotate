@@ -152,8 +152,11 @@
                   <div class="font-semibold">{{ formatFlightTime(route.flight_time) }}</div>
                 </td>
                 <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                  <span :class="getRankPillClass(route.minimum_rank)" class="inline-flex items-center text-sm font-medium px-2 py-1 rounded-full text-white">
+                  <span v-if="route.minimum_rank" :class="getRankPillClass(route.minimum_rank)" class="inline-flex items-center text-sm font-medium px-2 py-1 rounded-full text-white">
                     {{ route.minimum_rank }}
+                  </span>
+                  <span v-else class="inline-flex items-center text-sm font-medium px-2 py-1 rounded-full text-gray-800">
+                    No Minimum Rank
                   </span>
                 </td>
                 <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
@@ -174,24 +177,13 @@
                   </div>
                 </td>
                 <td class="px-4 sm:px-6 py-4 whitespace-nowrap" v-if="user.permissions.includes('edit-route') || user.permissions.includes('delete-route')">
-                  <div class="flex items-center gap-1 sm:gap-2">
-                    <button 
-                      v-if="user.permissions.includes('edit-route')"
-                      @click="editRoute(route)"
-                      class="text-blue-600 hover:text-blue-800 p-1 rounded"
-                      title="Edit Route"
-                    >
-                      <EditIcon class="w-4 h-4" />
-                    </button>
-                    <button 
-                      v-if="user.permissions.includes('delete-route')"
-                      @click="deleteRoute(route)"
-                      class="text-red-600 hover:text-red-800 p-1 rounded"
-                      title="Delete Route"
-                    >
-                      <TrashIcon class="w-4 h-4" />
-                    </button>
-                  </div>
+                  <RoutesHamburger 
+                    :route="route"
+                    @edit="editRoute"
+                    @delete="deleteRoute"
+                    @toggle-status="toggleRouteStatus"
+                    @create-pirep="createPirep"
+                  />
                 </td>
               </tr>
             </tbody>
@@ -268,8 +260,11 @@
               <div class="font-semibold">{{ formatFlightTime(route.flight_time) }}</div>
             </td>
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-              <span :class="getRankPillClass(route.minimum_rank)" class="inline-flex items-center text-sm font-medium px-2 py-1 rounded-full text-white">
+              <span v-if="route.minimum_rank" :class="getRankPillClass(route.minimum_rank)" class="inline-flex items-center text-sm font-medium px-2 py-1 rounded-full text-white">
                 {{ route.minimum_rank }}
+              </span>
+              <span v-else class="inline-flex items-center text-sm font-medium px-2 py-1 rounded-full text-gray-800">
+                No Minimum Rank
               </span>
             </td>
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
@@ -290,33 +285,13 @@
               </div>
             </td>
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap" v-if="user.permissions.includes('edit-route') || user.permissions.includes('delete-route')">
-              <div class="flex items-center gap-1 sm:gap-2">
-                <button 
-                  v-if="user.permissions.includes('edit-route')"
-                  @click="editRoute(route)"
-                  class="text-blue-600 hover:text-blue-800 p-1 rounded"
-                  title="Edit Route"
-                >
-                  <EditIcon class="w-4 h-4" />
-                </button>
-                <button 
-                  v-if="user.permissions.includes('delete-route')"
-                  @click="deleteRoute(route)"
-                  class="text-red-600 hover:text-red-800 p-1 rounded"
-                  title="Delete Route"
-                >
-                  <TrashIcon class="w-4 h-4" />
-                </button>
-                <button 
-                  v-if="user.permissions.includes('edit-route')"
-                  @click="toggleRouteStatus(route)"
-                  :class="route.status ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'"
-                  :title="route.status ? 'Deactivate Route' : 'Activate Route'"
-                >
-                  <BadgeCheckIcon v-if="!route.status" class="w-4 h-4" />
-                  <BadgeXIcon v-else class="w-4 h-4" />
-                </button>
-              </div>
+              <RoutesHamburger 
+                :route="route"
+                @edit="editRoute"
+                @delete="deleteRoute"
+                @toggle-status="toggleRouteStatus"
+                @create-pirep="createPirep"
+              />
             </td>
           </tr>
         </tbody>
@@ -327,9 +302,10 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
-import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ChevronDownIcon, ChevronRightIcon, BadgeCheckIcon, BadgeXIcon, PlaneIcon, RouteIcon, MapPinIcon, ClockIcon, UserIcon } from 'lucide-vue-next'
+import { FilterIcon, BadgeIcon, ChevronDownIcon, ChevronRightIcon, PlaneIcon, RouteIcon, MapPinIcon, ClockIcon, UserIcon } from 'lucide-vue-next'
 import RotateDataService from '@/rotate.js'
-import { usePage } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3'
+import RoutesHamburger from './RoutesHamburger.vue'
 
 const showToast = inject('showToast');
 const page = usePage();
@@ -593,6 +569,8 @@ const toggleGroup = (groupKey) => {
   }
 }
 
+
+
 const fetchRoutes = async () => {
   try {
     page.props.loading = true
@@ -605,6 +583,10 @@ const fetchRoutes = async () => {
     showToast('Error fetching routes', 'error')
     page.props.loading = false
   }
+}
+
+const createPirep = (route) => {
+  window.dispatchEvent(new CustomEvent('create-pirep', { detail: route }))
 }
 
 // Action handlers

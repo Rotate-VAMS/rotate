@@ -69,7 +69,7 @@ class RoutesController extends Controller
                 $route->fleet_names = Fleet::whereIn('id', array_values($route->fleet_ids))->get()->toArray();
                 $route->flight_time = $route->flight_time;
                 $route->rank_id = $route->min_rank_id;
-                $route->minimum_rank = Rank::find($route->min_rank_id)->name;
+                $route->minimum_rank = $route->min_rank_id ? Rank::find($route->min_rank_id)->name : null;
                 $route->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_ROUTES, $route->id);
                 return $route;
             });

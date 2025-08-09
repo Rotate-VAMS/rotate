@@ -20,7 +20,7 @@ class _Pirep extends Model
         if ($mode === 'create') {
             $pirep = new Pirep();
         } else {
-            $pirep = Pirep::find($data['id']);
+            $pirep = Pirep::find($data['route_id']);
         }
         $flightTime = (int)$data['flight_time_hours'] * 60 + (int)$data['flight_time_minutes'];
         $pirep->user_id = Auth::user()->id;

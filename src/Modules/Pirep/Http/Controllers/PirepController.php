@@ -130,7 +130,7 @@ class PirepController extends Controller
             return response()->json($this->errorBag);
         }
 
-        $mode = $request->id ? 'edit' : 'create';
+        $mode = $request->route_id ? 'edit' : 'create';
         $response = Pirep::createEditPirep($request->all(), $mode);
         if (isset($response['error'])) {
             $this->errorBag['hasErrors'] = true;

@@ -23,8 +23,12 @@ class IdentifyTenant
         }
 
         $host = $request->getHost(); // e.g., va1.test
-        $tenant = Tenant::where('domain', explode('.', $host)[0])->first();
-        
+        if (env('APP_ENV') == 'production') {
+            $tenant = Tenant::where('domain', explode('.', $host)[0])->first();
+        } else {
+            $tenant = Tenant::where('domain', $host)->first();
+        }
+
         if (!$tenant) {
             abort(404, 'Tenant not found');
         }

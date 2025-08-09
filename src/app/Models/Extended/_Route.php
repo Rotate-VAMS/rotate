@@ -39,7 +39,7 @@ class _Route extends Model
             }
             $route->min_rank_id = $rank_ids->first();
         } else {
-            $route->min_rank_id = $data['rank_id'];
+            $route->min_rank_id = $data['rank_id'] ?? null;
         }
 
         $route->distance = RotateAirportHelper::distanceBetweenICAOs($data['origin_icao'], $data['destination_icao']);
