@@ -326,6 +326,12 @@ class RegisterTenant extends Command
             'tenant_id' => $tenant->id,
         ]);
 
+        DiscordSettings::create([
+            'setting_key' => 'discord_bot_pirep_activity',
+            'setting_value' => DiscordSettings::DISCORD_PIREP_ACTIVITY_DISABLED,
+            'tenant_id' => $tenant->id,
+        ]);
+
         $this->line("  - Created Discord settings");
     }
 
