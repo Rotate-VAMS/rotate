@@ -95,6 +95,7 @@ const openDrawerForCreate = () => {
 const editRank = (rank) => {
   formMode.value = 'edit'
   formData.value = { ...rank }
+  formData.value.rank_name = rank.name
   showDrawer.value = true
 }
 const deleteRank = async (rank) => {
