@@ -15,4 +15,6 @@ class RotateConstants
     const CONSTANT_FOR_FOUR = 4;
 
     const SECONDS_IN_ONE_DAY = 86400;
+
+    const SECONDS_IN_ONE_HOUR = 3600;
 }

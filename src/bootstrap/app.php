@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\IdentifyTenant::class,
+            \App\Http\Middleware\TenantPlanVerifier::class,
         ]);
 
         // Register PilotActiveCheck as an alias for use in route groups
