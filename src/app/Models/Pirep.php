@@ -19,6 +19,21 @@ class Pirep extends _Pirep
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function route()
+    {
+        return $this->belongsTo(Route::class, 'route_id');
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class, 'event_id');
+    }
+
+    public function flightType()
+    {
+        return $this->belongsTo(FlightType::class, 'flight_type_id');
+    }
+
     protected static function booted()
     {
         static::created(function ($pirep) {
@@ -27,7 +42,11 @@ class Pirep extends _Pirep
             $user->save();
 
             // Update rank if valid
-            $user->rank_id = Rank::where('min_hours', '<=', $user->flying_hours/60)->orderBy('min_hours', 'desc')->first()->id;
+            if ($user->rank_id && isset($user->rank_id)) {
+                $user->rank_id = Rank::where('min_hours', '<=', $user->flying_hours/60)->orderBy('min_hours', 'desc')->first()->id;
+            } else {
+                $user->rank_id = null;
+            }
             $user->save();
         });
 
@@ -37,7 +56,11 @@ class Pirep extends _Pirep
             $user->save();
 
             // Update rank if valid
-            $user->rank_id = Rank::where('min_hours', '<=', $user->flying_hours/60)->orderBy('min_hours', 'desc')->first()->id;
+            if ($user->rank_id && isset($user->rank_id)) {
+                $user->rank_id = Rank::where('min_hours', '<=', $user->flying_hours/60)->orderBy('min_hours', 'desc')->first()->id;
+            } else {
+                $user->rank_id = null;
+            }
             $user->save();
         });
 
@@ -47,7 +70,11 @@ class Pirep extends _Pirep
             $user->save();
 
             // Update rank if valid
-            $user->rank_id = Rank::where('min_hours', '<=', $user->flying_hours/60)->orderBy('min_hours', 'desc')->first()->id;
+            if ($user->rank_id && isset($user->rank_id)) {
+                $user->rank_id = Rank::where('min_hours', '<=', $user->flying_hours/60)->orderBy('min_hours', 'desc')->first()->id;
+            } else {
+                $user->rank_id = null;
+            }
             $user->save();
         });
     }

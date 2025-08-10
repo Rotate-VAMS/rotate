@@ -130,7 +130,7 @@ class PirepController extends Controller
             return response()->json($this->errorBag);
         }
 
-        $mode = $request->route_id ? 'edit' : 'create';
+        $mode = $request->id ? 'edit' : 'create';
         $response = Pirep::createEditPirep($request->all(), $mode);
         if (isset($response['error'])) {
             $this->errorBag['hasErrors'] = true;
@@ -138,6 +138,7 @@ class PirepController extends Controller
             return response()->json($this->errorBag);
         }
         tenant_cache_forget('pireps:list:all');
+        tenant_cache_forget('users:pilots:all');
         return response()->json(['hasErrors' => false, 'message' => $response['success']]);
     }
 
