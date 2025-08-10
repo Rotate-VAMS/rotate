@@ -138,6 +138,7 @@ class PirepController extends Controller
             return response()->json($this->errorBag);
         }
         tenant_cache_forget('pireps:list:all');
+        tenant_cache_forget('users:pilots:all');
         return response()->json(['hasErrors' => false, 'message' => $response['success']]);
     }
 

@@ -69,8 +69,73 @@
               class="flex-1 px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base"
             />
             <button
-              @click="testConnection"
+              @click="testEventChannelConnection"
               :disabled="!eventNotificationChannelId || testing"
+              class="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base"
+            >
+              <span v-if="testing">Testing...</span>
+              <span v-else>Test Connection</span>
+            </button>
+          </div>
+          <p class="text-xs sm:text-sm text-gray-500 mt-2">
+            Right-click on the channel in Discord and select "Copy Channel ID" to get the channel ID.
+          </p>
+        </div>
+        
+        <div class="flex gap-2">
+          <button
+            @click="saveSettings"
+            :disabled="saving"
+            class="w-full sm:w-auto px-4 py-3 sm:py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base"
+          >
+            <span v-if="saving">Saving...</span>
+            <span v-else>Save Settings</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pirep Notifications Configuration -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+      <div class="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <BellIcon class="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900">Enable/Disable Pirep Notifications</h2>
+      </div>
+
+      <div class="space-y-4 mb-4">
+        <div>
+          <label for="channelId" class="block text-sm font-medium text-gray-700 mb-2">
+            Enable/Disable Pirep Notifications
+          </label>
+          <div class="flex gap-2">
+            <button
+              @click="toggleDiscordBotPirepActivity"
+              :disabled="testing"
+              class="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base"
+            >
+              <span v-if="discordBotPirepActivity == 1">Disable</span>
+              <span v-else>Enable</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4" v-if="discordBotPirepActivity == 1">
+        <div>
+          <label for="channelId" class="block text-sm font-medium text-gray-700 mb-2">
+            Discord Channel ID for Pirep Notifications
+          </label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input
+              id="channelId"
+              v-model="pirepNotificationChannelId"
+              type="text"
+              placeholder="Enter Discord channel ID (e.g., 1234567890123456789)"
+              class="flex-1 px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base"
+            />
+            <button
+              @click="testPirepChannelConnection"
+              :disabled="!pirepNotificationChannelId || testing"
               class="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base"
             >
               <span v-if="testing">Testing...</span>
@@ -174,6 +239,8 @@ const eventNotificationChannelId = ref('');
 const testing = ref(false);
 const saving = ref(false);
 const discordBotEventActivity = ref();
+const pirepNotificationChannelId = ref('');
+const discordBotPirepActivity = ref();
 
 const fetchSettings = async () => {
   try {
@@ -184,6 +251,8 @@ const fetchSettings = async () => {
     }
     eventNotificationChannelId.value = response.data.event_notification_channel_id || '';
     discordBotEventActivity.value = response.data.discord_bot_event_activity == 1 ? true : false;
+    pirepNotificationChannelId.value = response.data.pirep_notification_channel_id || '';
+    discordBotPirepActivity.value = response.data.discord_bot_pirep_activity == 1 ? true : false;
   } catch (error) {
     console.error('Error fetching Discord settings:', error);
     showToast('Failed to fetch Discord settings', 'error');
@@ -205,7 +274,23 @@ const toggleDiscordBotEventActivity = async () => {
   discordBotEventActivity.value = !discordBotEventActivity.value;
 };
 
-const testConnection = async () => {
+const toggleDiscordBotPirepActivity = async () => {
+
+  try {
+    const response = await rotateDataService('/discord/jxToggleDiscordBotPirepActivity');
+    if (response.hasErrors) {
+      showToast(response.message || 'Error occurred while toggling Discord bot pirep activity', 'error')
+    } else {
+      showToast(response.message || 'Discord bot pirep activity toggled successfully!', 'success')
+    }
+  } catch (error) {
+    console.error('Error toggling Discord bot pirep activity:', error);
+    showToast('Failed to toggle Discord bot pirep activity', 'error');
+  }
+  discordBotPirepActivity.value = !discordBotPirepActivity.value;
+};
+
+const testEventChannelConnection = async () => {
   if (!eventNotificationChannelId.value.trim()) {
     showToast('Please enter a channel ID first', 'error');
     return;
@@ -229,11 +314,36 @@ const testConnection = async () => {
   }
 };
 
+const testPirepChannelConnection = async () => {
+  if (!pirepNotificationChannelId.value.trim()) {
+    showToast('Please enter a channel ID first', 'error');
+    return;
+  }
+  
+  testing.value = true;
+  try {
+    const response = await rotateDataService('/discord/jxTestDiscordConnection', {
+      pirep_notification_channel_id: pirepNotificationChannelId.value
+    });
+    if (response.hasErrors) {
+      showToast(response.message || 'Error occurred while testing Discord connection', 'error')
+    } else {
+      showToast(response.message || 'Discord connection test successful!', 'success')
+    }
+  } catch (error) {
+    console.error('Error testing Discord connection:', error);
+    showToast('Failed to test Discord connection', 'error');
+  } finally {
+    testing.value = false;
+  }
+};
+
 const saveSettings = async () => {
   saving.value = true;
   try {
     const response = await rotateDataService('/discord/jxUpdateDiscordSettings', {
-      event_notification_channel_id: eventNotificationChannelId.value
+      event_notification_channel_id: eventNotificationChannelId.value,
+      pirep_notification_channel_id: pirepNotificationChannelId.value
     });
     if (response.hasErrors) {
       showToast(response.message || 'Error occurred while saving Discord settings', 'error')

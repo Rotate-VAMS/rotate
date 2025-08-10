@@ -71,6 +71,7 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::post('jxUpdateDiscordSettings', 'jxUpdateDiscordSettings')->name('integrations.settings.jxUpdateDiscordSettings');
         Route::post('jxTestDiscordConnection', 'jxTestDiscordConnection')->name('integrations.settings.jxTestDiscordConnection');
         Route::get('jxToggleDiscordBotEventActivity', 'jxToggleDiscordBotEventActivity')->name('integrations.settings.jxToggleDiscordBotEventActivity');
+        Route::get('jxToggleDiscordBotPirepActivity', 'jxToggleDiscordBotPirepActivity')->name('integrations.settings.jxToggleDiscordBotPirepActivity');
     });
 
     // Leaderboard

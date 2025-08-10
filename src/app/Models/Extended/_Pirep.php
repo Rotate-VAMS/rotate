@@ -5,12 +5,16 @@ namespace App\Models\Extended;
 use App\Models\FlightType;
 use App\Models\Pirep;
 use App\Models\CustomFieldValues;
+use App\Models\DiscordSettings;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Leaderboard;
 use App\Models\SystemSettings;
 use App\Helpers\RotateAirportHelper;
+use App\Services\DiscordNotificationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 use function App\Helpers\tenant_cache_forget;
 
 class _Pirep extends Model
@@ -44,6 +48,16 @@ class _Pirep extends Model
         if (isset($data['customData'])) {
             foreach ($data['customData'] as $field_key => $value) {
                 CustomFieldValues::createCustomFieldValue(CustomFieldValues::SOURCE_TYPE_PIREPS, $pirep->id, $field_key, $value);
+            }
+        }
+
+        // Send Discord notification for PIREP creation
+        if ($mode === 'create' && DiscordSettings::getSetting(DiscordSettings::DISCORD_BOT_PIREP_ACTIVITY, DiscordSettings::DISCORD_PIREP_ACTIVITY_ENABLED)) {
+            try {
+                $discordService = new DiscordNotificationService();
+                $discordService->sendPirepNotification($pirep);
+            } catch (\Exception $e) {
+                Log::error('Failed to send Discord PIREP notification: ' . $e->getMessage());
             }
         }
 
