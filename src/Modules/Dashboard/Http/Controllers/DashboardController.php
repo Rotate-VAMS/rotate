@@ -2,6 +2,7 @@
 
 namespace Modules\Dashboard\Http\Controllers;
 
+use App\Helpers\RotateConstants;
 use App\Helpers\RotateAirportHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use SebastianBergmann\Diff\Diff;
 use Modules\Integration\Http\Controllers\LeaderboardController;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Foundation\Inspiring;
 
 class DashboardController extends Controller
 {
@@ -80,11 +83,17 @@ class DashboardController extends Controller
             ['title' => 'Upcoming Events', 'value' => Event::where('event_date_time', '>', time())->where('tenant_id', app('currentTenant')->id)->count(), 'type' => 'events', 'visible' => in_array('events', app('currentTenant')->available_features)],
         ];
 
+        // Artisan inspire for quote of the day and then cache for 1 day
+        $quote = Cache::remember('quote_of_the_day', RotateConstants::SECONDS_IN_ONE_DAY, function () {
+            return Inspiring::quote();
+        });
+
         return Inertia::render('Dashboard/Pages/DashboardView', [
             'analytics' => $analytics,
             'recentActivities' => $pireps,
             'upcomingEvents' => $events,
             'leaderboard' => $leaderboardData,
+            'quote' => $quote,
         ]);
     }
 }

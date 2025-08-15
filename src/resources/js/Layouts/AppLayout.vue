@@ -96,7 +96,7 @@ const visitCheckout = () => {
           <div class="bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-500 text-white shadow-md rounded-xl h-10 w-10 flex items-center justify-center text-lg font-bold">
             R
           </div>
-          <span class="text-base sm:text-lg text-indigo-900 font-bold hidden sm:inline">Rotate <p class="text-xs sm:text-sm text-indigo-700 font-bold truncate">VA Management System</p></span>
+          <span class="text-base sm:text-lg text-indigo-900 font-bold hidden sm:inline">{{ tenant.name ? tenant.name : 'Rotate' }} <p class="text-xs sm:text-sm text-indigo-700 font-bold truncate">VA Management System</p></span>
         </div>
         <!-- Right Icons -->
         <div class="flex items-center space-x-4 sm:space-x-6 relative w-full sm:w-auto justify-center sm:justify-end mt-2 sm:mt-0">
@@ -142,12 +142,12 @@ const visitCheckout = () => {
                 <UserIcon class="w-5 h-5" />
                 <span class="truncate">Profile Settings</span>
               </button>
-              <button class="flex items-center gap-2 px-3 sm:px-5 py-2 text-gray-900 hover:bg-gray-50 text-sm sm:text-base font-medium transition-colors w-full text-left"
+              <button v-if="user?.role === 'admin'" class="flex items-center gap-2 px-3 sm:px-5 py-2 text-gray-900 hover:bg-gray-50 text-sm sm:text-base font-medium transition-colors w-full text-left"
                 @click="() => visitCheckout()">
                 <CreditCardIcon class="w-5 h-5" />
                 <span class="truncate">Buy/Upgrade Plan</span>
               </button>
-              <div class="px-3 sm:px-5 py-3 w-full">
+              <div v-if="user?.role === 'admin'" class="px-3 sm:px-5 py-3 w-full">
                 <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-3 sm:p-4">
                   <div class="flex items-center gap-2 mb-2">
                     <div class="w-2 h-2 bg-green-500 shadow-lg rounded-full"></div>

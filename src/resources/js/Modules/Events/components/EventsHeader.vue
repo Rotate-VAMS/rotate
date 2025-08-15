@@ -56,8 +56,8 @@ const formFields = ref([
   { name: 'event_name', label: 'Event Name', type: 'text', required: true },
   { name: 'event_description', label: 'Event Description', type: 'textarea', required: true },
   { name: 'event_date_time', label: 'Event Date & Time', type: 'datetime-local', required: true },
-  { name: 'origin', label: 'Origin', type: 'text', required: true },
-  { name: 'destination', label: 'Destination', type: 'text', required: true },
+  { name: 'origin', label: 'Origin (ICAO Code)', type: 'text', required: true },
+  { name: 'destination', label: 'Destination (ICAO Code)', type: 'text', required: true },
   { name: 'aircraft', label: 'Aircraft', type: 'multiselect', required: true, options: [] },
   { name: 'cover_image', label: 'Cover Image', type: 'file', required: false, acceptedTypes: 'image/jpeg,image/png,image/jpg,image/gif,image/svg+xml', maxSize: '2MB' }
 ])

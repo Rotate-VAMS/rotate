@@ -21,7 +21,7 @@
         </div>
       </div>
       <div class="text-xs text-right">
-        <span class="px-2 py-1 rounded-full font-bold text-green-700 bg-gradient-to-r from-green-100 to-green-200">{{ activity.distance }} NM</span>
+        <span class="px-2 py-1 rounded-full font-bold text-green-700 bg-gradient-to-r from-green-100 to-green-200 truncate">{{ activity.distance }} NM</span>
         <p class="text-gray-400 text-xs mt-2 sm:mt-3">{{ activity.time_ago }}</p>
       </div>
     </div>

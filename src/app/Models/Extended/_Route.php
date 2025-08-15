@@ -42,7 +42,7 @@ class _Route extends Model
             $route->min_rank_id = $data['rank_id'] ?? null;
         }
 
-        $route->distance = RotateAirportHelper::distanceBetweenICAOs($data['origin_icao'], $data['destination_icao']);
+        $route->distance = RotateAirportHelper::distanceBetweenICAOs($data['origin_icao'], $data['destination_icao']) ?? 0;
         $route->flight_time = ($route->distance / 450) * 60;
         $route->updated_at = now();
 

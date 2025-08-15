@@ -102,8 +102,8 @@ class EventsController extends Controller
                 $event->attendees = EventAttendance::where('event_id', $event->id)->get()->pluck('user_id')->toArray();
                 $event->pirep_filled = Event::checkIfEventPirepIsFilled($event->id, Auth::user()->id);
                 $event->custom_fields = CustomFieldValues::getAllCustomFieldValues(CustomFieldValues::SOURCE_TYPE_EVENTS, $event->id);
-                $event->origin_city = RotateAirportHelper::icaoToCity($event->origin);
-                $event->destination_city = RotateAirportHelper::icaoToCity($event->destination);
+                $event->origin_city = RotateAirportHelper::icaoToCity($event->origin) ?? '';
+                $event->destination_city = RotateAirportHelper::icaoToCity($event->destination) ?? '';
                 $event->completed = $event->event_date_time < time();
                 $cover_image = Documents::fetchDocument(Documents::ENTITY_TYPE_EVENT, $event->id);
                 if (isset($cover_image['error'])) {
