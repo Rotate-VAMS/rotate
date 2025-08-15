@@ -108,6 +108,10 @@ class User extends Authenticatable
             if ($validateCallsign) {
                 return ['error' => 'Callsign already exists'];
             }
+
+            $pilot->flying_hours = 0;
+            $pilot->status = 1;
+            $pilot->password = Hash::make(env('DEFAULT_PASSWORD'));    
         } else {
             $pilot = User::find($data['id']);
             if (!$pilot) {
@@ -118,9 +122,6 @@ class User extends Authenticatable
         $pilot->callsign = $data['callsign'];
         $pilot->email = $data['email'];
         $pilot->rank_id = $data['rank_id'];
-        $pilot->flying_hours = 0;
-        $pilot->status = 1;
-        $pilot->password = Hash::make(env('DEFAULT_PASSWORD'));
         $pilot->tenant_id = app('currentTenant')->id;
         $pilot->created_at = now();
         $pilot->updated_at = now();
@@ -137,7 +138,7 @@ class User extends Authenticatable
 
         // Handle roles assignment
         if (isset($data['role_id'])) {
-            $pilot->roles()->sync([$data['role_id']]);
+            $pilot->assignRole($data['role_id']);
         }
 
         return $pilot;

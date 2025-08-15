@@ -45,6 +45,9 @@
             <PlaneIcon class="w-4 h-4 inline-block mr-2" /> Flight Type
           </th>
           <th class="px-6 py-3 hover:bg-gray-200 transition-colors">
+            <ClockIcon class="w-4 h-4 inline-block mr-2" /> Computed Flight Time
+          </th>
+          <th class="px-6 py-3 hover:bg-gray-200 transition-colors">
             <RouteIcon class="w-4 h-4 inline-block mr-2" /> Distance
           </th>
           <th 
@@ -71,7 +74,7 @@
             <div class="font-semibold">{{ pirep.origin }} - {{ pirep.destination }}</div>
             <div v-if="pirep.flight_number" class="text-s text-gray-400">{{ pirep.flight_number }}</div>
             <div v-else class="flex items-center gap-2 mt-2">
-              <span class="shadow-md rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-yellow-200 px-2 py-1 text-xs text-gray-800 border border-yellow-400 font-semibold">{{ pirep.event_name }}</span>
+              <span class="shadow-md rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-yellow-200 px-2 py-1 text-xs text-gray-800 border border-yellow-400 font-semibold truncate">{{ pirep.event_name }}</span>
             </div>
           </td>
           <td class="px-6 py-4">
@@ -87,6 +90,9 @@
               </span>
               <span class="text-xs text-gray-400">({{ pirep.multiplier }}x)</span>
             </div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="font-semibold">{{ formatFlightTime(pirep.computed_flight_time) }}</div>
           </td>
           <td class="px-6 py-4">
             <div class="font-semibold">{{ pirep.distance }} NM</div>
