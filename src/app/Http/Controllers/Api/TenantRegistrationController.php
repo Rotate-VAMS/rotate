@@ -51,6 +51,23 @@ class TenantRegistrationController extends Controller
         return response()->json(['status' => 'success', 'available' => !$exists]);
     }
 
+    public function fetchDomain($tenantId)
+    {
+        $tenant = Tenant::find($tenantId);
+        if (!$tenant) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Tenant not found.',
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success', 
+            'message' => 'Tenant fetched successfully.',
+            'domain' => $tenant->domain,
+        ]);
+    }
+
     /**
      * Send welcome email to the admin user after successful registration
      */
