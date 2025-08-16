@@ -47,7 +47,7 @@ return [
 
     'razorpay' => [
         'key_id' => env('RAZORPAY_KEY'),
-        'key_secret' => env('RAZROPAY_KEY_SECRET'),
+        'key_secret' => env('RAZORPAY_KEY_SECRET'),
         'usd_to_inr_rate' => env('USD_TO_INR_RATE', 83),
     ],
 ];
