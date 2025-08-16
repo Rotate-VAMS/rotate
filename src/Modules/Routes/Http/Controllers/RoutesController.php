@@ -228,4 +228,29 @@ class RoutesController extends Controller
         $exporter = new RotateRoutesExporter();
         return $exporter->export();
     }
+
+    public function jxCheckRouteRankForPirep(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'route_id' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $validator->errors()->first();
+            return response()->json($this->errorBag);
+        }
+
+        $route = Route::find($request->route_id);
+        $routeMinRank = Rank::find($route->min_rank_id);
+
+        if (Auth::user()->flying_hours/60 < $routeMinRank->min_hours) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = 'You have not achieved the minimum rank of the route';
+            return response()->json($this->errorBag);
+        }
+        return response()->json([
+            'hasErrors' => false,
+            'message' => 'Route rank is valid'
+        ]);
+    }
 }

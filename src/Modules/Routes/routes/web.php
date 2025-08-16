@@ -13,5 +13,6 @@ Route::middleware(['auth', 'verified', 'pilot.active'])->group(function () {
         Route::get('/jxGetRouteCustomFields', 'jxGetRouteCustomFields')->name('routes.jxGetRouteCustomFields');
         Route::post('/jxImportRoutes', 'jxImportRoutes')->name('routes.jxImportRoutes');
         Route::get('/jxExportRoutes', 'jxExportRoutes')->name('routes.jxExportRoutes');
+        Route::post('/jxCheckRouteRankForPirep', 'jxCheckRouteRankForPirep')->name('routes.jxCheckRouteRankForPirep');
     });
 });

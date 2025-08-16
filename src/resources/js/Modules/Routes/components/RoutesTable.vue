@@ -124,7 +124,7 @@
                 >
                   {{ customField.field_name }}
                 </th>
-                <th class="px-4 sm:px-6 py-3 whitespace-nowrap" v-if="user.permissions.includes('edit-route') || user.permissions.includes('delete-route')">Actions</th>
+                <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -176,7 +176,7 @@
                     {{ getCustomFieldValue(route, customField.field_key) }}
                   </div>
                 </td>
-                <td class="px-4 sm:px-6 py-4 whitespace-nowrap" v-if="user.permissions.includes('edit-route') || user.permissions.includes('delete-route')">
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
                   <RoutesHamburger 
                     :route="route"
                     @edit="editRoute"
@@ -585,8 +585,14 @@ const fetchRoutes = async () => {
   }
 }
 
-const createPirep = (route) => {
-  window.dispatchEvent(new CustomEvent('create-pirep', { detail: route }))
+const createPirep = async (route) => {
+  const response = await RotateDataService('/routes/jxCheckRouteRankForPirep', { route_id: route.id })
+  if (response.hasErrors) {
+    showToast(response.message || 'Error occurred', 'error')
+    return;
+  } else {
+    window.dispatchEvent(new CustomEvent('create-pirep', { detail: route }))
+  }
 }
 
 // Action handlers
