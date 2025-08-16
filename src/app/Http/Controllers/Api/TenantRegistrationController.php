@@ -36,7 +36,7 @@ class TenantRegistrationController extends Controller
         $tenant = Tenant::where('domain', $data['domain'])->first();
         
         // Send welcome email
-        $this->sendWelcomeEmail($tenant, $data['admin_email'], $data['admin_password']);
+        // $this->sendWelcomeEmail($tenant, $data['admin_email'], $data['admin_password']);
 
         return response()->json([
             'status' => 'success', 
