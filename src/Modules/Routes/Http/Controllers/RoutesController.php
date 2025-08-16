@@ -205,6 +205,18 @@ class RoutesController extends Controller
         $file = $request->file('file');
         $importer = new RotateRoutesImporter();
         $result = $importer->import($file);
+
+        if ($result['hasErrors']) {
+            $this->errorBag['hasErrors'] = true;
+            $this->errorBag['message'] = $result['message'];
+            return response()->json($this->errorBag);
+        }
+
+        tenant_cache_forget('routes:list:all');
+        tenant_cache_forget('routes:list:active');
+        tenant_cache_forget('routes:list:inactive');
+        tenant_cache_forget('routes:list:pireps');
+        
         return response()->json([
             'hasErrors' => $result['hasErrors'],
             'message' => $result['message'],

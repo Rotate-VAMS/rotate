@@ -56,7 +56,8 @@ class DashboardController extends Controller
             $event->participants = EventAttendance::where('event_id', $event->id)->count() ?? 0;
         }
 
-        $upcomingRank = Rank::whereNot('id', $user->rank_id)->where('min_hours', '>', $user->flying_hours)->orderBy('id', 'asc')->first();
+        $upcomingRank = Rank::whereNot('id', $user->rank_id)->where('min_hours', '>', $user->flying_hours/60)->orderBy('id', 'asc')->first();
+
         if (isset($upcomingRank)) {
             $upcomingRank->caption = 'Coming up in ' . ($upcomingRank->min_hours - (User::find($user->id)->flying_hours % 60)) . ' hours';
         } else {

@@ -232,7 +232,7 @@
             >
               {{ customField.field_name }}
             </th>
-            <th class="px-4 sm:px-6 py-3 whitespace-nowrap" v-if="user.permissions.includes('edit-route') || user.permissions.includes('delete-route')">Actions</th>
+            <th class="px-4 sm:px-6 py-3 whitespace-nowrap">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -284,7 +284,7 @@
                 {{ getCustomFieldValue(route, customField.field_key) }}
               </div>
             </td>
-            <td class="px-4 sm:px-6 py-4 whitespace-nowrap" v-if="user.permissions.includes('edit-route') || user.permissions.includes('delete-route')">
+            <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
               <RoutesHamburger 
                 :route="route"
                 @edit="editRoute"

@@ -100,13 +100,13 @@ class LeaderboardController extends Controller
         $cacheKey = "leaderboard:user_data:{$view}";
         
         $leaderboardData = tenant_cache_remember($cacheKey, RotateConstants::SECONDS_IN_ONE_DAY, function () use ($view) {
-            $users = User::where('status', User::PILOT_STATUS_ACTIVE)->orderBy('points', 'desc')->get();
+            $users = User::where('status', User::PILOT_STATUS_ACTIVE)->get();
             $leaderboardData = [];
             
             foreach ($users as $user) {
                 $leaderboardData[$user->id] = [
                     'user_name' => $user->name,
-                    'points' => $user->points,
+                    'points' => (int) $user->points ?? 0,
                     'callsign' => $user->callsign,
                     'rank' => $user->rank ? Rank::find($user->rank_id)->name : 'Unknown',
                     'flying_hours' => $user->flying_hours,
@@ -115,9 +115,9 @@ class LeaderboardController extends Controller
             }
 
             if ($view === 'dashboard') {
-                return collect($leaderboardData)->sortByDesc('points')->take(10)->toArray();
+                return collect($leaderboardData)->sortByDesc('points')->take(10)->values()->toArray();
             } else {
-                return collect($leaderboardData)->sortByDesc('points')->toArray();
+                return collect($leaderboardData)->sortByDesc('points')->values()->toArray();
             }
         });
 
