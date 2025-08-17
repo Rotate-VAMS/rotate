@@ -31,11 +31,11 @@
         </div>
         <div>
             <strong style="color: #2d3748; display: block; margin-bottom: 5px;">Admin Email:</strong>
-            <span style="color: #4a5568;">{{ $adminUser->email }}</span>
+            <span style="color: #4a5568;">{{ $tenant->admin_email }}</span>
         </div>
         <div>
             <strong style="color: #2d3748; display: block; margin-bottom: 5px;">Admin Callsign:</strong>
-            <span style="color: #4a5568;">{{ $adminUser->callsign }}</span>
+            <span style="color: #4a5568;">{{ $tenant->admin_callsign }}</span>
         </div>
     </div>
 </div>
@@ -49,7 +49,7 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
         <div>
             <strong style="color: #2d3748; display: block; margin-bottom: 5px;">Email:</strong>
-            <span style="color: #4a5568; font-family: monospace; background: #f8f9fa; padding: 5px 10px; border-radius: 4px;">{{ $adminUser->email }}</span>
+            <span style="color: #4a5568; font-family: monospace; background: #f8f9fa; padding: 5px 10px; border-radius: 4px;">{{ $tenant->admin_email }}</span>
         </div>
         <div>
             <strong style="color: #2d3748; display: block; margin-bottom: 5px;">Password:</strong>
@@ -78,12 +78,12 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
         <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e2e8f0;">
             <div style="background: #667eea; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 20px; font-weight: bold;">📖</div>
-            <strong style="color: #2d3748; display: block; margin-bottom: 5px;">User Guide</strong>
+            <a href="http://rotate-vams.com/wiki" style="color: #2d3748; display: block; margin-bottom: 5px;">User Guide</a>
             <span style="color: #718096; font-size: 12px;">Complete feature overview</span>
         </div>
         <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e2e8f0;">
             <div style="background: #667eea; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 20px; font-weight: bold;">⚙</div>
-            <strong style="color: #2d3748; display: block; margin-bottom: 5px;">Admin Guide</strong>
+            <a href="http://rotate-vams.com/wiki" style="color: #2d3748; display: block; margin-bottom: 5px;">Admin Guide</a>
             <span style="color: #718096; font-size: 12px;">Configuration & settings</span>
         </div>
     </div>
@@ -118,7 +118,7 @@
         <div style="text-align: center;">
             <div style="background: #667eea; color: white; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 24px; font-weight: bold;">⚙</div>
             <strong style="color: #2d3748; display: block; margin-bottom: 5px;">Admin Panel</strong>
-            <a href="{{ $loginUrl }}/admin" style="color: #667eea; text-decoration: none; font-size: 14px;">Manage Settings</a>
+            <a href="{{ $loginUrl }}" style="color: #667eea; text-decoration: none; font-size: 14px;">Manage Settings</a>
         </div>
     </div>
 </div>
@@ -140,7 +140,7 @@
 </div>
 
 <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-    <p style="color: #4a5568; font-size: 14px; margin: 0;">Thank you for choosing <strong>{{ $tenant->name }}</strong>!</p>
+    <p style="color: #4a5568; font-size: 14px; margin: 0;">Thank you for choosing us!</p>
     <p style="color: #718096; font-size: 12px; margin: 5px 0 0 0;">Best regards, Rotate-VAMS Team</p>
 </div>
 

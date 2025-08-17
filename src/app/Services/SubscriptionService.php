@@ -4,8 +4,9 @@ namespace App\Services;
 
 use App\Models\Tenant;
 use Razorpay\Api\Api;
-use Illuminate\Support\Facades\Artisan;
 use App\Models\Payment;
+use App\Models\Notifications;
+use Illuminate\Support\Facades\Log;
 
 class SubscriptionService
 {
@@ -46,6 +47,12 @@ class SubscriptionService
     
         if ($paymentId) {
             Payment::where('payment_id', $paymentId)->update(['tenant_id' => $tenant->id]);
+        }
+
+        // Create a new notification
+        $notification = Notifications::createNotification($tenant->id, Notifications::NOTIFICATION_TYPE_PLAN_ACTIVATION);
+        if (!$notification) {
+            Log::error('Failed to create activation notification for tenant ' . $tenant->id . ' at ' . now());
         }
     }
 }

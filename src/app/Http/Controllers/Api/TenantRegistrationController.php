@@ -4,12 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
-use App\Mail\TenantRegistrationMail;
+use App\Models\Notifications;
 
 class TenantRegistrationController extends Controller
 {
@@ -34,10 +31,16 @@ class TenantRegistrationController extends Controller
 
         // Fetch the new tenant
         $tenant = Tenant::where('domain', $data['domain'])->first();
-        
-        // Send welcome email
-        // $this->sendWelcomeEmail($tenant, $data['admin_email'], $data['admin_password']);
 
+        // Create a new notification
+        $notification = Notifications::createNotification($tenant->id, Notifications::NOTIFICATION_TYPE_NEW_REGISTRATION);
+        if (!$notification) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Failed to create notification.',
+            ], 500);
+        }
+        
         return response()->json([
             'status' => 'success', 
             'message' => 'Tenant registered successfully.',
@@ -66,23 +69,5 @@ class TenantRegistrationController extends Controller
             'message' => 'Tenant fetched successfully.',
             'domain' => $tenant->domain,
         ]);
-    }
-
-    /**
-     * Send welcome email to the admin user after successful registration
-     */
-    private function sendWelcomeEmail(Tenant $tenant, string $adminEmail, string $adminPassword): void
-    {
-        $adminUser = User::where('tenant_id', $tenant->id)
-                        ->where('email', $adminEmail)
-                        ->first();
-
-        if ($adminUser) {
-            try {
-                Mail::to($adminUser->email)->send(new TenantRegistrationMail($tenant, $adminUser, $adminPassword));
-            } catch (\Exception $e) {
-                Log::error('Failed to send welcome email: ' . $e->getMessage());
-            }
-        }
     }
 }

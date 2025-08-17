@@ -9,6 +9,8 @@ use App\Models\Tenant;
 use function App\Helpers\tenant_cache_remember;
 use function App\Helpers\tenant_cache_forget;
 use App\Helpers\RotateConstants;
+use App\Models\Notifications;
+use Illuminate\Support\Facades\Log;
 
 class TenantPlanVerifier
 {
@@ -36,7 +38,13 @@ class TenantPlanVerifier
             $tenant->plan_valid_until = null;
             $tenant->plan_key = 'free';
             $tenant->save();
-            
+
+            // Create a new notification
+            $notification = Notifications::createNotification($tenant->id, Notifications::NOTIFICATION_TYPE_PLAN_EXPIRATION);
+            if (!$notification) {
+                Log::error('Failed to create expiry notification for tenant ' . $tenant->id . ' at ' . now());
+            }
+
             // Clear the cached plan data since it's now invalid
             tenant_cache_forget('tenant:plan_data');
         }

@@ -7,7 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Tenant;
 
-class TenantRegistrationMail extends Mailable
+class TenantPlanExpireMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -28,8 +28,8 @@ class TenantRegistrationMail extends Mailable
      */
     public function build(): self
     {
-        return $this->subject('Welcome to ' . $this->tenant->name . ' - Your Account is Ready!')
-                    ->markdown('emails.tenant-registration', [
+        return $this->subject('Your ' . $this->tenant->name . ' Rotate-VAMS plan is expired now!')
+                    ->markdown('emails.tenant-plan-expire', [
                         'tenant' => $this->tenant,
                         'loginUrl' => $this->loginUrl,
                     ]);
