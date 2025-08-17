@@ -152,34 +152,12 @@
                   </div>
                 </td>
                 <td class="px-4 sm:px-6 py-4 whitespace-nowrap" v-if="user.permissions.includes('edit-user') || user.permissions.includes('delete-user')">
-                  <div class="flex items-center gap-1 sm:gap-2">
-                    <button 
-                      v-if="user.permissions.includes('edit-user')"
-                      @click="editPilot(pilot)"
-                      class="text-blue-600 hover:text-blue-800 p-1 rounded"
-                      title="Edit Pilot"
-                    >
-                      <EditIcon class="w-4 h-4" />
-                    </button>
-                    <button 
-                      v-if="user.permissions.includes('delete-user')"
-                      @click="deletePilot(pilot)"
-                      class="text-red-600 hover:text-red-800 p-1 rounded"
-                      title="Delete Pilot"
-                    >
-                      <TrashIcon class="w-4 h-4" />
-                    </button>
-                    <button
-                      v-if="user.permissions.includes('edit-user')"
-                      @click="togglePilotStatus(pilot)"
-                      :class="pilot.status == '1' ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'"
-                      class="p-1 rounded"
-                      :title="pilot.status == '1' ? 'Deactivate Pilot' : 'Activate Pilot'"
-                    >
-                      <ShieldMinusIcon v-if="pilot.status == '1'" class="w-4 h-4" />
-                      <ShieldCheckIcon v-else class="w-4 h-4" />
-        </button>
-                  </div>
+                  <PilotActionsHamburger 
+                    :pilot="pilot"
+                    @edit="editPilot"
+                    @delete="deletePilot"
+                    @toggle-status="togglePilotStatus"
+                  />
                 </td>
               </tr>
             </tbody>
@@ -284,35 +262,13 @@
             </div>
           </td>
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap" v-if="user.permissions.includes('edit-user') || user.permissions.includes('delete-user')">
-              <div class="flex items-center gap-1 sm:gap-2">
-              <button 
-                v-if="user.permissions.includes('edit-user')"
-                @click="editPilot(pilot)"
-                class="text-blue-600 hover:text-blue-800 p-1 rounded"
-                title="Edit Pilot"
-              >
-                <EditIcon class="w-4 h-4" />
-              </button>
-              <button 
-                v-if="user.permissions.includes('delete-user') && user.id != pilot.id"
-                @click="deletePilot(pilot)"
-                class="text-red-600 hover:text-red-800 p-1 rounded"
-                title="Delete Pilot"
-              >
-                <TrashIcon class="w-4 h-4" />
-              </button>
-              <button
-                v-if="user.permissions.includes('edit-user') && user.id != pilot.id"
-                @click="togglePilotStatus(pilot)"
-                :class="pilot.status == '1' ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'"
-                class="p-1 rounded"
-                :title="pilot.status == '1' ? 'Deactivate Pilot' : 'Activate Pilot'"
-              >
-                <ShieldMinusIcon v-if="pilot.status == '1'" class="w-4 h-4" />
-                <ShieldCheckIcon v-else class="w-4 h-4" />
-              </button>
-            </div>
-          </td>
+              <PilotActionsHamburger 
+                :pilot="pilot"
+                @edit="editPilot"
+                @delete="deletePilot"
+                @toggle-status="togglePilotStatus"
+              />
+            </td>
         </tr>
       </tbody>
     </table>
@@ -322,10 +278,11 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FilterIcon, BadgeIcon, EditIcon, TrashIcon, ShieldCheckIcon, ShieldMinusIcon, ChevronDownIcon, ChevronRightIcon, UserIcon, ClockIcon, PlaneIcon, RouteIcon } from 'lucide-vue-next'
+import { FilterIcon, BadgeIcon, ChevronDownIcon, ChevronRightIcon, UserIcon, ClockIcon, PlaneIcon, RouteIcon } from 'lucide-vue-next'
 import rotateDataService from '@/rotate.js'
 import { usePage } from '@inertiajs/vue3';
 import { inject } from 'vue'
+import PilotActionsHamburger from './PilotActionsHamburger.vue'
 
 const showToast = inject('showToast');
 const page = usePage();

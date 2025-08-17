@@ -16,6 +16,7 @@ const page = usePage();
 const tenant = page.props.auth.tenant;
 const plan = page.props.auth.plan;
 const user = page.props.auth?.user || {};
+const version = page.props.auth.version;
 const showDropdown = ref(false);
 const logo = ref('');
 const logoDefault = ref(false);
@@ -188,7 +189,7 @@ const visitCheckout = () => {
 
     <!-- Footer -->
     <footer class="text-center text-xs sm:text-sm text-gray-500 py-3 sm:py-4 border-t mt-8 bg-white px-2">
-      © {{ new Date().getFullYear() }} Rotate. All rights reserved.
+      © {{ new Date().getFullYear() }} Rotate. All rights reserved. v{{ version }}
     </footer>
   </div>
 </template>

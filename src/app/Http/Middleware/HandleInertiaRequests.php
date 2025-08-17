@@ -53,6 +53,7 @@ class HandleInertiaRequests extends Middleware
                     : null,
                 'tenant' => fn () => app('currentTenant'),
                 'plan' => fn () => config('plans.' . app('currentTenant')->plan_key) ?? null,
+                'version' => fn () => config('app.version'),
             ],
             'csrf_token' => fn () => csrf_token(),
             'flash' => [
